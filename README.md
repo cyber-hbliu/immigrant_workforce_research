@@ -3,7 +3,7 @@ Philadelphia faces a critical turning point. After a decade of immigrant-driven 
 
 This language-based economic divide has created a geographic crisis. Maps reveal that immigrant concentration, linguistic isolation, and economic disadvantage cluster in the same neighborhoods—primarily Northeast and South Philadelphia—creating pockets where barriers compound rather than opportunities multiply. Our correlation analysis confirms that in these areas, unemployment and poverty are tightly linked (r = 0.65), trapping families in cycles of underemployment despite their credentials and ambitions. I recommend embedding ESL into high-demand occupational training and creating neighborhood-based “Language & Career Hubs.” This integrated strategy is designed to break the cycle of underemployment and poverty to make sure new Philadelphians can contribute their full potential to the city's growth.
 
-read the full research([!https://cyberhbl.com/immigrant-workforce])
+read the full research here: [!https://cyberhbl.com/immigrant-workforce])
 
 # Keytakeaways
 - Global Mosaic: The city’s immigrants are a diverse group, with 47% from Asia and 26% from Latin America. The top countries of origin are China (14%), India (7%), the Dominican Republic (7%), and Vietnam (6%).
