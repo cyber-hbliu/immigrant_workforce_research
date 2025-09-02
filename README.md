@@ -1,2 +1,18 @@
-# summary
-# keytakeaways
+# Summary
+Philadelphia faces a critical turning point. After a decade of immigrant-driven growth, the city's foreign-born population declined by 0.9% in 2023—the first drop in over ten years—even as national immigration rebounded.
+
+Drawing on 2019-2023 ACS PUMS data, our analysis reveals why this decline threatens the city's future and what can be done to reverse it. Philadelphia's 230,000 foreign-born residents—15% of the population—bring strong educational foundations, with 41% holding high school diplomas or bachelor's degrees. Yet a massive economic divide undermines their potential: immigrants who speak English "very well" earn $66,800 annually, while those who speak English "not at all" earn just $30,000—a staggering wage gap that exceeds income differences based on education, age, or country of origin.
+
+This language-based economic divide has created a geographic crisis. Maps reveal that immigrant concentration, linguistic isolation, and economic disadvantage cluster in the same neighborhoods—primarily Northeast and South Philadelphia—creating pockets where barriers compound rather than opportunities multiply. Our correlation analysis confirms that in these areas, unemployment and poverty are tightly linked (r = 0.65), trapping families in cycles of underemployment despite their credentials and ambitions.
+
+We recommend embedding ESL into high-demand occupational training and creating neighborhood-based “Language & Career Hubs.” This integrated strategy is designed to break the cycle of underemployment and poverty to make sure new Philadelphians can contribute their full potential to the city's growth.
+
+# Keytakeaways
+Global Mosaic: The city’s immigrants are a diverse group, with 47% from Asia and 26% from Latin America. The top countries of origin are China (14%), India (7%), the Dominican Republic (7%), and Vietnam (6%).
+
+The Education Ceiling: While 41% of foreign-born residents hold a high school diploma or bachelor's degree, only 10% have a master's and under 4% a doctorate, pointing to barriers in accessing advanced education and credential recognition.
+
+Language Barrier: English proficiency dictates financial success more than any other factor. Fluent speakers earn an average of $66,800, more than double the $30,000 earned by non-speakers, creating a stark divide in economic mobility.
+
+Geographic Concentration of Disadvantage: Linguistic isolation, unemployment, and poverty are not evenly distributed but are hyper-concentrated in the same immigrant hubs in Northeast and South Philadelphia, creating a neighborhood-level crisis.
+
