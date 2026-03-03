@@ -6,7 +6,7 @@ library(ggplot2)
 library(stringr)
 library(tigris)
 library(mapview)
-library(rnaturalearth)  # For the world shapefile
+library(rnaturalearth) 
 library(rnaturalearthdata)
 library(sf)
 library(RColorBrewer)
@@ -102,7 +102,7 @@ philly_immigrant_data <- philly_immigrant_data %>%
 print(philly_immigrant_data) 
 
 
-############Trend#######################
+##################################
 library(purrr)
 variables <- c(total_pop = "B05002_001E",
                foreign_born = "B05002_013E")
@@ -160,12 +160,8 @@ ggplot(philly_trend_long, aes(x = year, y = count)) +
 ggsave("0_foreignborn_change.png",height = 4, width = 10, units = "in")
 
 
-######################################### 
-#Define PUMS variables & pull data 
-######################################### 
-# We'll pull from 2023 ACS 1-year PUMS for Pennsylvania.
-# You can switch 'acs1' -> 'acs5' if you want 5-year data (bigger sample, but less current). 
-# The recode = TRUE option gives you more user-friendly labels for some variables. 
+######################################### PUMS variables & pull data 
+#2023 ACS 1-year PUMS for Pennsylvania.
 # dictionary: https://www2.census.gov/programs-surveys/acs/tech_docs/pums/data_dict/PUMS_Data_Dictionary_2023.pdf 
 # https://www.census.gov/naics/?58967?yearbck=2022 
 pums_vars <- c(   "AGEP",  # Age   
@@ -1155,13 +1151,10 @@ philly_pums_data <- philly_pums_data %>%
   )
 
 sector_2digit <- function(naicsp_code_vector) {
-  
-  # 1. Extract first two characters from each NAICSP code
-  #    (some codes are strings with letters, so use suppressWarnings on numeric conversion).
+ 
   first_two <- str_sub(naicsp_code_vector, 1, 2)
   num_first_two <- suppressWarnings(as.numeric(first_two))
   
-  # 2. Use case_when for a fully vectorized approach
   dplyr::case_when(
     naicsp_code_vector %in% c("bbbbbbbb", "999920") ~ "N/A or Unemployed",
     num_first_two == 11 ~ "Agriculture, Forestry, Fishing, Hunting",
@@ -1457,8 +1450,6 @@ ggplot(df_treemap,
   theme(legend.position = "top")
 ggsave("2_birthplace_treemap.png",height = 8, width = 10, units = "in")
 
-###########################################################
-#================Foreign born distribution ================
 ################# census analysis #########################
 
 variables <- c(
@@ -2415,38 +2406,16 @@ ggsave("7_median_earnings.png",height = 8, width = 10, units = "in")
 
 
 #======================save shp
-
-# At the end of your script, add these lines to save your spatial dataframes as shapefiles:
-
-# 1. Save the main Philadelphia data with foreign-born percentages and other indicators
 st_write(philly_data, "shapefiles/philly_foreignborn_data.shp", 
          driver = "ESRI Shapefile", delete_dsn = TRUE)
-
-# 2. Save the enhanced Philadelphia data with poverty and language isolation
 st_write(philly_data_enhanced, "shapefiles/philly_enhanced_data.shp", 
          driver = "ESRI Shapefile", delete_dsn = TRUE)
-
-# 3. Save the Philadelphia PUMAs with immigrant density data
 st_write(philly_pumas_joined, "shapefiles/philly_pumas_immigrants.shp", 
          driver = "ESRI Shapefile", delete_dsn = TRUE)
-
-# 4. Save the ESL locations
 st_write(esl, "shapefiles/esl_locations.shp", 
          driver = "ESRI Shapefile", delete_dsn = TRUE)
-
-# 5. Save the Philadelphia tracts with ESL accessibility (min_distance)
 st_write(philly_tracts, "shapefiles/philly_tracts_esl_access.shp", 
          driver = "ESRI Shapefile", delete_dsn = TRUE)
-
-# Optional: Create the directory first if it doesn't exist
 if (!dir.exists("shapefiles")) {
   dir.create("shapefiles")
 }
-
-# Print summary of what was saved
-cat("\n=== Shapefiles saved successfully ===\n")
-cat("1. philly_foreignborn_data.shp - Basic foreign-born population statistics\n")
-cat("2. philly_enhanced_data.shp - Enhanced data with poverty and language isolation\n")
-cat("3. philly_pumas_immigrants.shp - PUMA-level immigrant density\n")
-cat("4. esl_locations.shp - ESL program locations\n")
-cat("5. philly_tracts_esl_access.shp - Tracts with ESL accessibility metrics\n")
