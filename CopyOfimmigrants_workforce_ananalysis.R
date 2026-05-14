@@ -224,37 +224,37 @@ philly_trend$yoy_change <- c(NA,
 ) * 100
 
 print(philly_trend[, c("year", "foreign_bornE", "pct_foreign_born", "yoy_change")])
-
 # -----------------------------------------------------------------------------
 # Step 9. Chart 1 — population trend (saves PNG)
 # -----------------------------------------------------------------------------
-last_year_row <- philly_trend[philly_trend$year == max(philly_trend$year), ]
+# The 2023 dip is the only YoY decline in the series; 2024 rebounded.
+dip_year_row <- philly_trend[which.min(philly_trend$yoy_change), ]
 
 p1_trend <- ggplot(philly_trend, aes(x = year, y = foreign_bornE)) +
   geom_line(color = ink, linewidth = 0.7) +
-  geom_point(aes(color = year == max(year)), size = 3) +
+  geom_point(aes(color = year == dip_year_row$year), size = 3) +
   geom_text(aes(label = scales::comma(foreign_bornE)),
             vjust = -1.3, size = 3.0, color = gray_dark, family = "sans") +
   annotate("curve",
-           x = 2022.5, xend = last_year_row$year - 0.1,
-           y = last_year_row$foreign_bornE + 10000,
-           yend = last_year_row$foreign_bornE + 2500,
-           curvature = -0.3,
+           x = 2021.3, xend = dip_year_row$year - 0.1,
+           y = dip_year_row$foreign_bornE - 9000,
+           yend = dip_year_row$foreign_bornE - 2500,
+           curvature = 0.3,
            arrow = arrow(length = unit(2, "mm"), type = "closed"),
            color = accent_burgundy, linewidth = 0.4) +
   annotate("text",
-           x = 2022.5, y = last_year_row$foreign_bornE + 14000,
-           label = sprintf("First decline in a decade\n%.1f%% vs. prior year",
-                           last_year_row$yoy_change),
+           x = 2021.3, y = dip_year_row$foreign_bornE - 12500,
+           label = sprintf("Only YoY decline in the series\n%.1f%% in 2023, rebounding in 2024",
+                           dip_year_row$yoy_change),
            hjust = 1, size = 3.4, lineheight = 0.95,
            color = accent_burgundy, family = "sans", fontface = "bold") +
   scale_color_manual(values = c("TRUE" = accent_burgundy, "FALSE" = ink),
                      guide = "none") +
   scale_y_continuous(labels = scales::comma,
-                     expand = expansion(mult = c(0.05, 0.15))) +
+                     expand = expansion(mult = c(0.08, 0.12))) +
   scale_x_continuous(breaks = years_to_pull) +
   labs(
-    title    = "A decade of growth, then a 2024 reversal",
+    title    = "A decade of growth, with one dip in 2023",
     subtitle = "Philadelphia County foreign-born population, 2014-2024",
     x = NULL, y = NULL,
     caption  = "Source: U.S. Census Bureau, ACS 5-year estimates"
@@ -262,9 +262,7 @@ p1_trend <- ggplot(philly_trend, aes(x = year, y = foreign_bornE)) +
 
 print(p1_trend)
 ggsave("output/chart1_pop_trend.png", p1_trend,
-       width = 8, height = 6, dpi = 200, bg = paper)
-
-
+       width = 8, height = 5, dpi = 300, bg = paper)
 # -----------------------------------------------------------------------------
 # Step 10. Recode English proficiency
 # -----------------------------------------------------------------------------
@@ -394,11 +392,12 @@ p2_wage <- ggplot(wage_by_eng,
     x = NULL, y = NULL,
     caption = paste0("Source: ACS 5-year PUMS (2020-2024). N = ",
                      scales::comma(nrow(employed_fb)), ".")
-  )
+  ) +
+  coord_flip()
 
 print(p2_wage)
 ggsave("output/chart2_wage_by_eng.png", p2_wage,
-       width = 9, height = 5.5, dpi = 200, bg = paper)
+       width = 8, height = 4, dpi = 300)
 
 
 # -----------------------------------------------------------------------------
