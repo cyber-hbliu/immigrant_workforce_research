@@ -657,11 +657,9 @@ print(vip_data)
 # -----------------------------------------------------------------------------
 # Step 25. Chart 4 — variable importance (saves PNG)
 # -----------------------------------------------------------------------------
-vip_data$bar_color <- as.character(artsy["sage"])
-vip_data$bar_color[vip_data$Variable == "English proficiency"] <- accent_burgundy
-vip_data$bar_color[vip_data$Variable == "Education"]           <-
-  as.character(artsy["mustard"])
-
+vip_data <- vip_data %>%
+  arrange(Importance) %>%
+  mutate(bar_color = colorRampPalette(ramp_seq)(nrow(.)))
 p4_vip <- ggplot(vip_data,
                  aes(x = Importance, y = reorder(Variable, Importance),
                      fill = bar_color)) +
@@ -681,9 +679,7 @@ p4_vip <- ggplot(vip_data,
 
 print(p4_vip)
 ggsave("output/chart4_vip.png", p4_vip,
-       width = 9, height = 5.5, dpi = 200, bg = paper)
-
-
+       width = 8, height = 5, dpi = 300)
 # -----------------------------------------------------------------------------
 # Step 26. Manual partial dependence for English
 # -----------------------------------------------------------------------------
@@ -731,7 +727,7 @@ p5_pdp <- ggplot(pdp_results, aes(x = eng_factor, y = pred_wage_usd,
 
 print(p5_pdp)
 ggsave("output/chart5_pdp.png", p5_pdp,
-       width = 9, height = 5.5, dpi = 200, bg = paper)
+       width = 8, height = 5, dpi = 300)
 
 
 # -----------------------------------------------------------------------------
@@ -761,7 +757,6 @@ multi_tidy <- multi_tidy[multi_tidy$term != "(Intercept)", ]
 # Step 29. Multinomial logit results table (saves HTML)
 # -----------------------------------------------------------------------------
 multi_table <- multi_tidy %>%
-  filter(grepl("eng_factor|edu_collapsed", term)) %>%
   mutate(
     Variable = recode(term,
                       "eng_factorNot well"                = "English: Not well",
@@ -769,7 +764,15 @@ multi_table <- multi_tidy %>%
                       "eng_factorVery well"               = "English: Very well",
                       "edu_collapsedHS/GED"               = "Education: HS/GED",
                       "edu_collapsedSome college/Assoc."  = "Education: Some college",
-                      "edu_collapsedBachelor's+"          = "Education: Bachelor's+"
+                      "edu_collapsedBachelor's+"          = "Education: Bachelor's+",
+                      "age_num"                           = "Each year of age",
+                      "yrs_us"                            = "Each year in U.S.",
+                      "waob_labAsia"                      = "Origin: Asia",
+                      "waob_labEurope"                    = "Origin: Europe",
+                      "waob_labLatin America"             = "Origin: Latin America",
+                      "waob_labNorthern America"          = "Origin: Northern America",
+                      "waob_labOceania"                   = "Origin: Oceania",
+                      "SEX2"                              = "Sex: Female"
     ),
     Outcome = factor(y.level,
                      levels = c("Unemployed", "Not in LF"),
@@ -781,6 +784,7 @@ multi_table <- multi_tidy %>%
       p.value < 0.001 ~ "***",
       p.value < 0.01  ~ "**",
       p.value < 0.05  ~ "*",
+      p.value < 0.1   ~ ".",
       TRUE            ~ ""
     )
   ) %>%
@@ -790,31 +794,28 @@ multi_table <- multi_tidy %>%
 multi_gt <- multi_table %>%
   gt(groupname_col = "Outcome") %>%
   tab_header(
-    title    = "Multinomial logit: English and education effects on labor-force status",
-    subtitle = "Reference categories: English 'Not at all', Education '<HS'"
+    title    = "Multinomial logit: full results on labor-force status",
+    subtitle = "Reference: English 'Not at all', Education '<HS', Origin 'Africa', Sex 'Male'"
   ) %>%
   tab_source_note("Source: ACS 5-year PUMS (2020-2024), foreign-born ages 16-65.") %>%
-  tab_source_note("Significance: *** p<0.001, ** p<0.01, * p<0.05")
+  tab_source_note("Significance: *** p<0.001, ** p<0.01, * p<0.05, . p<0.1")
 
 print(multi_gt)
 gtsave(multi_gt, "output/table_multinomial.html")
 
-
 # -----------------------------------------------------------------------------
 # Step 30. Multi-model coefficient heatmap (saves PNG)
 # -----------------------------------------------------------------------------
-mincer_coef <- coef(mincer_fit)
 mincer_long <- data.frame(
-  term    = names(mincer_coef),
-  value   = as.numeric(mincer_coef),
+  term    = names(coef(mincer_fit)),
+  value   = as.numeric(coef(mincer_fit)),
   Outcome = "Wages (log)",
   stringsAsFactors = FALSE
 ) %>%
-  filter(grepl("eng_factor|edu_collapsed", term))
+  filter(term != "(Intercept)", term != "age_sq")
 
 multi_long <- tidy(multi_fit, conf.int = FALSE, exponentiate = FALSE) %>%
-  filter(term != "(Intercept)",
-         grepl("eng_factor|edu_collapsed", term)) %>%
+  filter(term != "(Intercept)") %>%
   mutate(Outcome = factor(y.level,
                           levels = c("Unemployed", "Not in LF"),
                           labels = c("Unemployment (log-OR)",
@@ -829,23 +830,42 @@ heat_df <- bind_rows(mincer_long, multi_long) %>%
                       "eng_factorVery well"               = "English: Very well",
                       "edu_collapsedHS/GED"               = "Education: HS/GED",
                       "edu_collapsedSome college/Assoc."  = "Education: Some college",
-                      "edu_collapsedBachelor's+"          = "Education: Bachelor's+"
+                      "edu_collapsedBachelor's+"          = "Education: Bachelor's+",
+                      "age_num"                           = "Each year of age",
+                      "yrs_us"                            = "Each year in U.S.",
+                      "waob_labAsia"                      = "Origin: Asia",
+                      "waob_labEurope"                    = "Origin: Europe",
+                      "waob_labLatin America"             = "Origin: Latin America",
+                      "waob_labNorthern America"          = "Origin: Northern America",
+                      "waob_labOceania"                   = "Origin: Oceania",
+                      "SEX2"                              = "Sex: Female"
     ),
-    Variable = factor(Variable, levels = c(
-      "Education: Bachelor's+",
-      "Education: Some college",
-      "Education: HS/GED",
-      "English: Very well",
+    Variable = factor(Variable, levels = rev(c(
+      "English: Not well",
       "English: Well",
-      "English: Not well"
-    )),
+      "English: Very well",
+      "Education: HS/GED",
+      "Education: Some college",
+      "Education: Bachelor's+",
+      "Each year of age",
+      "Each year in U.S.",
+      "Origin: Asia",
+      "Origin: Europe",
+      "Origin: Latin America",
+      "Origin: Northern America",
+      "Origin: Oceania",
+      "Sex: Female"
+    ))),
     plot_value = case_when(
       Outcome == "Wages (log)" ~ value,
-      TRUE                      ~ -value
+      TRUE                      ~ -value     # flip NILF/Unemp so burgundy = good
     )
   ) %>%
   group_by(Outcome) %>%
-  mutate(plot_value_std = plot_value / max(abs(plot_value), na.rm = TRUE)) %>%
+  mutate(
+    plot_value_std = plot_value / median(abs(plot_value), na.rm = TRUE),
+    plot_value_std = pmax(pmin(plot_value_std, 1), -1)   # clip outliers
+  ) %>%
   ungroup()
 
 p6_heatmap <- ggplot(heat_df, aes(x = Outcome, y = Variable,
@@ -856,7 +876,7 @@ p6_heatmap <- ggplot(heat_df, aes(x = Outcome, y = Variable,
       Outcome == "Wages (log)" ~ sprintf("%+.0f%%", (exp(value) - 1) * 100),
       TRUE                     ~ sprintf("OR %.2f", exp(value))
     )),
-    color = ink, size = 3.6, fontface = "bold"
+    color = ink, size = 3.4, fontface = "bold"
   ) +
   scale_fill_gradient2(
     low = accent_teal, mid = "#f4ead4", high = accent_burgundy,
@@ -870,13 +890,14 @@ p6_heatmap <- ggplot(heat_df, aes(x = Outcome, y = Variable,
     title    = "Multi-model summary: how each variable behaves across outcomes",
     subtitle = "Cells: Mincer % wage effect + multinomial logit odds ratios",
     x = NULL, y = NULL,
-    caption  = "Source: Mincer linear regression + multinomial logit."
+    caption  = paste0("Source: Mincer linear regression + multinomial logit. ",
+                      "Color clipped at ±1 to prevent Oceania/N. America ",
+                      "(tiny samples) from washing out the scale.")
   ) +
   theme(
     legend.position = "right",
     legend.title    = element_text(size = 9, color = gray_dark),
-    axis.text.x.top = element_text(hjust = 0.5, face = "bold",
-                                   color = ink),
+    axis.text.x.top = element_text(hjust = 0.5, face = "bold", color = ink),
     axis.text.y     = element_text(face = "bold", color = ink),
     panel.grid      = element_blank(),
     axis.line.x     = element_blank(),
@@ -885,9 +906,7 @@ p6_heatmap <- ggplot(heat_df, aes(x = Outcome, y = Variable,
 
 print(p6_heatmap)
 ggsave("output/chart6_model_heatmap.png", p6_heatmap,
-       width = 11, height = 6, dpi = 200, bg = paper)
-
-
+       width = 8, height = 8, dpi = 300)
 # -----------------------------------------------------------------------------
 # Step 31. Spatial weights (Queen contiguity)
 # -----------------------------------------------------------------------------
@@ -901,8 +920,6 @@ spatial_df <- st_make_valid(spatial_df)
 nb <- poly2nb(spatial_df, queen = TRUE)
 lw <- nb2listw(nb, style = "W", zero.policy = TRUE)
 cat("Tracts in spatial sample:", length(nb), "\n")
-cat("Avg neighbors per tract:", round(mean(card(nb)), 1), "\n")
-
 
 # -----------------------------------------------------------------------------
 # Step 32. Global Moran's I
@@ -942,58 +959,155 @@ spatial_df$cluster[spatial_df$p_val < 0.05 & x_scaled < 0 & lag_scaled > 0] <- "
 
 print(table(spatial_df$cluster))
 
-
 # -----------------------------------------------------------------------------
-# Step 34. Map 1 — foreign-born share static choropleth (saves PNG)
+# Step 34. Map 1 — three-panel spatial comparison (saves PNG)
 # -----------------------------------------------------------------------------
-spatial_df$fb_bin <- cut(
-  spatial_df$pct_foreign_born,
-  breaks = c(-0.1, 5, 10, 20, 35, 100),
-  labels = c("Under 5%", "5-10%", "10-20%", "20-35%", "Over 35%")
-)
-
-map1_fb <- ggplot(spatial_df) +
-  geom_sf(aes(fill = fb_bin), color = "white", linewidth = 0.15) +
-  scale_fill_manual(
-    values = c("Under 5%"   = "#fdf6ec",
-               "5-10%"      = "#f4d8b6",
-               "10-20%"     = "#e89c7a",
-               "20-35%"     = "#bc4838",
-               "Over 35%"   = "#5e1923"),
-    na.value = "#dddddd",
-    name = "% foreign-born"
-  ) +
-  labs(
-    title    = "Where Philadelphia's immigrants live",
-    subtitle = "Share of foreign-born population by census tract, 2020-2024",
-    caption  = "Source: ACS 5-year estimates"
-  ) +
-  theme_void(base_size = 11) +
+library(patchwork)
+philly_limit <- tigris::counties(state = "PA", cb = TRUE, year = acs_year) %>%
+  filter(NAME == "Philadelphia") %>%
+  st_transform(4326)
+# Build a reusable map theme to avoid repeating the theme block
+theme_map <- theme_void(base_size = 10) +
   theme(
     text             = element_text(family = "sans", color = gray_dark),
-    plot.title       = element_text(face = "bold", size = 15, color = ink,
-                                    margin = margin(b = 4)),
-    plot.subtitle    = element_text(size = 11, color = gray_mid,
-                                    margin = margin(b = 12)),
-    plot.caption     = element_text(size = 9, color = gray_mid, hjust = 0,
-                                    margin = margin(t = 12)),
-    legend.position  = "right",
-    legend.title     = element_text(size = 10, color = gray_dark),
-    legend.text      = element_text(size = 9, color = gray_dark),
-    plot.background  = element_rect(fill = paper, color = NA),
-    plot.margin      = margin(20, 24, 16, 20)
+    plot.title       = element_text(face = "bold", size = 11, color = ink,
+                                    margin = margin(b = 2)),
+    plot.subtitle    = element_text(size = 9, color = gray_mid,
+                                    margin = margin(b = 6)),
+    legend.position  = "bottom",
+    legend.title     = element_text(size = 8, color = gray_dark),
+    legend.text      = element_text(size = 7, color = gray_dark),
+    legend.key.height= unit(3, "mm"),
+    legend.key.width = unit(14, "mm"),
+    plot.margin      = margin(8, 8, 8, 8)
   )
 
-print(map1_fb)
-ggsave("output/map1_fb_share.png", map1_fb,
-       width = 9, height = 9, dpi = 200, bg = paper)
+# Panel A — foreign-born share (where they live)
+p_fb <- ggplot(spatial_df) +
+  geom_sf(aes(fill = pct_foreign_born), color = "white", linewidth = 0.1) +
+  geom_sf(data = philly_limit, fill = NA, color = "black", linewidth = 1) +
+  scale_fill_gradientn(
+    colors = ramp_seq, na.value = gray_light,
+    name = "% foreign-born",
+    labels = function(x) paste0(x, "%")
+  ) +
+  labs(title = "Where immigrants live",
+       subtitle = "Foreign-born population share") +
+  theme_map
+p_fb
+# Panel B — foreign-born poverty (where they struggle)
+p_pov <- ggplot(spatial_df) +
+  geom_sf(aes(fill = pct_poverty_fb), color = "white", linewidth = 0.1) +
+  geom_sf(data = philly_limit, fill = NA, color = "black", linewidth = 1) +
+  scale_fill_gradientn(
+    colors = ramp_seq, na.value = gray_light,
+    name = "% in poverty",
+    labels = function(x) paste0(x, "%")
+  ) +
+  labs(title = "Where they struggle",
+       subtitle = "Foreign-born poverty rate") +
+  theme_map
+p_pov
+# Panel C — linguistic isolation (where they can't get help)
+p_lang <- ggplot(spatial_df) +
+  geom_sf(aes(fill = pct_lang_isolated), color = "white", linewidth = 0.1) +
+  geom_sf(data = philly_limit, fill = NA, color = "black", linewidth = 1) +
+  scale_fill_gradientn(
+    colors = ramp_seq, na.value = gray_light,
+    name = "% lang. isolated",
+    labels = function(x) paste0(x, "%")
+  ) +
+  labs(title = "Where service access is hardest",
+       subtitle = "Linguistically isolated households") +
+  theme_map
+p_lang
+map1_panels <- plot_grid(p_fb, p_pov, p_lang, nrow = 1, align = "h")
+title_block <- ggdraw() +
+  draw_label("Three views of Philadelphia's immigrant geography",
+             fontface = "bold", size = 15, color = ink,
+             x = 0, hjust = 0) +
+  draw_label("Foreign-born settlement, poverty, and language access by census tract",
+             y = 0.3, size = 11, color = gray_mid,
+             x = 0, hjust = 0)
 
+caption_block <- ggdraw() +
+  draw_label(paste0("Source: ACS 5-year estimates (2020-2024). ",
+                    "Tracts in gray have insufficient data."),
+             size = 9, color = gray_mid, x = 0, hjust = 0)
 
+map1_panels <- plot_grid(
+  title_block, map1_panels, caption_block,
+  ncol = 1, rel_heights = c(0.10, 0.85, 0.05)
+)
+
+print(map1_panels)
+
+ggsave("output/map1_fb_three_panels.png", map1_panels,
+       width = 14, height = 6, dpi = 300)
+
+# -----------------------------------------------------------------------------
+# Step 34b. Moran scatterplot — the diagnostic behind LISA (saves PNG)
+# -----------------------------------------------------------------------------
+# Plots each tract's own poverty rate (x) against its neighbors' average
+# poverty rate (y). The slope IS Global Moran's I. The four quadrants
+# correspond to the LISA cluster categories.
+
+moran_scatter_df <- data.frame(
+  GEOID      = spatial_df$GEOID,
+  x_scaled   = x_scaled,
+  lag_scaled = lag_scaled,
+  cluster    = spatial_df$cluster
+)
+
+# Get the global Moran's I value for the slope annotation
+moran_I_value <- moran_pov$estimate[1]
+
+p_moran <- ggplot(moran_scatter_df,
+                  aes(x = x_scaled, y = lag_scaled, color = cluster)) +
+  geom_hline(yintercept = 0, color = gray_mid, linewidth = 0.3) +
+  geom_vline(xintercept = 0, color = gray_mid, linewidth = 0.3) +
+  geom_point(size = 2, alpha = 0.7) +
+  geom_smooth(aes(group = 1), method = "lm", se = FALSE,
+              color = ink, linewidth = 0.5, linetype = "dashed") +
+  scale_color_manual(values = c(
+    "High-High (hot spot)" = accent_burgundy,
+    "Low-Low (cold spot)"  = accent_teal,
+    "High-Low (outlier)"   = as.character(artsy["mustard"]),
+    "Low-High (outlier)"   = as.character(artsy["rose"]),
+    "Not significant"      = gray_light
+  )) +
+  annotate("text", x = 2.8, y = 2.8,
+           label = "Hot spot\n(high surrounded by high)",
+           hjust = 1, vjust = 1, size = 3,
+           color = accent_burgundy, fontface = "bold") +
+  annotate("text", x = -2.8, y = -2.8,
+           label = "Cold spot\n(low surrounded by low)",
+           hjust = 0, vjust = 0, size = 3,
+           color = accent_teal, fontface = "bold") +
+  annotate("text", x = 2.8, y = -2.8,
+           label = sprintf("Global Moran's I = %.3f\n(p < 0.001)", moran_I_value),
+           hjust = 1, vjust = 0, size = 3.2,
+           color = ink, fontface = "bold") +
+  labs(
+    title    = "Moran scatterplot — the diagnostic behind the cluster map",
+    subtitle = "Each tract's foreign-born poverty rate vs. its neighbors' average rate (z-scores)",
+    x = "This tract's poverty rate (standardized)",
+    y = "Neighbors' average poverty rate (standardized)",
+    caption  = paste0("Slope of dashed line = Global Moran's I. ",
+                      "Tracts in the top-right (hot spots) and bottom-left ",
+                      "(cold spots) drive the positive spatial autocorrelation.")
+  ) +
+  coord_equal()
+
+print(p_moran)
+ggsave("output/map_moran_scatter.png", p_moran,
+       width = 8, height = 8, dpi = 300)
 # -----------------------------------------------------------------------------
 # Step 35. Map 2 — LISA cluster static (saves PNG)
 # -----------------------------------------------------------------------------
 map2_lisa <- ggplot(spatial_df) +
   geom_sf(aes(fill = cluster), color = "white", linewidth = 0.15) +
+  geom_sf(data = philly_limit, fill = NA, color = "black", linewidth = 1) +
   scale_fill_manual(
     values = c(
       "High-High (hot spot)"  = accent_burgundy,
@@ -1022,62 +1136,12 @@ map2_lisa <- ggplot(spatial_df) +
     legend.position  = "right",
     legend.title     = element_text(size = 10, color = gray_dark),
     legend.text      = element_text(size = 9, color = gray_dark),
-    plot.background  = element_rect(fill = paper, color = NA),
     plot.margin      = margin(20, 24, 16, 20)
   )
 
 print(map2_lisa)
 ggsave("output/map2_lisa.png", map2_lisa,
-       width = 9, height = 9, dpi = 200, bg = paper)
-
-
-# -----------------------------------------------------------------------------
-# Step 36. Map 3 — interactive Leaflet LISA (saves standalone HTML)
-# -----------------------------------------------------------------------------
-pal_lisa <- colorFactor(
-  palette = c(accent_burgundy, accent_teal,
-              as.character(artsy["mustard"]),
-              as.character(artsy["rose"]),
-              "#dddddd"),
-  levels  = c("High-High (hot spot)", "Low-Low (cold spot)",
-              "High-Low (outlier)", "Low-High (outlier)",
-              "Not significant")
-)
-
-map_leaflet <- leaflet(spatial_df,
-                       options = leafletOptions(attributionControl = FALSE)) %>%
-  addProviderTiles(providers$CartoDB.PositronNoLabels) %>%
-  addPolygons(
-    fillColor   = ~pal_lisa(cluster),
-    fillOpacity = 0.82,
-    color       = "white", weight = 0.4,
-    label = ~lapply(paste0(
-      "<strong>Tract ", GEOID, "</strong><br>",
-      "Cluster: <strong>", cluster, "</strong><br>",
-      "FB poverty: ",
-      ifelse(is.na(pct_poverty_fb), "n/a",
-             paste0(round(pct_poverty_fb, 1), "%")), "<br>",
-      "FB share: ", round(pct_foreign_born, 1), "%<br>",
-      "Ling. isolation: ", round(pct_lang_isolated, 1), "%"
-    ), htmltools::HTML),
-    highlightOptions = highlightOptions(weight = 2, color = ink,
-                                        bringToFront = TRUE)
-  ) %>%
-  addProviderTiles(providers$CartoDB.PositronOnlyLabels,
-                   options = providerTileOptions(opacity = 0.55)) %>%
-  addLegend(
-    position = "bottomright",
-    pal = pal_lisa, values = ~cluster,
-    title = htmltools::HTML(paste0(
-      "<strong>LISA cluster</strong><br>",
-      "<span style='font-weight:400'>foreign-born poverty</span>"
-    )),
-    opacity = 0.9
-  )
-
-print(map_leaflet)
-saveWidget(map_leaflet, "output/map3_lisa_interactive.html",
-           selfcontained = TRUE)
+       width = 8, height = 9, dpi = 300)
 
 
 # -----------------------------------------------------------------------------
