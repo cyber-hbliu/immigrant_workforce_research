@@ -262,7 +262,7 @@ p1_trend <- ggplot(philly_trend, aes(x = year, y = foreign_bornE)) +
 
 print(p1_trend)
 ggsave("output/chart1_pop_trend.png", p1_trend,
-       width = 8, height = 5, dpi = 300, bg = paper)
+       width = 8, height = 5, dpi = 300)
 # -----------------------------------------------------------------------------
 # Step 10. Recode English proficiency
 # -----------------------------------------------------------------------------
@@ -365,13 +365,9 @@ wage_by_eng <- employed_fb %>%
     n_records = n(),
     .groups   = "drop"
   ) %>%
-  filter(!is.na(eng_factor))
-
-wage_by_eng$bar_color <- as.character(artsy["sage"])
-wage_by_eng$bar_color[wage_by_eng$eng_factor == "Very well"]  <-
-  as.character(artsy["burgundy"])
-wage_by_eng$bar_color[wage_by_eng$eng_factor == "Not at all"] <-
-  as.character(artsy["terracotta"])
+  filter(!is.na(eng_factor)) %>%
+  arrange(eng_factor) %>%
+  mutate(bar_color = ramp_seq[2:5])
 
 gap_dollars <- wage_by_eng$mean_wage[wage_by_eng$eng_factor == "Very well"] -
   wage_by_eng$mean_wage[wage_by_eng$eng_factor == "Not at all"]
@@ -380,11 +376,12 @@ p2_wage <- ggplot(wage_by_eng,
                   aes(x = eng_factor, y = mean_wage, fill = bar_color)) +
   geom_col(width = 0.62) +
   geom_text(aes(label = scales::dollar(round(mean_wage, -2))),
-            vjust = -0.6, size = 3.6, color = ink,
+            hjust = -0.15, size = 3.6, color = ink,
             family = "sans", fontface = "bold") +
   scale_fill_identity() +
   scale_y_continuous(labels = scales::dollar,
                      expand = expansion(mult = c(0.02, 0.18))) +
+  coord_flip() +
   labs(
     title = sprintf("The $%s raw language gap",
                     scales::comma(round(gap_dollars, -2))),
@@ -431,11 +428,10 @@ p_cor <- ggcorrplot(
     subtitle = "Pearson correlation, Philadelphia census tracts",
     caption  = "Source: ACS 5-year estimates (2020-2024)"
   ) +
-  theme(axis.text.x = element_text(angle = 30, hjust = 1))
-
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
 print(p_cor)
 ggsave("output/chart_correlation_heatmap.png", p_cor,
-       width = 9, height = 7, dpi = 200, bg = paper)
+       width = 8, height = 8, dpi = 300)
 
 
 # -----------------------------------------------------------------------------
@@ -533,7 +529,7 @@ p3_coef <- ggplot(coef_plot_df,
 
 print(p3_coef)
 ggsave("output/chart3_mincer_coefs.png", p3_coef,
-       width = 10, height = 6, dpi = 200, bg = paper)
+       width = 8, height = 7, dpi = 300)
 
 
 # -----------------------------------------------------------------------------
@@ -804,7 +800,7 @@ p6_heatmap <- ggplot(heat_df, aes(x = Outcome, y = Variable,
   theme(
     legend.position = "right",
     legend.title    = element_text(size = 9, color = gray_dark),
-    axis.text.x.top = element_text(angle = 0, hjust = 0.5, face = "bold",
+    axis.text.x.top = element_text(hjust = 0.5, face = "bold",
                                    color = ink),
     axis.text.y     = element_text(face = "bold", color = ink),
     panel.grid      = element_blank(),
