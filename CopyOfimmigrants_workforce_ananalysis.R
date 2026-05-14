@@ -531,7 +531,82 @@ print(p3_coef)
 ggsave("output/chart3_mincer_coefs.png", p3_coef,
        width = 8, height = 7, dpi = 300)
 
+# -----------------------------------------------------------------------------
+# Step 21b. Full Mincer coefficient plot (all variables, saves PNG)
+# -----------------------------------------------------------------------------
+coef_full_df <- mincer_tidy %>%
+  filter(term != "(Intercept)",
+         term != "age_sq") %>%   # age_sq is mechanical — drop for readability
+  mutate(
+    label = recode(term,
+                   "eng_factorNot well"                = "English: Not well",
+                   "eng_factorWell"                    = "English: Well",
+                   "eng_factorVery well"               = "English: Very well",
+                   "edu_collapsedHS/GED"               = "Education: HS/GED",
+                   "edu_collapsedSome college/Assoc."  = "Education: Some college",
+                   "edu_collapsedBachelor's+"          = "Education: Bachelor's+",
+                   "age_num"                           = "Each year of age",
+                   "yrs_us"                            = "Each year in U.S.",
+                   "waob_labAsia"                      = "Origin: Asia",
+                   "waob_labEurope"                    = "Origin: Europe",
+                   "waob_labLatin America"             = "Origin: Latin America",
+                   "waob_labNorthern America"          = "Origin: Northern America",
+                   "waob_labOceania"                   = "Origin: Oceania",
+                   "SEX2"                              = "Sex: Female"
+    ),
+    group = case_when(
+      grepl("English",   label) ~ "English",
+      grepl("Education", label) ~ "Education",
+      grepl("Origin",    label) ~ "Origin",
+      grepl("Sex",       label) ~ "Sex",
+      TRUE                      ~ "Age / time"
+    ),
+    # Significance asterisks
+    sig = case_when(
+      p.value < 0.001 ~ "***",
+      p.value < 0.01  ~ "**",
+      p.value < 0.05  ~ "*",
+      p.value < 0.1   ~ ".",
+      TRUE            ~ ""
+    )
+  ) %>%
+  arrange(pct_effect) %>%
+  mutate(label = factor(label, levels = label))
 
+p3b_coef_full <- ggplot(coef_full_df,
+                        aes(x = pct_effect, y = label, color = group)) +
+  geom_vline(xintercept = 0, color = gray_dark, linewidth = 0.5) +
+  geom_errorbarh(aes(xmin = pct_low, xmax = pct_high),
+                 height = 0, linewidth = 1) +
+  geom_point(size = 3.5) +
+  geom_text(aes(label = sprintf("%+.0f%% %s", pct_effect, sig)),
+            vjust = -0.9, size = 2.8, family = "sans", fontface = "bold",
+            show.legend = FALSE) +
+  scale_color_manual(values = c(
+    "English"    = accent_burgundy,
+    "Education"  = as.character(artsy["mustard"]),
+    "Origin"     = as.character(artsy["teal"]),
+    "Sex"        = as.character(artsy["rose"]),
+    "Age / time" = as.character(artsy["sage"])
+  )) +
+  scale_x_continuous(labels = function(x) paste0(x, "%"),
+                     expand = expansion(mult = c(0.08, 0.08))) +
+  labs(
+    title    = "Full Mincer regression: every coefficient",
+    subtitle = "% effect on annual wages, 95% confidence interval",
+    x = NULL, y = NULL,
+    caption  = paste0("Source: ACS 5-year PUMS (2020-2024). N = ",
+                      scales::comma(nrow(mincer_df)),
+                      ". Adj R² = ",
+                      round(summary(mincer_fit)$adj.r.squared, 3),
+                      ". Signif: *** p<0.001, ** p<0.01, * p<0.05, . p<0.1. ",
+                      "Reference: English 'Not at all', Education '<HS', ",
+                      "Origin 'Africa', Sex 'Male'. age_sq omitted.")
+  )
+
+print(p3b_coef_full)
+ggsave("output/chart3b_mincer_full.png", p3b_coef_full,
+       width = 8, height = 9, dpi = 300)
 # -----------------------------------------------------------------------------
 # Step 22. English × Education interaction test
 # -----------------------------------------------------------------------------
