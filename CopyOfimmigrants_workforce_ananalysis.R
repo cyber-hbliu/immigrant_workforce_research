@@ -599,7 +599,7 @@ p3b_coef_full <- ggplot(coef_full_df,
                       scales::comma(nrow(mincer_df)),
                       ". Adj R² = ",
                       round(summary(mincer_fit)$adj.r.squared, 3),
-                      ". Signif: *** p<0.001, ** p<0.01, * p<0.05, . p<0.1. ",
+                      ". Signif: *** p<0.001, ** p<0.01, * p<0.05, . p<0.1.\n",
                       "Reference: English 'Not at all', Education '<HS', ",
                       "Origin 'Africa', Sex 'Male'. age_sq omitted.")
   )
