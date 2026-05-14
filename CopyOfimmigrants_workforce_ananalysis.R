@@ -351,7 +351,81 @@ cat("Foreign-born records:", nrow(foreign_born), "\n")
 cat("Foreign-born weighted population:",
     scales::comma(sum(foreign_born$PWGTP)), "\n")
 
+# -----------------------------------------------------------------------------
+# Step 15b. Birthplace breakdown — where do Philadelphia's immigrants come from?
+# -----------------------------------------------------------------------------
+# POBP is the 3-digit place-of-birth code from PUMS. We already have it
+# collapsed to 8 world regions in waob_lab, but the country-level breakdown
+# is more informative for descriptive context.
 
+# Convert POBP codes to country labels using PUMS data dictionary mapping
+# (top sending countries to Philadelphia — abbreviated list, expand as needed)
+pobp_codes <- c(
+  "207" = "China",      "210" = "Hong Kong",  "215" = "Korea",
+  "217" = "India",      "240" = "Pakistan",   "242" = "Bangladesh",
+  "247" = "Vietnam",    "248" = "Cambodia",   "211" = "Indonesia",
+  "245" = "Philippines","203" = "Burma/Myanmar","209"= "Taiwan",
+  "138" = "Italy",      "148" = "Poland",     "150" = "Portugal",
+  "150" = "Russia",     "156" = "Ukraine",    "126" = "Ireland",
+  "120" = "United Kingdom", "127" = "Albania",
+  "303" = "Mexico",     "311" = "Belize",     "327" = "Honduras",
+  "328" = "Nicaragua",  "329" = "Panama",     "375" = "Dominican Republic",
+  "337" = "Cuba",       "379" = "Puerto Rico-related",
+  "316" = "El Salvador","317" = "Guatemala",
+  "338" = "Haiti",      "330" = "Jamaica",
+  "374" = "Colombia",   "390" = "Ecuador",    "393" = "Peru",  "381" = "Brazil",
+  "414" = "Cabo Verde", "421" = "Ethiopia",   "427" = "Ghana", "436" = "Liberia",
+  "440" = "Nigeria",    "444" = "Senegal",    "451" = "Egypt", "455" = "Sudan"
+)
+
+foreign_born$country_label <- pobp_codes[as.character(foreign_born$POBP)]
+foreign_born$country_label[is.na(foreign_born$country_label)] <- "Other"
+
+library(treemapify)
+
+# Compute share within each region for label sizing
+top_countries <- top_countries %>%
+  group_by(waob_lab) %>%
+  mutate(region_total = sum(weighted_pop)) %>%
+  ungroup() %>%
+  mutate(
+    pct = weighted_pop / sum(weighted_pop) * 100,
+    label = sprintf("%s\n%s (%.1f%%)",
+                    country_label,
+                    scales::comma(round(weighted_pop, -2)),
+                    pct)
+  )
+
+p_origins <- ggplot(top_countries,
+                    aes(area = weighted_pop,
+                        fill = waob_lab,
+                        label = label,
+                        subgroup = waob_lab)) +
+  geom_treemap(color = "white", linewidth = 2) +
+  geom_treemap_subgroup_border(color = "white", linewidth = 4) +
+  geom_treemap_text(color = "white", place = "centre",
+                    grow = FALSE, reflow = TRUE,
+                    family = "sans", fontface = "bold", size = 11) +
+  scale_fill_manual(values = region_colors, name = "World region") +
+  labs(
+    title    = "Where Philadelphia's immigrants come from",
+    subtitle = "Top 15 countries of birth, sized by weighted PUMS population, grouped by region",
+    caption  = paste0("Source: ACS 5-year PUMS (2020-2024). ",
+                      "N = ", scales::comma(nrow(foreign_born)),
+                      " foreign-born records.")
+  ) +
+  theme(
+    legend.position = "top",
+    panel.grid      = element_blank(),
+    axis.line.x     = element_blank(),
+    axis.ticks.x    = element_blank(),
+    axis.text       = element_blank(),
+    axis.title      = element_blank()
+  )
+
+print(p_origins)
+ggsave("output/chart_origin_treemap.png", p_origins,
+       width = 8, height = 8, dpi = 300)
 # -----------------------------------------------------------------------------
 # Step 16. Chart 2 — wage by English (saves PNG)
 # -----------------------------------------------------------------------------
@@ -960,6 +1034,54 @@ spatial_df$cluster[spatial_df$p_val < 0.05 & x_scaled < 0 & lag_scaled > 0] <- "
 print(table(spatial_df$cluster))
 
 # -----------------------------------------------------------------------------
+# Step 33. Local Moran's I (LISA) — four workforce-mobility indicators
+# -----------------------------------------------------------------------------
+# We compute LISA on four indicators that together capture workforce mobility:
+#   1. Foreign-born poverty rate
+#   2. Unemployment rate
+#   3. Foreign-born share (settlement)
+#   4. Linguistic isolation (service access barrier)
+
+# Helper to compute LISA on any column — keeps this loop tidy without
+# defining a custom function
+lisa_indicators <- c(
+  "pct_poverty_fb"     = "FB poverty rate",
+  "unemp_rate"         = "Unemployment rate",
+  "pct_foreign_born"   = "Foreign-born share",
+  "pct_lang_isolated"  = "Linguistic isolation"
+)
+
+# Build cluster columns one indicator at a time
+for (var in names(lisa_indicators)) {
+  vals <- spatial_df[[var]]
+  local_m <- localmoran(vals, lw, zero.policy = TRUE)
+  
+  v_scaled   <- as.numeric(scale(vals))
+  v_lag      <- lag.listw(lw, vals, zero.policy = TRUE)
+  v_lag_scl  <- as.numeric(scale(v_lag))
+  p_v        <- local_m[, "Pr(z != E(Ii))"]
+  
+  cluster_v <- rep("Not significant", length(vals))
+  cluster_v[p_v < 0.05 & v_scaled > 0 & v_lag_scl > 0] <- "High-High (hot spot)"
+  cluster_v[p_v < 0.05 & v_scaled < 0 & v_lag_scl < 0] <- "Low-Low (cold spot)"
+  cluster_v[p_v < 0.05 & v_scaled > 0 & v_lag_scl < 0] <- "High-Low (outlier)"
+  cluster_v[p_v < 0.05 & v_scaled < 0 & v_lag_scl > 0] <- "Low-High (outlier)"
+  
+  spatial_df[[paste0("cluster_", var)]] <- cluster_v
+}
+
+# Keep the original cluster column for Step 35 backward compatibility
+spatial_df$cluster <- spatial_df$cluster_pct_poverty_fb
+
+# Quick check
+print(table(spatial_df$cluster_pct_poverty_fb))
+print(table(spatial_df$cluster_unemp_rate))
+print(table(spatial_df$cluster_pct_foreign_born))
+print(table(spatial_df$cluster_pct_lang_isolated))
+
+
+
+# -----------------------------------------------------------------------------
 # Step 34. Map 1 — three-panel spatial comparison (saves PNG)
 # -----------------------------------------------------------------------------
 library(patchwork)
@@ -1143,7 +1265,69 @@ print(map2_lisa)
 ggsave("output/map2_lisa.png", map2_lisa,
        width = 8, height = 9, dpi = 300)
 
+# -----------------------------------------------------------------------------
+# Step 35b. Four-panel LISA comparison — workforce mobility geography
+# -----------------------------------------------------------------------------
+library(patchwork)
 
+# Long-format dataframe for facet-friendly plotting
+lisa_long <- bind_rows(
+  spatial_df %>% mutate(indicator = "FB poverty rate",
+                        cluster = cluster_pct_poverty_fb),
+  spatial_df %>% mutate(indicator = "Unemployment rate",
+                        cluster = cluster_unemp_rate),
+  spatial_df %>% mutate(indicator = "Foreign-born share",
+                        cluster = cluster_pct_foreign_born),
+  spatial_df %>% mutate(indicator = "Linguistic isolation",
+                        cluster = cluster_pct_lang_isolated)
+)
+
+lisa_long$indicator <- factor(lisa_long$indicator, levels = c(
+  "FB poverty rate", "Unemployment rate",
+  "Foreign-born share", "Linguistic isolation"
+))
+
+map_lisa_multi <- ggplot(lisa_long) +
+  geom_sf(aes(fill = cluster), color = "white", linewidth = 0.1) +
+  geom_sf(data = philly_limit, fill = NA, color = "black", linewidth = 1) +
+  facet_wrap(~ indicator, nrow = 1) +
+  scale_fill_manual(
+    values = c(
+      "High-High (hot spot)" = accent_burgundy,
+      "Low-Low (cold spot)"  = accent_teal,
+      "High-Low (outlier)"   = as.character(artsy["mustard"]),
+      "Low-High (outlier)"   = as.character(artsy["rose"]),
+      "Not significant"      = "#eeeeee"
+    ),
+    name = "LISA cluster"
+  ) +
+  labs(
+    title    = "Where workforce-mobility barriers cluster",
+    subtitle = "Local Moran's I (p < 0.05) for four indicators",
+    caption  = paste0("Source: ACS 5-year estimates (2020-2024). ",
+                      "Burgundy = hot spot (high values surrounded by high); ",
+                      "teal = cold spot (low values surrounded by low).")
+  ) +
+  theme_void(base_size = 10) +
+  theme(
+    text             = element_text(family = "sans", color = gray_dark),
+    plot.title       = element_text(face = "bold", size = 15, color = ink,
+                                    margin = margin(b = 4)),
+    plot.subtitle    = element_text(size = 11, color = gray_mid,
+                                    margin = margin(b = 12)),
+    plot.caption     = element_text(size = 9, color = gray_mid, hjust = 0,
+                                    margin = margin(t = 12)),
+    strip.text       = element_text(face = "bold", size = 10, color = ink,
+                                    margin = margin(b = 4)),
+    legend.position  = "bottom",
+    legend.title     = element_text(size = 9, color = gray_dark),
+    legend.text      = element_text(size = 8, color = gray_dark),
+    plot.margin      = margin(20, 24, 16, 20)
+  )
+
+print(map_lisa_multi)
+ggsave("output/map3_lisa_workforce_mobility.png", map_lisa_multi,
+       width = 16, height = 7, dpi = 300)
 # -----------------------------------------------------------------------------
 # Step 37. Spatial Lag Model
 # -----------------------------------------------------------------------------
