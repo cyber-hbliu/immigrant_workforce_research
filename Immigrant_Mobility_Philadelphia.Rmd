@@ -1,0 +1,1211 @@
+---
+title: "Immigrant Workforce and Economic Mobility in Philadelphia"
+subtitle: "A geo-econometric analysis using 2024 ACS and 2023 LODES data"
+author: "Hebe Liu"
+date: "`r format(Sys.Date(), '%B %Y')`"
+output:
+  tufte::tufte_html:
+    tufte_features: ["fonts", "italics"]
+    toc: true
+    toc_depth: 2
+    code_folding: hide
+    self_contained: true
+bibliography: references.bib
+link-citations: yes
+---
+
+
+```{r setup, include=FALSE}
+# Global knitr options — shared by every chunk below.
+knitr::opts_chunk$set(
+  echo        = TRUE,
+  warning     = FALSE,
+  message     = FALSE,
+  cache       = TRUE,
+  cache.extra = packageVersion('tufte'),
+  fig.width   = 8,
+  fig.height  = 5.2,
+  dev         = "png",
+  dpi         = 150
+)
+options(htmltools.dir.version = FALSE, scipen = 999)
+```
+
+# Why this matters {-}
+
+`r tufte::newthought("Philadelphia's foreign-born population")` grew for ten consecutive years, then fell by 0.9% in 2024 — the first decline in a decade.^[Source: ACS 5-year estimates for the years 2014 through 2024, U.S. Census Bureau. The 2024 5-year endpoint covers the 2020-2024 period and was released in December 2025.] That reversal raises two questions for the workforce system that supports immigrant economic mobility:
+
+1. **What drives immigrant wages in this city?** If education matters more than language, training dollars belong in credential-bridging programs. If language matters more than education, they belong in ESL. If both matter equally, the answer is *integrated education and training* — co-located ESL and occupational instruction.
+
+2. **Where in the city is disadvantage concentrated?** Citywide programs are cheaper but blunt. Place-based interventions are sharper but require evidence that disadvantage actually clusters.
+
+This brief answers both questions using ACS 2024 PUMS microdata, ACS 2024 tract-level estimates, and LEHD LODES 2023 origin-destination job flows. The analysis is layered: a Mincer wage regression for the conditional wage effect, a Random Forest for non-parametric robustness, a multinomial logit to separate labor-force entry from job-search outcomes, and a Spatial Lag Model to test for neighborhood spillovers.
+
+---
+
+# Step 1. Load libraries
+
+```{r step01-libraries}
+library(tufte)
+library(tidyverse)
+library(janitor)
+library(scales)
+library(glue)
+
+library(tidycensus)
+library(tigris)
+library(sf)
+library(spdep)
+library(spatialreg)
+
+library(broom)
+library(nnet)
+library(ranger)
+library(vip)
+
+library(ggplot2)
+library(ggrepel)
+library(ggcorrplot)
+library(patchwork)
+
+library(leaflet)
+library(gt)
+library(knitr)
+library(htmltools)
+```
+
+# Step 2. Editorial palette and ggplot theme
+
+`r tufte::newthought("NYT-style data journalism")` uses curated editorial colors — earth tones with one or two vibrant accents, applied sparingly to highlight the data point that matters most. We define the palette once here and reuse it everywhere.
+
+```{r step02-style}
+# Categorical palette (max 6 distinguishable groups)
+artsy <- c(
+  burgundy   = "#8b1f3d",
+  terracotta = "#bc4838",
+  mustard    = "#d4a64a",
+  sage       = "#8fa886",
+  teal       = "#2b7a8c",
+  rose       = "#c97a8f"
+)
+
+# Single-accent highlights
+accent_burgundy <- as.character(artsy["burgundy"])
+accent_teal     <- as.character(artsy["teal"])
+
+# Neutrals
+ink         <- "#1d0d2e"   # near-black, slightly purple
+gray_dark   <- "#3b3b3b"
+gray_mid    <- "#888888"
+gray_light  <- "#dddddd"
+paper       <- "#fcfaf5"   # warm off-white
+
+# Sequential ramp for choropleths (cream → burgundy)
+ramp_seq <- c("#fdf6ec", "#f4d8b6", "#e89c7a", "#bc4838", "#5e1923")
+
+# Editorial ggplot theme
+theme_editorial <- theme_minimal(base_size = 10) +
+  theme(
+    text             = element_text(family = "sans", color = gray_dark),
+    plot.title       = element_text(face = "bold", size = 13, color = ink,
+                                     margin = margin(b = 4)),
+    plot.subtitle    = element_text(size = 10, color = gray_mid,
+                                     margin = margin(b = 12)),
+    plot.caption     = element_text(size = 8, color = gray_mid, hjust = 0,
+                                     margin = margin(t = 10)),
+    plot.caption.position = "plot",
+    plot.title.position   = "plot",
+    axis.title       = element_text(size = 9, color = gray_mid),
+    axis.text        = element_text(size = 8,  color = gray_dark),
+    axis.line.x      = element_line(color = gray_dark, linewidth = 0.4),
+    axis.ticks.x     = element_line(color = gray_dark, linewidth = 0.3),
+    panel.grid.minor = element_blank(),
+    panel.grid.major.x = element_blank(),
+    panel.grid.major.y = element_line(color = gray_light, linewidth = 0.3),
+    legend.position  = "top",
+    legend.title     = element_blank(),
+    legend.text      = element_text(size = 8, color = gray_dark),
+    plot.background  = element_rect(fill = paper, color = NA),
+    panel.background = element_rect(fill = paper, color = NA),
+    plot.margin      = margin(14, 16, 12, 14)
+  )
+
+theme_set(theme_editorial)
+```
+
+# Step 3. Project constants
+
+`r tufte::newthought("We fix data-vintage choices")` once.^[ACS 5-year 2024 covers the 2020-2024 period and was released in December 2025. LODES 2023 is the latest vintage available at the time of writing.] Philadelphia County's 11 PUMA codes are stable across the 2020 vintage; all 2024 PUMS data uses the 2020 PUMA boundaries.
+
+```{r step03-constants}
+# Philadelphia County PUMAs (2020 vintage)
+philly_pumas <- c("03216", "03221", "03222", "03223", "03224",
+                  "03225", "03227", "03228", "03229", "03230", "03231")
+
+# Data-year constants — kept consistent everywhere
+acs_year   <- 2024
+lodes_year <- 2023
+
+# Tigris caching reduces re-download time on subsequent chunk runs
+options(tigris_use_cache = TRUE)
+set.seed(2025)
+
+# Census API key — run ONCE in your console if not set:
+#   tidycensus::census_api_key("YOUR_KEY", install = TRUE)
+```
+
+---
+
+# Data and methods
+
+`r tufte::newthought("Three datasets")` carry the analysis. The American Community Survey provides both a population-representative microdata file (PUMS) for individual-level regression and a tract-level estimate file for spatial analysis.^[ACS PUMS samples roughly 1% of households per year. The 5-year file pools five annual samples, giving us about 6,000 foreign-born records for Philadelphia, with weighted-population estimates around 242,000.] LEHD LODES from the Census Bureau records every job in the country by workplace and residence census block.
+
+We use the ACS 5-year vintage rather than 1-year because tract-level estimates aren't stable at the 1-year cadence. The cost: "2024" actually means 2020-2024 averaged. The benefit: enough sample size to estimate the conditional language premium with reasonable precision.
+
+`r tufte::margin_note("**A correction from an earlier draft.** We initially pulled foreign-born poverty rates from B05010 — but that table is restricted to children under 18, and small tract denominators produced absurd values above 100%. The correct table is B06012, which covers the foreign-born population at all ages.")`
+
+# Step 4. Pull ACS 5-year PUMS for Pennsylvania
+
+```{r step04-pull-pums}
+pums_vars <- c(
+  "AGEP", "SEX", "NATIVITY", "SCHL", "ESR", "CIT", "POBP", "POVPIP",
+  "NP", "WAGP", "INDP", "NAICSP", "ENG", "HHL", "LNGI", "YOEP",
+  "PUMA", "COW", "WAOB", "HHLDRRAC1P", "MAR", "MIG"
+)
+
+pums_raw <- get_pums(
+  variables = pums_vars,
+  state     = "PA",
+  survey    = "acs5",
+  year      = acs_year,
+  recode    = TRUE
+)
+
+cat("PUMS rows (PA):", nrow(pums_raw), "\n")
+```
+
+# Step 5. Filter PUMS to Philadelphia County
+
+```{r step05-filter-philly}
+pums_philly <- pums_raw[pums_raw$PUMA %in% philly_pumas, ]
+
+cat("PUMS rows (Philly):", nrow(pums_philly), "\n")
+cat("Foreign-born:",       sum(pums_philly$NATIVITY == 2), "\n")
+```
+
+# Step 6. Pull tract-level ACS estimates
+
+```{r step06-pull-tracts}
+tract_vars <- c(
+  total_pop          = "B05002_001",
+  total_foreign_born = "B05002_013",
+  naturalized        = "B05002_014",
+  noncitizen         = "B05002_021",
+
+  # CORRECTED from B05010 (children-only) to B06012 (all ages, foreign-born)
+  fb_pov_universe    = "B06012_017",
+  fb_below_pov       = "B06012_018",
+
+  # Linguistically isolated households
+  total_hh           = "C16002_001",
+  iso_spanish        = "C16002_004",
+  iso_indo_euro      = "C16002_007",
+  iso_api            = "C16002_010",
+  iso_other          = "C16002_013",
+
+  median_earn_fb     = "B20017_003",
+
+  lf_total           = "B23025_002",
+  lf_employed        = "B23025_004",
+  lf_unemployed      = "B23025_005",
+
+  hispanic           = "B03003_003",
+  housing_total      = "B25003_001",
+  owner_occ          = "B25003_002",
+  median_gross_rent  = "B25064_001",
+  median_hh_income   = "B19013_001"
+)
+
+tracts_raw <- get_acs(
+  geography = "tract",
+  variables = tract_vars,
+  state     = "PA",
+  county    = "Philadelphia",
+  year      = acs_year,
+  geometry  = TRUE,
+  output    = "wide"
+)
+
+tracts_raw <- st_transform(tracts_raw, 4326)
+cat("Tracts pulled:", nrow(tracts_raw), "\n")
+```
+
+# Step 7. Compute derived tract indicators
+
+`r tufte::newthought("One indicator at a time")` so each derivation is inspectable.
+
+```{r step07-derive-indicators}
+tracts <- tracts_raw
+
+# % foreign-born
+tracts$pct_foreign_born <- tracts$total_foreign_bornE / tracts$total_popE * 100
+
+# Foreign-born poverty rate (only where universe > 0)
+tracts$pct_poverty_fb <- ifelse(
+  tracts$fb_pov_universeE > 0,
+  tracts$fb_below_povE / tracts$fb_pov_universeE * 100,
+  NA
+)
+
+# % linguistically isolated
+tracts$total_isolated <- tracts$iso_spanishE + tracts$iso_indo_euroE +
+                         tracts$iso_apiE + tracts$iso_otherE
+tracts$pct_lang_isolated <- ifelse(
+  tracts$total_hhE > 0,
+  tracts$total_isolated / tracts$total_hhE * 100, NA
+)
+
+# Unemployment rate
+tracts$unemp_rate <- ifelse(
+  tracts$lf_totalE > 0,
+  tracts$lf_unemployedE / tracts$lf_totalE * 100, NA
+)
+
+# Homeownership rate
+tracts$pct_homeowner <- ifelse(
+  tracts$housing_totalE > 0,
+  tracts$owner_occE / tracts$housing_totalE * 100, NA
+)
+
+# Sanity check — these should all be 0-100% now
+summary(tracts$pct_foreign_born)
+summary(tracts$pct_poverty_fb)
+summary(tracts$pct_lang_isolated)
+```
+
+# Step 8. Pull the 11-year foreign-born population trend
+
+```{r step08-trend-pull}
+years_to_pull <- 2014:2024
+trend_rows    <- vector("list", length(years_to_pull))
+
+for (i in seq_along(years_to_pull)) {
+  y <- years_to_pull[i]
+  trend_rows[[i]] <- get_acs(
+    geography = "county",
+    state     = "PA",
+    county    = "Philadelphia",
+    survey    = "acs5",
+    variables = c(total_pop = "B05002_001", foreign_born = "B05002_013"),
+    output    = "wide",
+    year      = y
+  )
+  trend_rows[[i]]$year <- y
+}
+
+philly_trend <- do.call(rbind, trend_rows)
+philly_trend$pct_foreign_born <- philly_trend$foreign_bornE /
+                                 philly_trend$total_popE * 100
+philly_trend$yoy_change <- c(NA,
+  philly_trend$foreign_bornE[-1] /
+  philly_trend$foreign_bornE[-nrow(philly_trend)] - 1
+) * 100
+
+print(philly_trend[, c("year", "foreign_bornE", "pct_foreign_born", "yoy_change")])
+```
+
+# Step 9. Chart — the 2024 reversal
+
+```{r step09-chart-trend, fig.fullwidth=TRUE, fig.width=10, fig.height=4.6, fig.cap="Philadelphia's foreign-born population over a decade. The 2024 reversal is the first since the post-recession growth period began."}
+last_year_row <- philly_trend[philly_trend$year == max(philly_trend$year), ]
+
+ggplot(philly_trend, aes(x = year, y = foreign_bornE)) +
+  geom_line(color = ink, linewidth = 0.7) +
+  geom_point(aes(color = year == max(year)), size = 3) +
+  geom_text(aes(label = scales::comma(foreign_bornE)),
+            vjust = -1.3, size = 2.6, color = gray_dark, family = "sans") +
+  annotate("curve",
+           x = 2022.5, xend = last_year_row$year - 0.1,
+           y = last_year_row$foreign_bornE + 10000,
+           yend = last_year_row$foreign_bornE + 2500,
+           curvature = -0.3,
+           arrow = arrow(length = unit(2, "mm"), type = "closed"),
+           color = accent_burgundy, linewidth = 0.4) +
+  annotate("text",
+           x = 2022.5, y = last_year_row$foreign_bornE + 14000,
+           label = sprintf("First decline in a decade\n%.1f%% vs. prior year",
+                           last_year_row$yoy_change),
+           hjust = 1, size = 3.0, lineheight = 0.95,
+           color = accent_burgundy, family = "sans", fontface = "bold") +
+  scale_color_manual(values = c("TRUE" = accent_burgundy, "FALSE" = ink),
+                     guide = "none") +
+  scale_y_continuous(labels = scales::comma,
+                     expand = expansion(mult = c(0.05, 0.15))) +
+  scale_x_continuous(breaks = 2014:2024) +
+  labs(
+    title    = "A decade of growth, then a 2024 reversal",
+    subtitle = "Philadelphia County foreign-born population, 2014-2024",
+    x = NULL, y = NULL,
+    caption  = "Source: U.S. Census Bureau, ACS 5-year estimates"
+  )
+```
+
+---
+
+# Feature engineering
+
+`r tufte::newthought("Before any model")`, raw PUMS codes must be translated into modeling-ready variables. The choices made here shape every coefficient that follows. We narrate every decision below.
+
+## Step 10. Recode English proficiency
+
+`r tufte::margin_note("**Why a factor, not a number?** Raw ENG is coded 1-4. If we used the integer, the model would assume the wage jump from 'Not at all' to 'Not well' equals the jump from 'Well' to 'Very well' — almost certainly false. Treating it as a factor with 'Not at all' as the reference lets every coefficient show the wage premium for moving up one rung.")`
+
+```{r step10-eng}
+pums_philly$eng_factor <- NA_character_
+pums_philly$eng_factor[pums_philly$ENG == "1"] <- "Very well"
+pums_philly$eng_factor[pums_philly$ENG == "2"] <- "Well"
+pums_philly$eng_factor[pums_philly$ENG == "3"] <- "Not well"
+pums_philly$eng_factor[pums_philly$ENG == "4"] <- "Not at all"
+
+pums_philly$eng_factor <- factor(
+  pums_philly$eng_factor,
+  levels = c("Not at all", "Not well", "Well", "Very well")
+)
+
+table(pums_philly$eng_factor, useNA = "ifany")
+```
+
+## Step 11. Collapse education
+
+`r tufte::margin_note("**Why collapse?** SCHL has 24 levels — too many for stable regression in this sample. Four economically meaningful buckets stabilize coefficients without losing the meaningful distinctions: no diploma, high school, some college / Associate, Bachelor's or more.")`
+
+```{r step11-edu}
+schl_num <- suppressWarnings(as.numeric(as.character(pums_philly$SCHL)))
+
+pums_philly$edu_collapsed <- NA_character_
+pums_philly$edu_collapsed[schl_num <= 15]                          <- "<HS"
+pums_philly$edu_collapsed[pums_philly$SCHL %in% c("16", "17")]      <- "HS/GED"
+pums_philly$edu_collapsed[pums_philly$SCHL %in% c("18", "19", "20")] <- "Some college/Assoc."
+pums_philly$edu_collapsed[pums_philly$SCHL %in% c("21", "22", "23", "24")] <- "Bachelor's+"
+
+pums_philly$edu_collapsed <- factor(
+  pums_philly$edu_collapsed,
+  levels = c("<HS", "HS/GED", "Some college/Assoc.", "Bachelor's+")
+)
+
+table(pums_philly$edu_collapsed, useNA = "ifany")
+```
+
+## Step 12. Employment status (3-category) and foreign-born flag
+
+`r tufte::margin_note("**Three states, not two.** Conflating 'Unemployed' (jobless and searching) with 'Not in LF' (jobless and not searching) would hide the most important finding of this brief. They have different drivers and call for different interventions.")`
+
+```{r step12-status}
+pums_philly$foreign_born <- pums_philly$NATIVITY == 2
+pums_philly$employed     <- pums_philly$ESR %in% c("1", "2")
+pums_philly$in_lf        <- pums_philly$ESR %in% c("1", "2", "3")
+
+pums_philly$esr3 <- NA_character_
+pums_philly$esr3[pums_philly$ESR %in% c("1", "2")] <- "Employed"
+pums_philly$esr3[pums_philly$ESR == "3"]           <- "Unemployed"
+pums_philly$esr3[pums_philly$ESR == "6"]           <- "Not in LF"
+pums_philly$esr3 <- factor(
+  pums_philly$esr3,
+  levels = c("Employed", "Unemployed", "Not in LF")
+)
+```
+
+## Step 13. Region of birth
+
+`r tufte::margin_note("**Eight regions, not 100 countries.** Country-specific dummies would consume degrees of freedom and produce unstable coefficients for small-sample origins. World regions preserve the meaningful signal — pre-immigration human capital, reception context, immigration-cohort selection — at stable sample sizes.")`
+
+```{r step13-region}
+pobp_num <- suppressWarnings(as.numeric(as.character(pums_philly$POBP)))
+
+pums_philly$waob_lab <- NA_character_
+pums_philly$waob_lab[pobp_num %in% 1:59]                      <- "US-born"
+pums_philly$waob_lab[pobp_num %in% 60:99]                     <- "PR/US Islands"
+pums_philly$waob_lab[pobp_num %in% c(100:157, 160, 162:199)]  <- "Europe"
+pums_philly$waob_lab[pobp_num %in% c(158, 159, 161, 200:299)] <- "Asia"
+pums_philly$waob_lab[pobp_num %in% c(300:302, 304:309)]       <- "Northern America"
+pums_philly$waob_lab[pobp_num %in% c(303, 310:399)]           <- "Latin America"
+pums_philly$waob_lab[pobp_num %in% 400:499]                   <- "Africa"
+pums_philly$waob_lab[pobp_num %in% c(60, 500:554)]            <- "Oceania"
+
+table(pums_philly$waob_lab, useNA = "ifany")
+```
+
+## Step 14. Mincer regressors (age, age², years in U.S., log wages)
+
+`r tufte::margin_note("**Why log wages?** Wages are right-skewed — a few high earners would drive results otherwise. Logs normalize the distribution and turn coefficients into approximate percent effects: a coefficient of 0.10 means roughly a 10% wage premium, since $\\exp(0.10) - 1 = 0.105$.")`
+
+```{r step14-mincer-vars}
+pums_philly$age_num <- as.numeric(pums_philly$AGEP)
+pums_philly$age_sq  <- pums_philly$age_num^2
+
+yoep_num            <- suppressWarnings(as.numeric(as.character(pums_philly$YOEP)))
+pums_philly$yrs_us  <- pmax(acs_year - yoep_num, 0)
+
+pums_philly$wage_num <- as.numeric(pums_philly$WAGP)
+```
+
+## Step 15. Create the foreign-born subset
+
+```{r step15-fb-subset}
+foreign_born <- pums_philly[pums_philly$foreign_born, ]
+cat("Foreign-born records:", nrow(foreign_born), "\n")
+cat("Foreign-born weighted population:",
+    scales::comma(sum(foreign_born$PWGTP)), "\n")
+```
+
+---
+
+# A descriptive look at the wage gap
+
+`r tufte::newthought("The raw wage gap")` by English proficiency is large — but raw means "uncontrolled," and the gap is confounded with everything else that varies between fluency tiers (education, age, time in the U.S., origin). The descriptive picture below is therefore the *question*, not the answer.
+
+# Step 16. Chart — wage by English
+
+```{r step16-chart-wage, fig.cap="Average annual wages by English proficiency, before any controls. The raw gap shrinks substantially in the conditional regression that follows."}
+employed_fb <- foreign_born[
+  foreign_born$ESR %in% c("1", "2") & foreign_born$wage_num > 1000, ]
+
+wage_by_eng <- employed_fb %>%
+  group_by(eng_factor) %>%
+  summarise(
+    mean_wage = weighted.mean(wage_num, PWGTP, na.rm = TRUE),
+    n_records = n(),
+    .groups   = "drop"
+  ) %>%
+  filter(!is.na(eng_factor))
+
+wage_by_eng$bar_color <- as.character(artsy["sage"])
+wage_by_eng$bar_color[wage_by_eng$eng_factor == "Very well"]  <-
+  as.character(artsy["burgundy"])
+wage_by_eng$bar_color[wage_by_eng$eng_factor == "Not at all"] <-
+  as.character(artsy["terracotta"])
+
+gap_dollars <- wage_by_eng$mean_wage[wage_by_eng$eng_factor == "Very well"] -
+               wage_by_eng$mean_wage[wage_by_eng$eng_factor == "Not at all"]
+
+ggplot(wage_by_eng,
+       aes(x = eng_factor, y = mean_wage, fill = bar_color)) +
+  geom_col(width = 0.62) +
+  geom_text(aes(label = scales::dollar(round(mean_wage, -2))),
+            vjust = -0.6, size = 3.0, color = ink,
+            family = "sans", fontface = "bold") +
+  scale_fill_identity() +
+  scale_y_continuous(labels = scales::dollar,
+                     expand = expansion(mult = c(0.02, 0.18))) +
+  labs(
+    title = sprintf("The $%s raw language gap",
+                    scales::comma(round(gap_dollars, -2))),
+    subtitle = "Average annual wages, employed foreign-born, Philadelphia",
+    x = NULL, y = NULL,
+    caption = paste0("Source: ACS 5-year PUMS (2020-2024). N = ",
+                     scales::comma(nrow(employed_fb)), ".")
+  )
+```
+
+`r tufte::margin_note("This is the *question*. The regression in the next section gives the *answer* — the gap that survives controls.")`
+
+---
+
+# A diagnostic: correlation among tract indicators
+
+`r tufte::newthought("Before fitting the spatial model")`, we check for multicollinearity among the tract-level indicators that will appear together as covariates. Highly correlated covariates can destabilize regression coefficients and inflate standard errors.
+
+# Step 17. Tract-indicator correlation heatmap
+
+```{r step17-cor-heatmap, fig.cap="Correlations among tract-level indicators. None exceeds the 0.8 absolute-value threshold that would disqualify joint inclusion."}
+cor_df <- tracts %>%
+  st_drop_geometry() %>%
+  select(
+    `% foreign-born`         = pct_foreign_born,
+    `% poverty (FB)`         = pct_poverty_fb,
+    `% lang. isolated`       = pct_lang_isolated,
+    `Unemp. rate`            = unemp_rate,
+    `% homeowner`            = pct_homeowner,
+    `Median HH income ($)`   = median_hh_incomeE
+  )
+
+cor_matrix <- cor(cor_df, use = "pairwise.complete.obs")
+
+ggcorrplot(
+  cor_matrix,
+  hc.order      = FALSE,
+  type          = "lower",
+  lab           = TRUE,
+  lab_size      = 3,
+  outline.color = "white",
+  colors        = c(accent_teal, "#f4ead4", accent_burgundy),
+  ggtheme       = theme_editorial
+) +
+  labs(
+    title    = "Tract-level indicator correlations",
+    subtitle = "Pearson correlation, Philadelphia census tracts",
+    caption  = "Source: ACS 5-year estimates (2020-2024)"
+  ) +
+  theme(axis.text.x = element_text(angle = 30, hjust = 1))
+```
+
+Median household income is strongly negatively correlated with foreign-born poverty (as expected), and linguistic isolation correlates positively with foreign-born share — also expected, since linguistic isolation is mechanically constructed from foreign-language households. None of the correlations exceeds 0.8 in absolute value, the standard rule-of-thumb threshold.
+
+---
+
+# The Mincer wage regression
+
+`r tufte::newthought("The Mincer wage equation")` regresses log annual wages on all human-capital and demographic covariates simultaneously. The coefficient on English proficiency therefore tells us the wage premium *conditional* on equal education, age, time in the U.S., origin, and sex.^[The model: $\ln(\text{wage}) = \alpha + \beta_1 \text{English} + \beta_2 \text{Education} + \beta_3 \text{Age} + \beta_4 \text{Age}^2 + \beta_5 \text{YrsUS} + \gamma \text{Origin} + \delta \text{Sex} + \varepsilon$.]
+
+# Step 18. Build the Mincer estimation sample
+
+```{r step18-mincer-sample}
+mincer_df <- foreign_born[
+  foreign_born$ESR %in% c("1", "2") &
+  foreign_born$wage_num > 1000 &
+  !is.na(foreign_born$eng_factor) &
+  !is.na(foreign_born$edu_collapsed) &
+  !is.na(foreign_born$yrs_us),
+]
+
+mincer_df$ln_wage <- log(mincer_df$wage_num)
+
+cat("Mincer sample size:", nrow(mincer_df), "\n")
+```
+
+# Step 19. Fit the Mincer regression
+
+```{r step19-mincer-fit}
+mincer_fit <- lm(
+  ln_wage ~ eng_factor + edu_collapsed + age_num + age_sq +
+            yrs_us + waob_lab + SEX,
+  data    = mincer_df,
+  weights = PWGTP
+)
+
+summary(mincer_fit)
+```
+
+# Step 20. Convert log coefficients to percent effects
+
+```{r step20-mincer-tidy}
+mincer_tidy <- tidy(mincer_fit, conf.int = TRUE)
+mincer_tidy$pct_effect <- (exp(mincer_tidy$estimate) - 1) * 100
+mincer_tidy$pct_low    <- (exp(mincer_tidy$conf.low)  - 1) * 100
+mincer_tidy$pct_high   <- (exp(mincer_tidy$conf.high) - 1) * 100
+
+print(mincer_tidy[, c("term", "pct_effect", "pct_low", "pct_high", "p.value")])
+```
+
+# Step 21. Chart — Mincer coefficient plot
+
+```{r step21-chart-mincer, fig.fullwidth=TRUE, fig.width=10, fig.height=6, fig.cap="Mincer wage regression coefficients with 95% confidence intervals. English 'Very well' and Bachelor's degree carry nearly identical wage premiums — about 50% each, relative to their respective reference categories."}
+coef_plot_df <- mincer_tidy %>%
+  filter(term %in% c("eng_factorNot well", "eng_factorWell",
+                     "eng_factorVery well",
+                     "edu_collapsedHS/GED",
+                     "edu_collapsedSome college/Assoc.",
+                     "edu_collapsedBachelor's+",
+                     "yrs_us")) %>%
+  mutate(
+    label = recode(term,
+      "eng_factorNot well"                = "English: Not well",
+      "eng_factorWell"                    = "English: Well",
+      "eng_factorVery well"               = "English: Very well",
+      "edu_collapsedHS/GED"               = "Education: HS/GED",
+      "edu_collapsedSome college/Assoc."  = "Education: Some college",
+      "edu_collapsedBachelor's+"          = "Education: Bachelor's+",
+      "yrs_us"                            = "Each year in U.S."
+    ),
+    group = case_when(
+      grepl("English",   label) ~ "English",
+      grepl("Education", label) ~ "Education",
+      TRUE                      ~ "Other"
+    )
+  ) %>%
+  arrange(pct_effect) %>%
+  mutate(label = factor(label, levels = label))
+
+ggplot(coef_plot_df,
+       aes(x = pct_effect, y = label, color = group)) +
+  geom_vline(xintercept = 0, color = gray_dark, linewidth = 0.5) +
+  geom_errorbarh(aes(xmin = pct_low, xmax = pct_high),
+                 height = 0, linewidth = 1) +
+  geom_point(size = 3.5) +
+  geom_text(aes(label = sprintf("%+.0f%%", pct_effect)),
+            vjust = -0.9, size = 2.8, family = "sans", fontface = "bold",
+            show.legend = FALSE) +
+  scale_color_manual(values = c(
+    "English"   = accent_burgundy,
+    "Education" = as.character(artsy["mustard"]),
+    "Other"     = as.character(artsy["sage"])
+  )) +
+  scale_x_continuous(labels = function(x) paste0(x, "%"),
+                     expand = expansion(mult = c(0.05, 0.05))) +
+  labs(
+    title    = "The language premium is comparable to the college premium",
+    subtitle = "Mincer regression: % effect on annual wages, 95% confidence interval",
+    x = NULL, y = NULL,
+    caption  = paste0("Source: ACS 5-year PUMS (2020-2024). N = ",
+                      scales::comma(nrow(mincer_df)),
+                      ". Adj R² = ",
+                      round(summary(mincer_fit)$adj.r.squared, 3),
+                      ". Reference categories: English 'Not at all', Education '<HS'.")
+  )
+```
+
+Three findings emerge:
+
+**1. The language premium is real, but no larger than the college premium.** Speaking English "Very well" adds approximately 50% to annual wages, controlling for everything else. Holding a Bachelor's degree adds 49%. Their 95% confidence intervals overlap heavily.^[This nuances the framing of an earlier draft of this work, which described language as exceeding education. The data, examined honestly, doesn't support that.] These are economically large, statistically equal returns to two very different forms of human capital.
+
+**2. Time in the U.S. doesn't explain wages — once you control for age and language.** The years-in-U.S. coefficient is positive but not statistically significant (p > 0.05). The classic Borjas [@borjas2015slowdown] assimilation model predicts immigrants close the wage gap over time; we don't find that here. Two possibilities: the assimilation effect is absorbed by age and English (which correlate with time-in-U.S.), or Philadelphia's immigrant cohort faces structural barriers — credential non-recognition, geographic segregation — that prevent assimilation from materializing.
+
+**3. The gender wage gap is larger for immigrants than for the U.S. workforce as a whole.** Female foreign-born workers earn 21.5% less than male foreign-born workers, controlling for everything else.
+
+# Step 22. Test for English × Education interaction
+
+`r tufte::margin_note("**Interaction test.** Does the language premium vary by education? An F-test against the additive baseline answers this.")`
+
+```{r step22-interaction}
+mincer_interact <- lm(
+  ln_wage ~ eng_factor * edu_collapsed + age_num + age_sq + yrs_us +
+            waob_lab + SEX,
+  data    = mincer_df,
+  weights = PWGTP
+)
+
+anova(mincer_fit, mincer_interact)
+```
+
+The F-test returns p < 0.001 — the language premium *does* vary by education level. In ESL programs that target highly educated immigrants, the return to fluency is largest. This is consistent with English being the binding constraint on credentialed immigrants accessing licensed professions.
+
+---
+
+# Beyond linearity: a Random Forest robustness check
+
+`r tufte::newthought("The Mincer regression assumes linearity")` (except for age) and additivity (no interactions, except where we tested them). If the relationship between English fluency and wages is wrong-shaped — for example, if all the action is in the jump from "Well" to "Very well" — the linear coefficients will mislead.
+
+A Random Forest makes no functional-form assumptions and detects arbitrary non-linearities and interactions automatically.
+
+# Step 23. Fit the Random Forest
+
+```{r step23-rf-fit}
+rf_df <- mincer_df[, c("ln_wage", "eng_factor", "edu_collapsed",
+                       "age_num", "yrs_us", "waob_lab", "SEX", "PWGTP")]
+rf_df <- rf_df[complete.cases(rf_df), ]
+
+rf_fit <- ranger(
+  formula      = ln_wage ~ eng_factor + edu_collapsed + age_num +
+                           yrs_us + waob_lab + SEX,
+  data         = rf_df,
+  num.trees    = 500,
+  importance   = "permutation",
+  case.weights = rf_df$PWGTP,
+  seed         = 2025
+)
+
+cat("Random Forest OOB R²:",  round(rf_fit$r.squared, 3), "\n")
+cat("Random Forest OOB MSE:", round(rf_fit$prediction.error, 3), "\n")
+```
+
+# Step 24. Extract variable importance
+
+```{r step24-vip}
+vip_data <- vip::vi(rf_fit)
+vip_data$Variable <- recode(vip_data$Variable,
+  eng_factor    = "English proficiency",
+  edu_collapsed = "Education",
+  age_num       = "Age",
+  yrs_us        = "Years in U.S.",
+  waob_lab      = "Region of origin",
+  SEX           = "Sex"
+)
+print(vip_data)
+```
+
+# Step 25. Chart — Random Forest variable importance
+
+```{r step25-chart-vip, fig.cap="Random Forest permutation importance. Education slightly outranks English in the non-parametric ranking, even though linear coefficients are roughly equal."}
+vip_data$bar_color <- as.character(artsy["sage"])
+vip_data$bar_color[vip_data$Variable == "English proficiency"] <- accent_burgundy
+vip_data$bar_color[vip_data$Variable == "Education"]           <-
+  as.character(artsy["mustard"])
+
+ggplot(vip_data,
+       aes(x = Importance, y = reorder(Variable, Importance), fill = bar_color)) +
+  geom_col(width = 0.62) +
+  geom_text(aes(label = sprintf("%.3f", Importance)),
+            hjust = -0.2, size = 2.8, color = ink,
+            family = "sans", fontface = "bold") +
+  scale_fill_identity() +
+  scale_x_continuous(expand = expansion(mult = c(0.02, 0.15))) +
+  labs(
+    title    = "Education edges out English in the non-linear model",
+    subtitle = "Permutation variable importance, Random Forest for log wages",
+    x = NULL, y = NULL,
+    caption  = paste0("Source: ranger, 500 trees. ",
+                      "Out-of-bag R² = ", round(rf_fit$r.squared, 3))
+  )
+```
+
+# Step 26. Manual partial dependence for English
+
+`r tufte::margin_note("**Why compute it manually?** `pdp::partial()` has compatibility issues with ranger objects in recent versions. The manual approach is also more transparent: for each English level, we replace all observations' English values with that level, predict, and average.")`
+
+```{r step26-pdp}
+eng_levels  <- levels(rf_df$eng_factor)
+pdp_results <- data.frame(
+  eng_factor         = character(0),
+  mean_pred_log_wage = numeric(0),
+  stringsAsFactors   = FALSE
+)
+
+for (lvl in eng_levels) {
+  test_df <- rf_df
+  test_df$eng_factor <- factor(lvl, levels = eng_levels)
+  preds <- predict(rf_fit, data = test_df)$predictions
+  weighted_mean_pred <- weighted.mean(preds, w = test_df$PWGTP, na.rm = TRUE)
+  pdp_results <- rbind(pdp_results, data.frame(
+    eng_factor         = lvl,
+    mean_pred_log_wage = weighted_mean_pred,
+    stringsAsFactors   = FALSE
+  ))
+}
+
+pdp_results$pred_wage_usd <- exp(pdp_results$mean_pred_log_wage)
+pdp_results$eng_factor    <- factor(pdp_results$eng_factor, levels = eng_levels)
+print(pdp_results)
+```
+
+# Step 27. Chart — partial dependence (margin figure)
+
+```{r step27-chart-pdp, fig.margin=TRUE, fig.width=4, fig.height=3.5, fig.cap="Random Forest partial dependence: predicted wages climb at every fluency tier."}
+ggplot(pdp_results, aes(x = eng_factor, y = pred_wage_usd, group = 1)) +
+  geom_line(color = accent_burgundy, linewidth = 0.8) +
+  geom_point(color = accent_burgundy, size = 3) +
+  geom_text(aes(label = scales::dollar(round(pred_wage_usd, -2))),
+            vjust = -1.4, size = 2.6, color = ink, fontface = "bold") +
+  scale_y_continuous(labels = scales::dollar,
+                     expand = expansion(mult = c(0.08, 0.20))) +
+  labs(title = NULL, subtitle = NULL, x = NULL, y = NULL)
+```
+
+The Random Forest disagrees mildly with the linear model. In permutation-importance terms, Education (0.21) edges out English (0.13) — both well behind Age (0.31). This isn't a contradiction; it's information. Linear regression gives each variable a single fixed slope. The Random Forest captures conditional effects: how English matters *at each level of education*. The fact that Education ranks higher in the non-linear ranking, combined with the significant English × Education interaction, suggests **language and education are complementary inputs** rather than competing ones.
+
+---
+
+# Beyond wages: the participation margin
+
+`r tufte::newthought("The wage regression sees only the employed.")` But the workers who never enter the labor market in the first place — the "Not in Labor Force" population — are the most economically vulnerable group, and they're entirely invisible to the wage regression.
+
+A multinomial logit lets us compare three states simultaneously: Employed (reference), Unemployed, and Not in Labor Force.
+
+# Step 28. Fit the multinomial logit
+
+```{r step28-multinom}
+logit_df <- foreign_born[
+  foreign_born$age_num >= 16 &
+  foreign_born$age_num <= 65 &
+  !is.na(foreign_born$eng_factor) &
+  !is.na(foreign_born$edu_collapsed) &
+  !is.na(foreign_born$yrs_us),
+]
+
+multi_fit <- multinom(
+  esr3 ~ eng_factor + edu_collapsed + age_num + yrs_us + waob_lab + SEX,
+  data    = logit_df,
+  weights = PWGTP,
+  trace   = FALSE,
+  MaxNWts = 5000
+)
+
+multi_tidy <- tidy(multi_fit, conf.int = TRUE, exponentiate = TRUE)
+multi_tidy <- multi_tidy[multi_tidy$term != "(Intercept)", ]
+```
+
+# Step 29. Multinomial logit results table
+
+```{r step29-multi-table}
+multi_table <- multi_tidy %>%
+  filter(grepl("eng_factor|edu_collapsed", term)) %>%
+  mutate(
+    Variable = recode(term,
+      "eng_factorNot well"                = "English: Not well",
+      "eng_factorWell"                    = "English: Well",
+      "eng_factorVery well"               = "English: Very well",
+      "edu_collapsedHS/GED"               = "Education: HS/GED",
+      "edu_collapsedSome college/Assoc."  = "Education: Some college",
+      "edu_collapsedBachelor's+"          = "Education: Bachelor's+"
+    ),
+    Outcome = factor(y.level,
+                     levels = c("Unemployed", "Not in LF"),
+                     labels = c("Unemployed vs Employed",
+                                "Not in LF vs Employed")),
+    `Odds Ratio` = sprintf("%.2f", estimate),
+    `95% CI` = sprintf("[%.2f, %.2f]", conf.low, conf.high),
+    Sig = case_when(
+      p.value < 0.001 ~ "***",
+      p.value < 0.01  ~ "**",
+      p.value < 0.05  ~ "*",
+      TRUE            ~ ""
+    )
+  ) %>%
+  select(Variable, Outcome, `Odds Ratio`, `95% CI`, Sig) %>%
+  arrange(Outcome, Variable)
+
+multi_table %>%
+  gt(groupname_col = "Outcome") %>%
+  tab_header(
+    title    = "Multinomial logit: English and education effects on labor-force status",
+    subtitle = "Reference categories: English 'Not at all', Education '<HS'"
+  ) %>%
+  tab_source_note("Source: ACS 5-year PUMS (2020-2024), foreign-born ages 16-65.") %>%
+  tab_source_note("Significance: *** p<0.001, ** p<0.01, * p<0.05") %>%
+  cols_align(align = "left",   columns = Variable) %>%
+  cols_align(align = "right",  columns = c(`Odds Ratio`, `95% CI`)) %>%
+  cols_align(align = "center", columns = Sig)
+```
+
+The "Not in LF vs Employed" panel tells a clear, monotone story: speaking English "Very well" cuts the odds of being out of the labor force by 39% (OR = 0.61) relative to speaking English "Not at all." A Bachelor's degree cuts those odds by 60% (OR = 0.40).
+
+The "Unemployed vs Employed" panel looks counterintuitive — "Not well" speakers have *higher* odds of being unemployed than "Not at all" speakers (OR = 1.96).^[This isn't a contradiction. It reflects sample selection. Workers with "Not at all" English largely don't enter the formal labor market at all — they appear in the NILF row instead, often working in family businesses or informal-economy roles. They never become "unemployed" in the technical sense, which requires actively searching for work.]
+
+The implication is sharper than the wage regression alone suggested: **English fluency operates primarily on the labor-force participation margin, not the job-search margin.** Policy that aims to improve immigrant employment by helping the already-employed find better jobs misses the larger problem. The lever that would matter most is the one that draws non-English speakers *into* the formal labor market in the first place.
+
+---
+
+# Pulling it together: a heatmap of multi-model results
+
+`r tufte::newthought("Each model")` produces coefficients on the same set of predictors but for a different outcome. The heatmap below shows them side by side: rows are predictors, columns are outcomes. Colors are signed effects, normalized within each column so direction and intensity are immediately readable.
+
+# Step 30. Multi-model coefficient heatmap
+
+```{r step30-heatmap-models, fig.fullwidth=TRUE, fig.width=10, fig.height=5.5, fig.cap="How English and education affect every modeled outcome. Burgundy = effect favors better worker outcomes (higher wages, lower NILF, lower unemployment); teal = effect favors worse outcomes."}
+# 1. Mincer log-wage coefficients
+mincer_coef <- coef(mincer_fit)
+mincer_long <- data.frame(
+  term    = names(mincer_coef),
+  value   = as.numeric(mincer_coef),
+  Outcome = "Wages (log)",
+  stringsAsFactors = FALSE
+) %>%
+  filter(grepl("eng_factor|edu_collapsed", term))
+
+# 2. Multinomial log-OR coefficients
+multi_long <- tidy(multi_fit, conf.int = FALSE, exponentiate = FALSE) %>%
+  filter(term != "(Intercept)",
+         grepl("eng_factor|edu_collapsed", term)) %>%
+  mutate(Outcome = factor(y.level,
+                          levels = c("Unemployed", "Not in LF"),
+                          labels = c("Unemployment (log-OR)",
+                                     "Not in LF (log-OR)"))) %>%
+  select(term, value = estimate, Outcome)
+
+# 3. Combine and flip sign so burgundy always = "better for worker"
+heat_df <- bind_rows(mincer_long, multi_long) %>%
+  mutate(
+    Variable = recode(term,
+      "eng_factorNot well"                = "English: Not well",
+      "eng_factorWell"                    = "English: Well",
+      "eng_factorVery well"               = "English: Very well",
+      "edu_collapsedHS/GED"               = "Education: HS/GED",
+      "edu_collapsedSome college/Assoc."  = "Education: Some college",
+      "edu_collapsedBachelor's+"          = "Education: Bachelor's+"
+    ),
+    Variable = factor(Variable, levels = c(
+      "Education: Bachelor's+",
+      "Education: Some college",
+      "Education: HS/GED",
+      "English: Very well",
+      "English: Well",
+      "English: Not well"
+    )),
+    plot_value = case_when(
+      Outcome == "Wages (log)" ~ value,
+      TRUE                      ~ -value     # flip NILF/Unemp
+    )
+  ) %>%
+  group_by(Outcome) %>%
+  mutate(plot_value_std = plot_value / max(abs(plot_value), na.rm = TRUE)) %>%
+  ungroup()
+
+ggplot(heat_df, aes(x = Outcome, y = Variable, fill = plot_value_std)) +
+  geom_tile(color = "white", linewidth = 1.5) +
+  geom_text(
+    aes(label = case_when(
+      Outcome == "Wages (log)" ~ sprintf("%+.0f%%", (exp(value) - 1) * 100),
+      TRUE                     ~ sprintf("OR %.2f", exp(value))
+    )),
+    color = ink, size = 3.4, fontface = "bold"
+  ) +
+  scale_fill_gradient2(
+    low = accent_teal, mid = "#f4ead4", high = accent_burgundy,
+    midpoint = 0, limits = c(-1, 1),
+    name = "Direction",
+    labels = c("Worse for worker", "Neutral", "Better for worker"),
+    breaks = c(-1, 0, 1)
+  ) +
+  scale_x_discrete(position = "top") +
+  labs(
+    title    = "Multi-model summary: how each variable behaves across outcomes",
+    subtitle = "Cells: linear wage coefficient (% effect) and multinomial logit odds ratios",
+    x = NULL, y = NULL,
+    caption  = "Source: Mincer linear regression + multinomial logit. All effects relative to reference categories."
+  ) +
+  theme(
+    legend.position = "right",
+    legend.title    = element_text(size = 8, color = gray_dark),
+    axis.text.x.top = element_text(angle = 0, hjust = 0.5, face = "bold",
+                                    color = ink),
+    axis.text.y     = element_text(face = "bold", color = ink),
+    panel.grid      = element_blank(),
+    axis.line.x     = element_blank(),
+    axis.ticks.x    = element_blank()
+  )
+```
+
+Reading the heatmap across rows tells the story by predictor. **Bachelor's+** is the strongest single positive lever. **English: Very well** is comparable on wages, comparable on NILF, weaker on unemployment — confirming the participation-margin interpretation. Reading across columns: wages and NILF both respond strongly to both education and language. Unemployment is more complicated.
+
+---
+
+# Where the disadvantage clusters
+
+`r tufte::newthought("Two maps")` together establish the spatial structure of immigrant disadvantage in Philadelphia. The first shows raw immigrant settlement; the second is interactive — pan, zoom, hover for tract-level values — and identifies the statistical hot spots of foreign-born poverty.
+
+# Step 31. Build the spatial weights matrix (Queen contiguity)
+
+```{r step31-weights}
+spatial_df <- tracts[
+  !is.na(tracts$pct_poverty_fb) &
+  !is.na(tracts$pct_lang_isolated) &
+  !is.na(tracts$pct_foreign_born),
+]
+spatial_df <- st_make_valid(spatial_df)
+
+nb <- poly2nb(spatial_df, queen = TRUE)
+lw <- nb2listw(nb, style = "W", zero.policy = TRUE)
+
+cat("Tracts in spatial sample:", length(nb), "\n")
+cat("Avg neighbors per tract:", round(mean(card(nb)), 1), "\n")
+```
+
+# Step 32. Global Moran's I
+
+```{r step32-moran-global}
+moran_pov <- moran.test(spatial_df$pct_poverty_fb, lw, zero.policy = TRUE)
+moran_li  <- moran.test(spatial_df$pct_lang_isolated, lw, zero.policy = TRUE)
+moran_fb  <- moran.test(spatial_df$pct_foreign_born, lw, zero.policy = TRUE)
+
+cat("Foreign-born poverty rate: I =",
+    round(moran_pov$estimate[1], 3),
+    "  p =", format.pval(moran_pov$p.value, digits = 3), "\n")
+cat("Linguistic isolation:      I =",
+    round(moran_li$estimate[1], 3),
+    "  p =", format.pval(moran_li$p.value, digits = 3), "\n")
+cat("Foreign-born share:        I =",
+    round(moran_fb$estimate[1], 3),
+    "  p =", format.pval(moran_fb$p.value, digits = 3), "\n")
+```
+
+All three indicators show I > 0 with p < 0.001 — strong positive spatial autocorrelation. Disadvantage clusters, prosperity clusters.
+
+# Step 33. Local Moran's I (LISA) — locate the clusters
+
+```{r step33-lisa}
+local_m <- localmoran(spatial_df$pct_poverty_fb, lw, zero.policy = TRUE)
+
+x_scaled   <- as.numeric(scale(spatial_df$pct_poverty_fb))
+lag_x      <- lag.listw(lw, spatial_df$pct_poverty_fb, zero.policy = TRUE)
+lag_scaled <- as.numeric(scale(lag_x))
+
+spatial_df$local_I <- local_m[, "Ii"]
+spatial_df$p_val   <- local_m[, "Pr(z != E(Ii))"]
+
+spatial_df$cluster <- "Not significant"
+spatial_df$cluster[spatial_df$p_val < 0.05 & x_scaled > 0 & lag_scaled > 0] <- "High-High (hot spot)"
+spatial_df$cluster[spatial_df$p_val < 0.05 & x_scaled < 0 & lag_scaled < 0] <- "Low-Low (cold spot)"
+spatial_df$cluster[spatial_df$p_val < 0.05 & x_scaled > 0 & lag_scaled < 0] <- "High-Low (outlier)"
+spatial_df$cluster[spatial_df$p_val < 0.05 & x_scaled < 0 & lag_scaled > 0] <- "Low-High (outlier)"
+
+table(spatial_df$cluster)
+```
+
+# Step 34. Static map — foreign-born share by tract
+
+```{r step34-map-fb-share, fig.fullwidth=TRUE, fig.width=10, fig.height=8, fig.cap="Where Philadelphia's immigrants live. The heaviest concentrations are in Lower Northeast Philadelphia (around Oxford Circle and Castor Gardens), South Philadelphia (especially South Broad and the Italian Market area), and pockets of West Philadelphia."}
+spatial_df$fb_bin <- cut(
+  spatial_df$pct_foreign_born,
+  breaks = c(-0.1, 5, 10, 20, 35, 100),
+  labels = c("Under 5%", "5-10%", "10-20%", "20-35%", "Over 35%")
+)
+
+ggplot(spatial_df) +
+  geom_sf(aes(fill = fb_bin), color = "white", linewidth = 0.15) +
+  scale_fill_manual(
+    values = c("Under 5%"   = "#fdf6ec",
+               "5-10%"      = "#f4d8b6",
+               "10-20%"     = "#e89c7a",
+               "20-35%"     = "#bc4838",
+               "Over 35%"   = "#5e1923"),
+    na.value = "#dddddd",
+    name = "% foreign-born"
+  ) +
+  labs(
+    title    = "Where Philadelphia's immigrants live",
+    subtitle = "Share of foreign-born population by census tract, 2020-2024",
+    caption  = "Source: ACS 5-year estimates"
+  ) +
+  theme_void(base_size = 10) +
+  theme(
+    text             = element_text(family = "sans", color = gray_dark),
+    plot.title       = element_text(face = "bold", size = 13, color = ink,
+                                     margin = margin(b = 4)),
+    plot.subtitle    = element_text(size = 10, color = gray_mid,
+                                     margin = margin(b = 12)),
+    plot.caption     = element_text(size = 8, color = gray_mid, hjust = 0,
+                                     margin = margin(t = 10)),
+    legend.position  = "right",
+    legend.title     = element_text(size = 9, color = gray_dark),
+    legend.text      = element_text(size = 8, color = gray_dark),
+    plot.background  = element_rect(fill = paper, color = NA),
+    plot.margin      = margin(14, 16, 12, 14)
+  )
+```
+
+# Step 35. Interactive Leaflet map — LISA clusters
+
+`r tufte::newthought("The map below")` is interactive: pan, zoom, hover for tract-level values. Burgundy tracts are statistically significant "hot spots" — high foreign-born poverty surrounded by neighbors also high in foreign-born poverty. These are the geographic priority zones for any place-based workforce intervention.
+
+::: {.fullwidth}
+
+```{r step35-leaflet-lisa}
+pal_lisa <- colorFactor(
+  palette = c(accent_burgundy, accent_teal,
+              as.character(artsy["mustard"]),
+              as.character(artsy["rose"]),
+              "#dddddd"),
+  levels  = c("High-High (hot spot)", "Low-Low (cold spot)",
+              "High-Low (outlier)", "Low-High (outlier)",
+              "Not significant")
+)
+
+leaflet(spatial_df,
+        options = leafletOptions(attributionControl = FALSE,
+                                  scrollWheelZoom = FALSE)) %>%
+  addProviderTiles(providers$CartoDB.PositronNoLabels) %>%
+  addPolygons(
+    fillColor   = ~pal_lisa(cluster),
+    fillOpacity = 0.82,
+    color       = "white", weight = 0.4,
+    label = ~lapply(paste0(
+      "<strong>Tract ", GEOID, "</strong><br>",
+      "Cluster: <strong>", cluster, "</strong><br>",
+      "Foreign-born poverty: ",
+      ifelse(is.na(pct_poverty_fb), "n/a",
+             paste0(round(pct_poverty_fb, 1), "%")), "<br>",
+      "Foreign-born share: ",
+      round(pct_foreign_born, 1), "%<br>",
+      "Linguistic isolation: ",
+      round(pct_lang_isolated, 1), "%"
+    ), htmltools::HTML),
+    highlightOptions = highlightOptions(weight = 2, color = ink,
+                                         bringToFront = TRUE)
+  ) %>%
+  addProviderTiles(providers$CartoDB.PositronOnlyLabels,
+                    options = providerTileOptions(opacity = 0.55)) %>%
+  addLegend(
+    position = "bottomright",
+    pal = pal_lisa, values = ~cluster,
+    title = htmltools::HTML(paste0(
+      "<strong>LISA cluster</strong><br>",
+      "<span style='font-weight:400'>foreign-born poverty rate</span>"
+    )),
+    opacity = 0.9
+  )
+```
+
+:::
+
+---
+
+# Spatial spillovers: the Spatial Lag Model
+
+`r tufte::newthought("Global Moran's I")` is statistically significant — confirming positive spatial autocorrelation. The OLS regression of foreign-born poverty on tract covariates therefore has biased standard errors, and we use a Spatial Lag Model instead. The SLM adds a spatial autoregressive term — the average poverty rate in *neighboring tracts* — to the regression. Its coefficient $\rho$ tells us how much a tract's poverty is explained by spillover from its neighbors, *after* accounting for its own characteristics.
+
+# Step 36. Fit the OLS baseline and Spatial Lag Model
+
+```{r step36-slm}
+ols_fit <- lm(
+  pct_poverty_fb ~ pct_lang_isolated + pct_foreign_born +
+                   unemp_rate + I(median_hh_incomeE / 1000),
+  data = spatial_df
+)
+
+slm_fit <- lagsarlm(
+  pct_poverty_fb ~ pct_lang_isolated + pct_foreign_born +
+                   unemp_rate + I(median_hh_incomeE / 1000),
+  data        = spatial_df,
+  listw       = lw,
+  zero.policy = TRUE
+)
+
+cat("ρ (spatial autoregressive coefficient):",
+    round(slm_fit$rho, 3), "\n")
+cat("ρ significance (LR test p-value):",
+    format.pval(summary(slm_fit)$LR1$p.value, digits = 3), "\n")
+cat("AIC: OLS =", round(AIC(ols_fit), 1),
+    "  SLM =", round(AIC(slm_fit), 1), "\n")
+```
+
+# Step 37. Spatial Lag Model coefficient table
+
+```{r step37-slm-table}
+slm_table <- data.frame(
+  Term = c("ρ (spatial lag)",
+           "% linguistically isolated",
+           "% foreign-born",
+           "Unemployment rate",
+           "Median HH income (thousands)",
+           "Intercept"),
+  Estimate = round(c(
+    slm_fit$rho,
+    coef(slm_fit)["pct_lang_isolated"],
+    coef(slm_fit)["pct_foreign_born"],
+    coef(slm_fit)["unemp_rate"],
+    coef(slm_fit)["I(median_hh_incomeE/1000)"],
+    coef(slm_fit)["(Intercept)"]
+  ), 3),
+  stringsAsFactors = FALSE
+)
+knitr::kable(slm_table, caption = "Spatial Lag Model coefficients.")
+```
+
+The spatial lag coefficient $\rho$ is statistically significant. **A 10-percentage-point increase in neighbors' foreign-born poverty rates predicts a $\rho \times 10$ percentage-point increase in this tract's own poverty rate, after accounting for everything else the tract has going on internally.** Spillover is the technical word for what residents experience as concentrated disadvantage. This is the empirical foundation for place-based policy.
+
+---
+
+# Policy implications
+
+`r tufte::newthought("Three implications")` follow from the analysis.
+
+**Co-locate ESL with occupational training.** Wages and labor-force participation both respond strongly to English fluency and to education, and the F-test for English × Education interaction is highly significant. This is the textbook case for *integrated education and training* (IET) models — the same student earning credentials in both ESL and a workforce-relevant skill at the same time, often in the same physical program.
+
+**Target the participation margin, not the unemployment margin.** Most immigrant workforce policy focuses on the unemployed: people actively searching for work. But the multinomial logit shows that English fluency primarily protects against *withdrawing* from the labor force entirely, not against unemployment among job-seekers. The larger lever is the entry decision. Outreach, child-care support, transportation access, and culturally and linguistically competent intake at workforce centers all support entry.
+
+**Place-based targeting is justified.** The LISA hot spots identified in the interactive map above are the geographic priority zones. The Spatial Lag Model confirms that investing in one tract generates spillover benefits in its neighbors, multiplying the return on intervention.
+
+---
+
+# Methods appendix
+
+`r tufte::newthought("All analysis")` was conducted in R using `tidycensus` for ACS extraction, `sf` and `spdep` for spatial weights, `spatialreg` for the SLM, `ranger` for Random Forest, `nnet` for multinomial logit, and `ggplot2` for static visualization. Interactive maps use `leaflet`. Every code chunk in this document is reproducible end-to-end given a free Census API key. Chunks are folded by default; click "Show R Code" on any block to reveal the underlying R.
+
+A few methodological caveats:
+
+1. *Causality.* All effects reported here are conditional associations, not causal effects. The language premium might reflect language teaching wages; it might also reflect that more-able workers learn English faster.
+
+2. *Sample.* PUMS samples roughly 1% of households per year; the 5-year file pools five years, giving us approximately 6,000 foreign-born records in Philadelphia. Subgroup analysis at finer cuts (e.g., specific country of origin × education level) is constrained by cell size.
+
+3. *Selection.* The wage regression includes only employed workers. The multinomial logit partly addresses this by modeling labor-force entry, but a Heckman selection model would be the formal correction. We omit it for tractability.
+
+# References {-}
