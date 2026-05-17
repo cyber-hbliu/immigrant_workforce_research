@@ -26,7 +26,7 @@ library(vip)
 library(ggplot2)
 library(ggrepel)
 library(ggcorrplot)
-library(patchwork)
+library(treemapify)
 
 library(leaflet)
 library(htmlwidgets)
@@ -36,25 +36,35 @@ library(htmltools)
 
 
 # -----------------------------------------------------------------------------
-# Step 2. Editorial palette and ggplot theme
+# Step 2. Editorial palette ("sesame cake" tones) and ggplot theme
 # -----------------------------------------------------------------------------
+# Variable names kept the same as the prior version for backward compatibility.
+# Hex codes come from the sesame-cake reference image: fig pink (warm alarm),
+# muscat green (cool/calm), blueberry (deep cool), mint, sesame gray.
+
 artsy <- c(
-  burgundy   = "#8b1f3d",
-  terracotta = "#bc4838",
-  mustard    = "#d4a64a",
-  sage       = "#8fa886",
-  teal       = "#2b7a8c",
-  rose       = "#c97a8f"
+  burgundy   = "#c98590",   # fig — primary alarm/accent
+  terracotta = "#7d7676",   # sesame gray
+  mustard    = "#c5d68a",   # muscat green — secondary accent
+  sage       = "#8fa56b",   # mint leaf
+  teal       = "#3a3f5e",   # blueberry — primary cool
+  rose       = "#c98590"    # fig (alias)
 )
 
-accent_burgundy <- as.character(artsy["burgundy"])
-accent_teal     <- as.character(artsy["teal"])
-ink         <- "#1c1a19"
+accent_burgundy <- as.character(artsy["burgundy"])   # fig
+accent_teal     <- as.character(artsy["teal"])       # blueberry
+
+ink         <- "#2a2522"   # oreo cookie black
 gray_dark   <- "#3b3b3b"
 gray_mid    <- "#888888"
 gray_light  <- "#dddddd"
-paper       <- "#fcfaf5"
-ramp_seq    <- c("#fdf6ec", "#f4d8b6", "#e89c7a", "#bc4838", "#5e1923")
+paper       <- "#f5f0e8"   # cream (kept for reference; not used as bg)
+
+# Sequential ramp — cream → fig (light → intense)
+ramp_seq <- c("#f5f0e8", "#ecd1d5", "#dca8b0", "#c98590", "#a86670")
+
+# Diverging ramp — fig ↔ cream ↔ muscat (high concerning ↔ low cool)
+ramp_div <- c("#c98590", "#dca8b0", "#f5f0e8", "#dde6b0", "#c5d68a")
 
 theme_editorial <- theme_minimal(base_size = 11) +
   theme(
@@ -81,6 +91,24 @@ theme_editorial <- theme_minimal(base_size = 11) +
   )
 theme_set(theme_editorial)
 
+# Reusable map theme — used by every standalone map below
+theme_map <- theme_void(base_size = 11) +
+  theme(
+    text             = element_text(family = "sans", color = gray_dark),
+    plot.title       = element_text(face = "bold", size = 15, color = ink,
+                                    margin = margin(b = 4)),
+    plot.subtitle    = element_text(size = 11, color = gray_mid,
+                                    margin = margin(b = 12)),
+    plot.caption     = element_text(size = 9, color = gray_mid, hjust = 0,
+                                    margin = margin(t = 12)),
+    plot.caption.position = "plot",
+    plot.title.position   = "plot",
+    legend.position  = "right",
+    legend.title     = element_text(size = 10, color = gray_dark),
+    legend.text      = element_text(size = 9, color = gray_dark),
+    plot.margin      = margin(20, 24, 16, 20)
+  )
+
 
 # -----------------------------------------------------------------------------
 # Step 3. Project constants and output folder
@@ -95,6 +123,8 @@ options(tigris_use_cache = TRUE, scipen = 999)
 set.seed(2025)
 
 if (!dir.exists("output")) dir.create("output")
+
+
 # -----------------------------------------------------------------------------
 # Step 4. Pull ACS PUMS for Pennsylvania
 # -----------------------------------------------------------------------------
@@ -224,6 +254,8 @@ philly_trend$yoy_change <- c(NA,
 ) * 100
 
 print(philly_trend[, c("year", "foreign_bornE", "pct_foreign_born", "yoy_change")])
+
+
 # -----------------------------------------------------------------------------
 # Step 9. Chart 1 — population trend (saves PNG)
 # -----------------------------------------------------------------------------
@@ -257,12 +289,14 @@ p1_trend <- ggplot(philly_trend, aes(x = year, y = foreign_bornE)) +
     title    = "A decade of growth, with one dip in 2023",
     subtitle = "Philadelphia County foreign-born population, 2014-2024",
     x = NULL, y = NULL,
-    caption  = "Source: U.S. Census Bureau, ACS 5-year estimates"
+    caption  = "Source: U.S. Census Bureau, ACS 5-year estimates."
   )
 
 print(p1_trend)
 ggsave("output/chart1_pop_trend.png", p1_trend,
-       width = 8, height = 5, dpi = 300)
+       width = 10, height = 5, dpi = 300)
+
+
 # -----------------------------------------------------------------------------
 # Step 10. Recode English proficiency
 # -----------------------------------------------------------------------------
@@ -351,27 +385,21 @@ cat("Foreign-born records:", nrow(foreign_born), "\n")
 cat("Foreign-born weighted population:",
     scales::comma(sum(foreign_born$PWGTP)), "\n")
 
-# -----------------------------------------------------------------------------
-# Step 15b. Birthplace breakdown — where do Philadelphia's immigrants come from?
-# -----------------------------------------------------------------------------
-# POBP is the 3-digit place-of-birth code from PUMS. We already have it
-# collapsed to 8 world regions in waob_lab, but the country-level breakdown
-# is more informative for descriptive context.
 
-# Convert POBP codes to country labels using PUMS data dictionary mapping
-# (top sending countries to Philadelphia — abbreviated list, expand as needed)
+# -----------------------------------------------------------------------------
+# Step 15b. Birthplace breakdown — country of origin treemap (saves PNG)
+# -----------------------------------------------------------------------------
 pobp_codes <- c(
   "207" = "China",      "210" = "Hong Kong",  "215" = "Korea",
   "217" = "India",      "240" = "Pakistan",   "242" = "Bangladesh",
   "247" = "Vietnam",    "248" = "Cambodia",   "211" = "Indonesia",
-  "245" = "Philippines","203" = "Burma/Myanmar","209"= "Taiwan",
+  "245" = "Philippines","203" = "Burma/Myanmar","209" = "Taiwan",
   "138" = "Italy",      "148" = "Poland",     "150" = "Portugal",
-  "150" = "Russia",     "156" = "Ukraine",    "126" = "Ireland",
+  "156" = "Ukraine",    "126" = "Ireland",
   "120" = "United Kingdom", "127" = "Albania",
   "303" = "Mexico",     "311" = "Belize",     "327" = "Honduras",
   "328" = "Nicaragua",  "329" = "Panama",     "375" = "Dominican Republic",
-  "337" = "Cuba",       "379" = "Puerto Rico-related",
-  "316" = "El Salvador","317" = "Guatemala",
+  "337" = "Cuba",       "316" = "El Salvador","317" = "Guatemala",
   "338" = "Haiti",      "330" = "Jamaica",
   "374" = "Colombia",   "390" = "Ecuador",    "393" = "Peru",  "381" = "Brazil",
   "414" = "Cabo Verde", "421" = "Ethiopia",   "427" = "Ghana", "436" = "Liberia",
@@ -381,13 +409,15 @@ pobp_codes <- c(
 foreign_born$country_label <- pobp_codes[as.character(foreign_born$POBP)]
 foreign_born$country_label[is.na(foreign_born$country_label)] <- "Other"
 
-library(treemapify)
-
-# Compute share within each region for label sizing
-top_countries <- top_countries %>%
-  group_by(waob_lab) %>%
-  mutate(region_total = sum(weighted_pop)) %>%
-  ungroup() %>%
+# Build top 15 with weighted populations and region tags
+top_countries <- foreign_born %>%
+  filter(country_label != "Other") %>%
+  group_by(country_label) %>%
+  summarise(weighted_pop = sum(PWGTP, na.rm = TRUE),
+            waob_lab     = first(waob_lab),
+            .groups = "drop") %>%
+  arrange(desc(weighted_pop)) %>%
+  slice_head(n = 15) %>%
   mutate(
     pct = weighted_pop / sum(weighted_pop) * 100,
     label = sprintf("%s\n%s (%.1f%%)",
@@ -396,12 +426,23 @@ top_countries <- top_countries %>%
                     pct)
   )
 
+# Region colors using the sesame-cake palette
+region_colors <- c(
+  "Asia"             = as.character(artsy["burgundy"]),   # fig
+  "Latin America"    = as.character(artsy["teal"]),       # blueberry
+  "Europe"           = as.character(artsy["mustard"]),    # muscat
+  "Africa"           = as.character(artsy["sage"]),       # mint
+  "Northern America" = as.character(artsy["terracotta"]), # sesame
+  "Oceania"          = "#a86670",                          # dark fig
+  "PR/US Islands"    = gray_mid
+)
+
 p_origins <- ggplot(top_countries,
                     aes(area = weighted_pop,
                         fill = waob_lab,
                         label = label,
                         subgroup = waob_lab)) +
-  geom_treemap(color = "white", linewidth = 2) +
+  geom_treemap(color = "white", linewidth = 3) +
   geom_treemap_subgroup_border(color = "white", linewidth = 4) +
   geom_treemap_text(color = "white", place = "centre",
                     grow = FALSE, reflow = TRUE,
@@ -410,9 +451,11 @@ p_origins <- ggplot(top_countries,
   labs(
     title    = "Where Philadelphia's immigrants come from",
     subtitle = "Top 15 countries of birth, sized by weighted PUMS population, grouped by region",
-    caption  = paste0("Source: ACS 5-year PUMS (2020-2024). ",
-                      "N = ", scales::comma(nrow(foreign_born)),
-                      " foreign-born records.")
+    caption  = paste0("Source: ACS 5-year PUMS (2020-2024). N = ",
+                      scales::comma(nrow(foreign_born)),
+                      " foreign-born records.\n",
+                      "Tiles sized by population estimate; color = world region. ",
+                      "Smaller origin countries grouped as 'Other' and not shown.")
   ) +
   theme(
     legend.position = "top",
@@ -425,7 +468,9 @@ p_origins <- ggplot(top_countries,
 
 print(p_origins)
 ggsave("output/chart_origin_treemap.png", p_origins,
-       width = 8, height = 8, dpi = 300)
+       width = 10, height = 9, dpi = 300)
+
+
 # -----------------------------------------------------------------------------
 # Step 16. Chart 2 — wage by English (saves PNG)
 # -----------------------------------------------------------------------------
@@ -462,13 +507,13 @@ p2_wage <- ggplot(wage_by_eng,
     subtitle = "Average annual wages, employed foreign-born, Philadelphia",
     x = NULL, y = NULL,
     caption = paste0("Source: ACS 5-year PUMS (2020-2024). N = ",
-                     scales::comma(nrow(employed_fb)), ".")
-  ) +
-  coord_flip()
+                     scales::comma(nrow(employed_fb)),
+                     " employed foreign-born records with positive wages.")
+  )
 
 print(p2_wage)
 ggsave("output/chart2_wage_by_eng.png", p2_wage,
-       width = 8, height = 4, dpi = 300)
+       width = 10, height = 5, dpi = 300)
 
 
 # -----------------------------------------------------------------------------
@@ -476,13 +521,26 @@ ggsave("output/chart2_wage_by_eng.png", p2_wage,
 # -----------------------------------------------------------------------------
 cor_df <- tracts %>%
   st_drop_geometry() %>%
+  mutate(
+    pct_naturalized_of_fb = ifelse(total_foreign_bornE > 0,
+                                   naturalizedE / total_foreign_bornE * 100, NA),
+    pct_noncitizen_of_fb  = ifelse(total_foreign_bornE > 0,
+                                   noncitizenE / total_foreign_bornE * 100, NA),
+    pct_hispanic          = ifelse(total_popE > 0,
+                                   hispanicE / total_popE * 100, NA)
+  ) %>%
   select(
-    `% foreign-born`         = pct_foreign_born,
-    `% poverty (FB)`         = pct_poverty_fb,
-    `% lang. isolated`       = pct_lang_isolated,
-    `Unemp. rate`            = unemp_rate,
-    `% homeowner`            = pct_homeowner,
-    `Median HH income ($)`   = median_hh_incomeE
+    `% foreign-born`            = pct_foreign_born,
+    `% naturalized (of FB)`     = pct_naturalized_of_fb,
+    `% non-citizen (of FB)`     = pct_noncitizen_of_fb,
+    `% poverty (FB)`            = pct_poverty_fb,
+    `Median FB earnings ($)`    = median_earn_fbE,
+    `% lang. isolated`          = pct_lang_isolated,
+    `Unemp. rate`               = unemp_rate,
+    `% Hispanic`                = pct_hispanic,
+    `% homeowner`               = pct_homeowner,
+    `Median rent ($)`           = median_gross_rentE,
+    `Median HH income ($)`      = median_hh_incomeE
   )
 
 cor_matrix <- cor(cor_df, use = "pairwise.complete.obs")
@@ -492,22 +550,24 @@ p_cor <- ggcorrplot(
   hc.order      = FALSE,
   type          = "lower",
   lab           = TRUE,
-  lab_size      = 3,
+  lab_size      = 2.6,
   outline.color = "white",
-  colors        = c(accent_teal, "#f4ead4", accent_burgundy),
+  colors        = c("#c5d68a", "#f5f0e8", "#c98590"),  # muscat ↔ cream ↔ fig
   ggtheme       = theme_editorial
 ) +
   labs(
-    title    = "Tract-level indicator correlations",
-    subtitle = "Pearson correlation, Philadelphia census tracts",
-    caption  = "Source: ACS 5-year estimates (2020-2024)"
+    title    = "How immigrant indicators cluster at the tract level",
+    subtitle = "Pearson correlations across 11 ACS indicators, Philadelphia census tracts",
+    caption  = paste0("Source: ACS 5-year estimates (2020-2024). ",
+                      "N = ", nrow(cor_df), " tracts.\n",
+                      "Fig pink = positive correlation, muscat green = negative. ",
+                      "All variables on tract level.")
   ) +
-  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+  theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5))
+
 print(p_cor)
 ggsave("output/chart_correlation_heatmap.png", p_cor,
-       width = 8, height = 8, dpi = 300)
-
-
+       width = 10, height = 10, dpi = 300)
 # -----------------------------------------------------------------------------
 # Step 18. Mincer estimation sample
 # -----------------------------------------------------------------------------
@@ -546,7 +606,7 @@ print(mincer_tidy[, c("term", "pct_effect", "pct_low", "pct_high", "p.value")])
 
 
 # -----------------------------------------------------------------------------
-# Step 21. Chart 3 — Mincer coefficient plot (saves PNG)
+# Step 21. Chart 3 — Mincer coefficient plot, focal vars (saves PNG)
 # -----------------------------------------------------------------------------
 coef_plot_df <- mincer_tidy %>%
   filter(term %in% c("eng_factorNot well", "eng_factorWell",
@@ -597,20 +657,20 @@ p3_coef <- ggplot(coef_plot_df,
     caption  = paste0("Source: ACS 5-year PUMS (2020-2024). N = ",
                       scales::comma(nrow(mincer_df)),
                       ". Adj R² = ",
-                      round(summary(mincer_fit)$adj.r.squared, 3),
-                      ". Reference: English 'Not at all', Education '<HS'.")
+                      round(summary(mincer_fit)$adj.r.squared, 3), ".\n",
+                      "Reference categories: English 'Not at all', Education '<HS'.")
   )
 
 print(p3_coef)
 ggsave("output/chart3_mincer_coefs.png", p3_coef,
-       width = 8, height = 7, dpi = 300)
+       width = 10, height = 9, dpi = 300)
+
 
 # -----------------------------------------------------------------------------
-# Step 21b. Full Mincer coefficient plot (all variables, saves PNG)
+# Step 21b. Full Mincer coefficient plot — all variables, grouped 
 # -----------------------------------------------------------------------------
 coef_full_df <- mincer_tidy %>%
-  filter(term != "(Intercept)",
-         term != "age_sq") %>%   # age_sq is mechanical — drop for readability
+  filter(term != "(Intercept)", term != "age_sq") %>%
   mutate(
     label = recode(term,
                    "eng_factorNot well"                = "English: Not well",
@@ -635,7 +695,6 @@ coef_full_df <- mincer_tidy %>%
       grepl("Sex",       label) ~ "Sex",
       TRUE                      ~ "Age / time"
     ),
-    # Significance asterisks
     sig = case_when(
       p.value < 0.001 ~ "***",
       p.value < 0.01  ~ "**",
@@ -644,7 +703,11 @@ coef_full_df <- mincer_tidy %>%
       TRUE            ~ ""
     )
   ) %>%
-  arrange(pct_effect) %>%
+  mutate(
+    group = factor(group, levels = c("English", "Education",
+                                     "Age / time", "Origin", "Sex"))
+  ) %>%
+  arrange(desc(group), pct_effect) %>%
   mutate(label = factor(label, levels = label))
 
 p3b_coef_full <- ggplot(coef_full_df,
@@ -667,7 +730,7 @@ p3b_coef_full <- ggplot(coef_full_df,
                      expand = expansion(mult = c(0.08, 0.08))) +
   labs(
     title    = "Full Mincer regression: every coefficient",
-    subtitle = "% effect on annual wages, 95% confidence interval",
+    subtitle = "% effect on annual wages, 95% confidence interval, grouped by category",
     x = NULL, y = NULL,
     caption  = paste0("Source: ACS 5-year PUMS (2020-2024). N = ",
                       scales::comma(nrow(mincer_df)),
@@ -680,7 +743,9 @@ p3b_coef_full <- ggplot(coef_full_df,
 
 print(p3b_coef_full)
 ggsave("output/chart3b_mincer_full.png", p3b_coef_full,
-       width = 8, height = 9, dpi = 300)
+       width = 10, height = 10, dpi = 300)
+
+
 # -----------------------------------------------------------------------------
 # Step 22. English × Education interaction test
 # -----------------------------------------------------------------------------
@@ -734,6 +799,7 @@ print(vip_data)
 vip_data <- vip_data %>%
   arrange(Importance) %>%
   mutate(bar_color = colorRampPalette(ramp_seq)(nrow(.)))
+
 p4_vip <- ggplot(vip_data,
                  aes(x = Importance, y = reorder(Variable, Importance),
                      fill = bar_color)) +
@@ -747,13 +813,14 @@ p4_vip <- ggplot(vip_data,
     title    = "Education edges out English in the non-linear model",
     subtitle = "Permutation variable importance, Random Forest for log wages",
     x = NULL, y = NULL,
-    caption  = paste0("Source: ranger, 500 trees. ",
-                      "Out-of-bag R² = ", round(rf_fit$r.squared, 3))
+    caption  = paste0("Source: ranger Random Forest, 500 trees. ",
+                      "Out-of-bag R² = ", round(rf_fit$r.squared, 3), ".")
   )
 
 print(p4_vip)
 ggsave("output/chart4_vip.png", p4_vip,
-       width = 8, height = 5, dpi = 300)
+       width = 10, height = 5, dpi = 300)
+
 # -----------------------------------------------------------------------------
 # Step 26. Manual partial dependence for English
 # -----------------------------------------------------------------------------
@@ -796,12 +863,12 @@ p5_pdp <- ggplot(pdp_results, aes(x = eng_factor, y = pred_wage_usd,
     title    = "Predicted wages climb at every fluency tier",
     subtitle = "Random Forest partial dependence — non-parametric robustness check",
     x = NULL, y = NULL,
-    caption  = "Source: Random Forest partial dependence (manual)."
+    caption  = "Source: Random Forest partial dependence (manual implementation)."
   )
 
 print(p5_pdp)
 ggsave("output/chart5_pdp.png", p5_pdp,
-       width = 8, height = 5, dpi = 300)
+       width = 10, height = 5, dpi = 300)
 
 
 # -----------------------------------------------------------------------------
@@ -873,9 +940,11 @@ multi_gt <- multi_table %>%
   ) %>%
   tab_source_note("Source: ACS 5-year PUMS (2020-2024), foreign-born ages 16-65.") %>%
   tab_source_note("Significance: *** p<0.001, ** p<0.01, * p<0.05, . p<0.1")
+ 
 
 print(multi_gt)
 gtsave(multi_gt, "output/table_multinomial.html")
+
 
 # -----------------------------------------------------------------------------
 # Step 30. Multi-model coefficient heatmap (saves PNG)
@@ -932,13 +1001,13 @@ heat_df <- bind_rows(mincer_long, multi_long) %>%
     ))),
     plot_value = case_when(
       Outcome == "Wages (log)" ~ value,
-      TRUE                      ~ -value     # flip NILF/Unemp so burgundy = good
+      TRUE                      ~ -value     # flip NILF/Unemp so muscat = good
     )
   ) %>%
   group_by(Outcome) %>%
   mutate(
     plot_value_std = plot_value / median(abs(plot_value), na.rm = TRUE),
-    plot_value_std = pmax(pmin(plot_value_std, 1), -1)   # clip outliers
+    plot_value_std = pmax(pmin(plot_value_std, 1), -1)
   ) %>%
   ungroup()
 
@@ -953,7 +1022,7 @@ p6_heatmap <- ggplot(heat_df, aes(x = Outcome, y = Variable,
     color = ink, size = 3.4, fontface = "bold"
   ) +
   scale_fill_gradient2(
-    low = accent_teal, mid = "#f4ead4", high = accent_burgundy,
+    low = "#c98590", mid = "#f5f0e8", high = "#c5d68a",  # fig ↔ cream ↔ muscat
     midpoint = 0, limits = c(-1, 1),
     name = "Direction",
     labels = c("Worse for worker", "Neutral", "Better for worker"),
@@ -965,6 +1034,7 @@ p6_heatmap <- ggplot(heat_df, aes(x = Outcome, y = Variable,
     subtitle = "Cells: Mincer % wage effect + multinomial logit odds ratios",
     x = NULL, y = NULL,
     caption  = paste0("Source: Mincer linear regression + multinomial logit. ",
+                      "All effects relative to reference categories.\n",
                       "Color clipped at ±1 to prevent Oceania/N. America ",
                       "(tiny samples) from washing out the scale.")
   ) +
@@ -980,7 +1050,9 @@ p6_heatmap <- ggplot(heat_df, aes(x = Outcome, y = Variable,
 
 print(p6_heatmap)
 ggsave("output/chart6_model_heatmap.png", p6_heatmap,
-       width = 8, height = 8, dpi = 300)
+       width = 10, height = 10, dpi = 300)
+
+
 # -----------------------------------------------------------------------------
 # Step 31. Spatial weights (Queen contiguity)
 # -----------------------------------------------------------------------------
@@ -995,12 +1067,14 @@ nb <- poly2nb(spatial_df, queen = TRUE)
 lw <- nb2listw(nb, style = "W", zero.policy = TRUE)
 cat("Tracts in spatial sample:", length(nb), "\n")
 
+
 # -----------------------------------------------------------------------------
 # Step 32. Global Moran's I
 # -----------------------------------------------------------------------------
 moran_pov <- moran.test(spatial_df$pct_poverty_fb, lw, zero.policy = TRUE)
 moran_li  <- moran.test(spatial_df$pct_lang_isolated, lw, zero.policy = TRUE)
 moran_fb  <- moran.test(spatial_df$pct_foreign_born, lw, zero.policy = TRUE)
+moran_un  <- moran.test(spatial_df$unemp_rate, lw, zero.policy = TRUE)
 
 cat("Foreign-born poverty rate: I =",
     round(moran_pov$estimate[1], 3),
@@ -1011,39 +1085,17 @@ cat("Linguistic isolation:      I =",
 cat("Foreign-born share:        I =",
     round(moran_fb$estimate[1], 3),
     "  p =", format.pval(moran_fb$p.value, digits = 3), "\n")
+cat("Unemployment rate:         I =",
+    round(moran_un$estimate[1], 3),
+    "  p =", format.pval(moran_un$p.value, digits = 3), "\n")
 
-
-# -----------------------------------------------------------------------------
-# Step 33. Local Moran's I (LISA)
-# -----------------------------------------------------------------------------
-local_m <- localmoran(spatial_df$pct_poverty_fb, lw, zero.policy = TRUE)
-
-x_scaled   <- as.numeric(scale(spatial_df$pct_poverty_fb))
-lag_x      <- lag.listw(lw, spatial_df$pct_poverty_fb, zero.policy = TRUE)
-lag_scaled <- as.numeric(scale(lag_x))
-
-spatial_df$local_I <- local_m[, "Ii"]
-spatial_df$p_val   <- local_m[, "Pr(z != E(Ii))"]
-
-spatial_df$cluster <- "Not significant"
-spatial_df$cluster[spatial_df$p_val < 0.05 & x_scaled > 0 & lag_scaled > 0] <- "High-High (hot spot)"
-spatial_df$cluster[spatial_df$p_val < 0.05 & x_scaled < 0 & lag_scaled < 0] <- "Low-Low (cold spot)"
-spatial_df$cluster[spatial_df$p_val < 0.05 & x_scaled > 0 & lag_scaled < 0] <- "High-Low (outlier)"
-spatial_df$cluster[spatial_df$p_val < 0.05 & x_scaled < 0 & lag_scaled > 0] <- "Low-High (outlier)"
-
-print(table(spatial_df$cluster))
 
 # -----------------------------------------------------------------------------
 # Step 33. Local Moran's I (LISA) — four workforce-mobility indicators
 # -----------------------------------------------------------------------------
-# We compute LISA on four indicators that together capture workforce mobility:
-#   1. Foreign-born poverty rate
-#   2. Unemployment rate
-#   3. Foreign-born share (settlement)
-#   4. Linguistic isolation (service access barrier)
+# Compute LISA cluster classification for each of four indicators, plus
+# preserve standardized values for the Moran scatterplot (Step 35).
 
-# Helper to compute LISA on any column — keeps this loop tidy without
-# defining a custom function
 lisa_indicators <- c(
   "pct_poverty_fb"     = "FB poverty rate",
   "unemp_rate"         = "Unemployment rate",
@@ -1051,15 +1103,17 @@ lisa_indicators <- c(
   "pct_lang_isolated"  = "Linguistic isolation"
 )
 
-# Build cluster columns one indicator at a time
+# Store scaled values for poverty (used by the Moran scatter)
+x_scaled <- NULL; lag_scaled <- NULL
+
 for (var in names(lisa_indicators)) {
   vals <- spatial_df[[var]]
   local_m <- localmoran(vals, lw, zero.policy = TRUE)
   
-  v_scaled   <- as.numeric(scale(vals))
-  v_lag      <- lag.listw(lw, vals, zero.policy = TRUE)
-  v_lag_scl  <- as.numeric(scale(v_lag))
-  p_v        <- local_m[, "Pr(z != E(Ii))"]
+  v_scaled  <- as.numeric(scale(vals))
+  v_lag     <- lag.listw(lw, vals, zero.policy = TRUE)
+  v_lag_scl <- as.numeric(scale(v_lag))
+  p_v       <- local_m[, "Pr(z != E(Ii))"]
   
   cluster_v <- rep("Not significant", length(vals))
   cluster_v[p_v < 0.05 & v_scaled > 0 & v_lag_scl > 0] <- "High-High (hot spot)"
@@ -1068,127 +1122,123 @@ for (var in names(lisa_indicators)) {
   cluster_v[p_v < 0.05 & v_scaled < 0 & v_lag_scl > 0] <- "Low-High (outlier)"
   
   spatial_df[[paste0("cluster_", var)]] <- cluster_v
+  
+  if (var == "pct_poverty_fb") {
+    x_scaled   <- v_scaled
+    lag_scaled <- v_lag_scl
+  }
 }
 
-# Keep the original cluster column for Step 35 backward compatibility
+# Keep original cluster column for backward compatibility
 spatial_df$cluster <- spatial_df$cluster_pct_poverty_fb
 
-# Quick check
 print(table(spatial_df$cluster_pct_poverty_fb))
 print(table(spatial_df$cluster_unemp_rate))
 print(table(spatial_df$cluster_pct_foreign_born))
 print(table(spatial_df$cluster_pct_lang_isolated))
 
 
-
 # -----------------------------------------------------------------------------
-# Step 34. Map 1 — three-panel spatial comparison (saves PNG)
+# Step 34. Philadelphia city boundary (used by all maps below)
 # -----------------------------------------------------------------------------
-library(patchwork)
 philly_limit <- tigris::counties(state = "PA", cb = TRUE, year = acs_year) %>%
   filter(NAME == "Philadelphia") %>%
   st_transform(4326)
-# Build a reusable map theme to avoid repeating the theme block
-theme_map <- theme_void(base_size = 10) +
-  theme(
-    text             = element_text(family = "sans", color = gray_dark),
-    plot.title       = element_text(face = "bold", size = 11, color = ink,
-                                    margin = margin(b = 2)),
-    plot.subtitle    = element_text(size = 9, color = gray_mid,
-                                    margin = margin(b = 6)),
-    legend.position  = "bottom",
-    legend.title     = element_text(size = 8, color = gray_dark),
-    legend.text      = element_text(size = 7, color = gray_dark),
-    legend.key.height= unit(3, "mm"),
-    legend.key.width = unit(14, "mm"),
-    plot.margin      = margin(8, 8, 8, 8)
-  )
 
-# Panel A — foreign-born share (where they live)
-p_fb <- ggplot(spatial_df) +
+
+# -----------------------------------------------------------------------------
+# Step 34a. Map — Foreign-born population share (saves PNG)
+# -----------------------------------------------------------------------------
+map_fb_share <- ggplot(spatial_df) +
   geom_sf(aes(fill = pct_foreign_born), color = "white", linewidth = 0.1) +
   geom_sf(data = philly_limit, fill = NA, color = "black", linewidth = 1) +
   scale_fill_gradientn(
-    colors = ramp_seq, na.value = gray_light,
-    name = "% foreign-born",
-    labels = function(x) paste0(x, "%")
+    colors   = ramp_seq, na.value = gray_light,
+    name     = "% foreign-born",
+    labels   = function(x) paste0(x, "%")
   ) +
-  labs(title = "Where immigrants live",
-       subtitle = "Foreign-born population share") +
+  labs(
+    title    = "Where Philadelphia's immigrants live",
+    subtitle = "Foreign-born share of total population by census tract, 2020-2024",
+    caption  = paste0("Source: ACS 5-year estimates. ",
+                      "Gray tracts have insufficient data to estimate reliably.\n",
+                      "Heaviest concentrations: Lower Northeast, South Philadelphia, ",
+                      "and pockets of West Philadelphia.")
+  ) +
   theme_map
-p_fb
-# Panel B — foreign-born poverty (where they struggle)
-p_pov <- ggplot(spatial_df) +
+
+print(map_fb_share)
+ggsave("output/map_fb_share.png", map_fb_share,
+       width = 10, height = 10, dpi = 300)
+
+
+# -----------------------------------------------------------------------------
+# Step 34b. Map — Foreign-born poverty rate (saves PNG)
+# -----------------------------------------------------------------------------
+map_fb_poverty <- ggplot(spatial_df) +
   geom_sf(aes(fill = pct_poverty_fb), color = "white", linewidth = 0.1) +
   geom_sf(data = philly_limit, fill = NA, color = "black", linewidth = 1) +
   scale_fill_gradientn(
-    colors = ramp_seq, na.value = gray_light,
-    name = "% in poverty",
-    labels = function(x) paste0(x, "%")
+    colors   = ramp_seq, na.value = gray_light,
+    name     = "% in poverty",
+    labels   = function(x) paste0(x, "%")
   ) +
-  labs(title = "Where they struggle",
-       subtitle = "Foreign-born poverty rate") +
+  labs(
+    title    = "Where immigrant economic disadvantage concentrates",
+    subtitle = "Foreign-born poverty rate by census tract, 2020-2024",
+    caption  = paste0("Source: ACS 5-year estimates, table B06012. ",
+                      "Universe: foreign-born population, all ages.\n",
+                      "Gray tracts have too few foreign-born residents to estimate poverty rate.")
+  ) +
   theme_map
-p_pov
-# Panel C — linguistic isolation (where they can't get help)
-p_lang <- ggplot(spatial_df) +
+
+print(map_fb_poverty)
+ggsave("output/map_fb_poverty.png", map_fb_poverty,
+       width = 10, height = 10, dpi = 300)
+
+
+# -----------------------------------------------------------------------------
+# Step 34c. Map — Linguistic isolation (saves PNG)
+# -----------------------------------------------------------------------------
+map_lang_iso <- ggplot(spatial_df) +
   geom_sf(aes(fill = pct_lang_isolated), color = "white", linewidth = 0.1) +
   geom_sf(data = philly_limit, fill = NA, color = "black", linewidth = 1) +
   scale_fill_gradientn(
-    colors = ramp_seq, na.value = gray_light,
-    name = "% lang. isolated",
-    labels = function(x) paste0(x, "%")
+    colors   = ramp_seq, na.value = gray_light,
+    name     = "% lang. isolated",
+    labels   = function(x) paste0(x, "%")
   ) +
-  labs(title = "Where service access is hardest",
-       subtitle = "Linguistically isolated households") +
+  labs(
+    title    = "Where service access is hardest",
+    subtitle = "Linguistically isolated households by census tract, 2020-2024",
+    caption  = paste0("Source: ACS 5-year estimates, table C16002. ",
+                      "Linguistically isolated = no household member 14+ speaks English well.\n",
+                      "Strong proxy for service-access barriers in workforce, health, and education.")
+  ) +
   theme_map
-p_lang
-map1_panels <- plot_grid(p_fb, p_pov, p_lang, nrow = 1, align = "h")
-title_block <- ggdraw() +
-  draw_label("Three views of Philadelphia's immigrant geography",
-             fontface = "bold", size = 15, color = ink,
-             x = 0, hjust = 0) +
-  draw_label("Foreign-born settlement, poverty, and language access by census tract",
-             y = 0.3, size = 11, color = gray_mid,
-             x = 0, hjust = 0)
 
-caption_block <- ggdraw() +
-  draw_label(paste0("Source: ACS 5-year estimates (2020-2024). ",
-                    "Tracts in gray have insufficient data."),
-             size = 9, color = gray_mid, x = 0, hjust = 0)
+print(map_lang_iso)
+ggsave("output/map_lang_iso.png", map_lang_iso,
+       width = 10, height = 10, dpi = 300)
 
-map1_panels <- plot_grid(
-  title_block, map1_panels, caption_block,
-  ncol = 1, rel_heights = c(0.10, 0.85, 0.05)
-)
-
-print(map1_panels)
-
-ggsave("output/map1_fb_three_panels.png", map1_panels,
-       width = 14, height = 6, dpi = 300)
 
 # -----------------------------------------------------------------------------
-# Step 34b. Moran scatterplot — the diagnostic behind LISA (saves PNG)
+# Step 35. Moran scatterplot — diagnostic behind the LISA classification
 # -----------------------------------------------------------------------------
-# Plots each tract's own poverty rate (x) against its neighbors' average
-# poverty rate (y). The slope IS Global Moran's I. The four quadrants
-# correspond to the LISA cluster categories.
-
 moran_scatter_df <- data.frame(
   GEOID      = spatial_df$GEOID,
   x_scaled   = x_scaled,
   lag_scaled = lag_scaled,
-  cluster    = spatial_df$cluster
+  cluster    = spatial_df$cluster_pct_poverty_fb
 )
 
-# Get the global Moran's I value for the slope annotation
 moran_I_value <- moran_pov$estimate[1]
 
 p_moran <- ggplot(moran_scatter_df,
                   aes(x = x_scaled, y = lag_scaled, color = cluster)) +
   geom_hline(yintercept = 0, color = gray_mid, linewidth = 0.3) +
   geom_vline(xintercept = 0, color = gray_mid, linewidth = 0.3) +
-  geom_point(size = 2, alpha = 0.7) +
+  geom_point(size = 2, alpha = 0.75) +
   geom_smooth(aes(group = 1), method = "lm", se = FALSE,
               color = ink, linewidth = 0.5, linetype = "dashed") +
   scale_color_manual(values = c(
@@ -1211,123 +1261,122 @@ p_moran <- ggplot(moran_scatter_df,
            hjust = 1, vjust = 0, size = 3.2,
            color = ink, fontface = "bold") +
   labs(
-    title    = "Moran scatterplot — the diagnostic behind the cluster map",
-    subtitle = "Each tract's foreign-born poverty rate vs. its neighbors' average rate (z-scores)",
+    title    = "Moran scatterplot — the diagnostic behind the cluster maps",
+    subtitle = "Each tract's foreign-born poverty rate vs. its neighbors' average (z-scores)",
     x = "This tract's poverty rate (standardized)",
     y = "Neighbors' average poverty rate (standardized)",
-    caption  = paste0("Slope of dashed line = Global Moran's I. ",
-                      "Tracts in the top-right (hot spots) and bottom-left ",
-                      "(cold spots) drive the positive spatial autocorrelation.")
+    caption  = paste0("Slope of dashed line equals Global Moran's I. ",
+                      "Each point is one tract.\n",
+                      "Top-right (hot spots) and bottom-left (cold spots) drive the ",
+                      "positive spatial autocorrelation.")
   ) +
   coord_equal()
 
 print(p_moran)
-ggsave("output/map_moran_scatter.png", p_moran,
-       width = 8, height = 8, dpi = 300)
+ggsave("output/chart_moran_scatter.png", p_moran,
+       width = 10, height = 10, dpi = 300)
+
+
 # -----------------------------------------------------------------------------
-# Step 35. Map 2 — LISA cluster static (saves PNG)
+# Step 36a. LISA map — Foreign-born poverty (saves PNG)
 # -----------------------------------------------------------------------------
-map2_lisa <- ggplot(spatial_df) +
-  geom_sf(aes(fill = cluster), color = "white", linewidth = 0.15) +
+lisa_colors <- c(
+  "High-High (hot spot)" = accent_burgundy,
+  "Low-Low (cold spot)"  = accent_teal,
+  "High-Low (outlier)"   = as.character(artsy["mustard"]),
+  "Low-High (outlier)"   = as.character(artsy["rose"]),
+  "Not significant"      = "#eeeeee"
+)
+
+map_lisa_poverty <- ggplot(spatial_df) +
+  geom_sf(aes(fill = cluster_pct_poverty_fb),
+          color = "white", linewidth = 0.15) +
   geom_sf(data = philly_limit, fill = NA, color = "black", linewidth = 1) +
-  scale_fill_manual(
-    values = c(
-      "High-High (hot spot)"  = accent_burgundy,
-      "Low-Low (cold spot)"   = accent_teal,
-      "High-Low (outlier)"    = as.character(artsy["mustard"]),
-      "Low-High (outlier)"    = as.character(artsy["rose"]),
-      "Not significant"       = "#eeeeee"
-    ),
-    name = "LISA cluster"
-  ) +
+  scale_fill_manual(values = lisa_colors, name = "LISA cluster") +
   labs(
     title    = "Where immigrant poverty clusters",
     subtitle = "Local Moran's I cluster classification, p < 0.05",
     caption  = paste0("Source: ACS 5-year estimates (2020-2024). ",
-                      "High-High = hot spot, priority zone.")
+                      "Queen contiguity, row-standardized weights.\n",
+                      "Hot spots = high-poverty tracts surrounded by other high-poverty tracts. ",
+                      "These are workforce-policy priority zones.")
   ) +
-  theme_void(base_size = 11) +
-  theme(
-    text             = element_text(family = "sans", color = gray_dark),
-    plot.title       = element_text(face = "bold", size = 15, color = ink,
-                                    margin = margin(b = 4)),
-    plot.subtitle    = element_text(size = 11, color = gray_mid,
-                                    margin = margin(b = 12)),
-    plot.caption     = element_text(size = 9, color = gray_mid, hjust = 0,
-                                    margin = margin(t = 12)),
-    legend.position  = "right",
-    legend.title     = element_text(size = 10, color = gray_dark),
-    legend.text      = element_text(size = 9, color = gray_dark),
-    plot.margin      = margin(20, 24, 16, 20)
-  )
+  theme_map
 
-print(map2_lisa)
-ggsave("output/map2_lisa.png", map2_lisa,
-       width = 8, height = 9, dpi = 300)
+print(map_lisa_poverty)
+ggsave("output/map_lisa_poverty.png", map_lisa_poverty,
+       width = 10, height = 10, dpi = 300)
+
 
 # -----------------------------------------------------------------------------
-# Step 35b. Four-panel LISA comparison — workforce mobility geography
+# Step 36b. LISA map — Unemployment rate (saves PNG)
 # -----------------------------------------------------------------------------
-library(patchwork)
-
-# Long-format dataframe for facet-friendly plotting
-lisa_long <- bind_rows(
-  spatial_df %>% mutate(indicator = "FB poverty rate",
-                        cluster = cluster_pct_poverty_fb),
-  spatial_df %>% mutate(indicator = "Unemployment rate",
-                        cluster = cluster_unemp_rate),
-  spatial_df %>% mutate(indicator = "Foreign-born share",
-                        cluster = cluster_pct_foreign_born),
-  spatial_df %>% mutate(indicator = "Linguistic isolation",
-                        cluster = cluster_pct_lang_isolated)
-)
-
-lisa_long$indicator <- factor(lisa_long$indicator, levels = c(
-  "FB poverty rate", "Unemployment rate",
-  "Foreign-born share", "Linguistic isolation"
-))
-
-map_lisa_multi <- ggplot(lisa_long) +
-  geom_sf(aes(fill = cluster), color = "white", linewidth = 0.1) +
+map_lisa_unemp <- ggplot(spatial_df) +
+  geom_sf(aes(fill = cluster_unemp_rate),
+          color = "white", linewidth = 0.15) +
   geom_sf(data = philly_limit, fill = NA, color = "black", linewidth = 1) +
-  facet_wrap(~ indicator, nrow = 1) +
-  scale_fill_manual(
-    values = c(
-      "High-High (hot spot)" = accent_burgundy,
-      "Low-Low (cold spot)"  = accent_teal,
-      "High-Low (outlier)"   = as.character(artsy["mustard"]),
-      "Low-High (outlier)"   = as.character(artsy["rose"]),
-      "Not significant"      = "#eeeeee"
-    ),
-    name = "LISA cluster"
-  ) +
+  scale_fill_manual(values = lisa_colors, name = "LISA cluster") +
   labs(
-    title    = "Where workforce-mobility barriers cluster",
-    subtitle = "Local Moran's I (p < 0.05) for four indicators",
+    title    = "Where unemployment clusters",
+    subtitle = "Local Moran's I cluster classification, p < 0.05",
     caption  = paste0("Source: ACS 5-year estimates (2020-2024). ",
-                      "Burgundy = hot spot (high values surrounded by high); ",
-                      "teal = cold spot (low values surrounded by low).")
+                      "Unemployment rate is tract-level (not nativity-specific).\n",
+                      "Compare with immigrant settlement map to find tracts where ",
+                      "immigrants live AND unemployment is high.")
   ) +
-  theme_void(base_size = 10) +
-  theme(
-    text             = element_text(family = "sans", color = gray_dark),
-    plot.title       = element_text(face = "bold", size = 15, color = ink,
-                                    margin = margin(b = 4)),
-    plot.subtitle    = element_text(size = 11, color = gray_mid,
-                                    margin = margin(b = 12)),
-    plot.caption     = element_text(size = 9, color = gray_mid, hjust = 0,
-                                    margin = margin(t = 12)),
-    strip.text       = element_text(face = "bold", size = 10, color = ink,
-                                    margin = margin(b = 4)),
-    legend.position  = "bottom",
-    legend.title     = element_text(size = 9, color = gray_dark),
-    legend.text      = element_text(size = 8, color = gray_dark),
-    plot.margin      = margin(20, 24, 16, 20)
-  )
+  theme_map
 
-print(map_lisa_multi)
-ggsave("output/map3_lisa_workforce_mobility.png", map_lisa_multi,
-       width = 16, height = 7, dpi = 300)
+print(map_lisa_unemp)
+ggsave("output/map_lisa_unemp.png", map_lisa_unemp,
+       width = 10, height = 10, dpi = 300)
+
+
+# -----------------------------------------------------------------------------
+# Step 36c. LISA map — Foreign-born share (saves PNG)
+# -----------------------------------------------------------------------------
+map_lisa_fbshare <- ggplot(spatial_df) +
+  geom_sf(aes(fill = cluster_pct_foreign_born),
+          color = "white", linewidth = 0.15) +
+  geom_sf(data = philly_limit, fill = NA, color = "black", linewidth = 1) +
+  scale_fill_manual(values = lisa_colors, name = "LISA cluster") +
+  labs(
+    title    = "Where immigrant settlement clusters",
+    subtitle = "Local Moran's I cluster classification, p < 0.05",
+    caption  = paste0("Source: ACS 5-year estimates (2020-2024). ",
+                      "Hot spots identify established immigrant enclaves.\n",
+                      "These clusters anchor ethnic economies and social networks ",
+                      "that shape workforce trajectories.")
+  ) +
+  theme_map
+
+print(map_lisa_fbshare)
+ggsave("output/map_lisa_fbshare.png", map_lisa_fbshare,
+       width = 10, height = 10, dpi = 300)
+
+
+# -----------------------------------------------------------------------------
+# Step 36d. LISA map — Linguistic isolation (saves PNG)
+# -----------------------------------------------------------------------------
+map_lisa_lang <- ggplot(spatial_df) +
+  geom_sf(aes(fill = cluster_pct_lang_isolated),
+          color = "white", linewidth = 0.15) +
+  geom_sf(data = philly_limit, fill = NA, color = "black", linewidth = 1) +
+  scale_fill_manual(values = lisa_colors, name = "LISA cluster") +
+  labs(
+    title    = "Where linguistic isolation clusters",
+    subtitle = "Local Moran's I cluster classification, p < 0.05",
+    caption  = paste0("Source: ACS 5-year estimates (2020-2024), table C16002. ",
+                      "Hot spots = clustered limited-English households.\n",
+                      "Highest-priority zones for ESL-integrated workforce programs ",
+                      "and bilingual service intake.")
+  ) +
+  theme_map
+
+print(map_lisa_lang)
+ggsave("output/map_lisa_lang.png", map_lisa_lang,
+       width = 10, height = 10, dpi = 300)
+
+
 # -----------------------------------------------------------------------------
 # Step 37. Spatial Lag Model
 # -----------------------------------------------------------------------------
