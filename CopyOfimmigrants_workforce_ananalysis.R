@@ -1779,3 +1779,208 @@ impacts(sdm_fit, listw = lw, R = 500)
 # pct_female_head        0.001144256 -0.003354968 -0.0022107120
 # pct_naturalized_of_fb  0.002084915  0.002330047  0.0044149627
 # pct_rent_burdened     -0.003112092 -0.002025842 -0.0051379341
+
+
+# =============================================================================
+# Step 17c. ACCESS CHANNEL — who gets employed among foreign-born?
+# =============================================================================
+# Framing: before analyzing wages among the employed, we examine who reaches
+# employment at all. This contextualizes the Mincer sample as a selected
+# subset and motivates the wage analysis.
+#
+# Binary logit: P(Employed | working-age FB) = f(X)
+# NOT a causal model — descriptive access-channel mapping.
+
+access_df <- foreign_born %>%
+  filter(
+    age_num >= 16, age_num <= 65,
+    !is.na(eng_factor), !is.na(edu_collapsed),
+    !is.na(yrs_us), !is.na(hh_supergroup),
+    !is.na(LNGI), !is.na(MAR), !is.na(esr3)
+  ) %>%
+  mutate(
+    employed_bin  = as.numeric(esr3 == "Employed"),
+    lang_isolated = as.numeric(LNGI == "2"),
+    married_bin   = as.numeric(MAR == "1"),
+    origin_region = factor(waob_lab,
+                           levels = c("Latin America", "Asia", "Africa",
+                                      "Europe", "Northern America",
+                                      "Oceania", "PR/US Islands"))
+  )
+
+cat("Access-channel sample (working-age FB):", nrow(access_df), "\n")
+cat("Employment rate (raw):",
+    round(mean(access_df$employed_bin), 3), "\n")
+cat("Weighted employment rate:",
+    round(weighted.mean(access_df$employed_bin, access_df$PWGTP), 3), "\n")
+
+# Weighted binary logit
+access_fit <- glm(
+  employed_bin ~ eng_factor + lang_isolated + edu_collapsed +
+    age_num + I(age_num^2) + yrs_us + I(yrs_us^2) +
+    origin_region + SEX + married_bin + hh_supergroup,
+  data    = access_df,
+  weights = PWGTP,
+  family  = quasibinomial(link = "logit")
+)
+
+cat("\n=== Access-channel logit — odds ratios ===\n")
+access_tidy <- tidy(access_fit, conf.int = TRUE, exponentiate = TRUE) %>%
+  filter(term != "(Intercept)") %>%
+  mutate(across(where(is.numeric), ~ round(.x, 3)))
+print(access_tidy)
+write_csv(access_tidy, "output/access_logit.csv")
+
+# Coefficient plot — focal predictors only
+access_focal <- access_tidy %>%
+  filter(term %in% c("eng_factorNot well", "eng_factorWell",
+                     "eng_factorVery well", "lang_isolated",
+                     "edu_collapsedHS/GED",
+                     "edu_collapsedSome college/Assoc.",
+                     "edu_collapsedBachelor's+",
+                     "yrs_us", "SEX2", "married_bin")) %>%
+  mutate(
+    label = case_match(term,
+                       "eng_factorNot well"               ~ "English: Not well",
+                       "eng_factorWell"                   ~ "English: Well",
+                       "eng_factorVery well"              ~ "English: Very well",
+                       "lang_isolated"                    ~ "Linguistically isolated HH",
+                       "edu_collapsedHS/GED"              ~ "Education: HS/GED",
+                       "edu_collapsedSome college/Assoc." ~ "Education: Some college",
+                       "edu_collapsedBachelor's+"         ~ "Education: Bachelor's+",
+                       "yrs_us"                           ~ "Each year in U.S.",
+                       "SEX2"                             ~ "Female",
+                       "married_bin"                      ~ "Married"
+    ),
+    group = case_when(
+      grepl("English|isolated", label) ~ "Language",
+      grepl("Education",        label) ~ "Education",
+      grepl("Female|Married",   label) ~ "Demographics",
+      TRUE                             ~ "Tenure"
+    )
+  ) %>%
+  arrange(estimate) %>%
+  mutate(label = factor(label, levels = label))
+
+p_access <- ggplot(access_focal,
+                   aes(x = estimate, y = label, color = group)) +
+  geom_vline(xintercept = 1, color = gray_dark, linewidth = 0.5,
+             linetype = "dashed") +
+  geom_errorbarh(aes(xmin = conf.low, xmax = conf.high),
+                 height = 0, linewidth = 1) +
+  geom_point(size = 3.5) +
+  geom_text(aes(label = sprintf("%.2f", estimate)),
+            vjust = -0.9, size = 3.0, fontface = "bold",
+            show.legend = FALSE) +
+  scale_color_manual(values = c(
+    "Language"     = accent_burgundy,
+    "Education"    = as.character(artsy["mustard"]),
+    "Demographics" = as.character(artsy["teal"]),
+    "Tenure"       = as.character(artsy["sage"])
+  )) +
+  scale_x_continuous(trans = "log",
+                     breaks = c(0.25, 0.5, 1, 2, 4),
+                     expand = expansion(mult = c(0.08, 0.08))) +
+  labs(
+    title    = "Who gets employed — access channel for foreign-born Philadelphians",
+    subtitle = "Binary logit odds ratios, 95% CI. OR > 1 = higher employment probability",
+    x = "Odds ratio (log scale)", y = NULL,
+    caption  = paste0("Source: ACS 5-year PUMS (2020-2024). N = ",
+                      scales::comma(nrow(access_df)),
+                      " working-age (16-65) foreign-born.\n",
+                      "Reference: English 'Not at all', Education '<HS', ",
+                      "Male, Unmarried. Dashed line = OR 1.")
+  )
+print(p_access)
+ggsave("output/chart_access_logit.png", p_access,
+       width = 10, height = 14, dpi = 300)
+
+focal_terms <- c(
+  "eng_factorVery well", "eng_factorWell", "eng_factorNot well",
+  "lang_isolated",
+  "edu_collapsedBachelor's+", "edu_collapsedSome college/Assoc.",
+  "edu_collapsedHS/GED",
+  "yrs_us", "SEX2", "married_bin",
+  "origin_regionAsia", "origin_regionAfrica", "origin_regionEurope",
+  "hh_supergroupSingle householder with family",
+  "hh_supergroupNonfamily / solo households"
+)
+
+access_focal_clean <- access_tidy %>%
+  filter(term %in% focal_terms) %>%
+  transmute(term, access_or = estimate, access_pct = (estimate - 1) * 100)
+
+wage_focal_clean <- mincer_tidy %>%
+  filter(term %in% focal_terms) %>%
+  transmute(term, wage_pct = pct_effect)
+
+two_stage <- inner_join(access_focal_clean, wage_focal_clean, by = "term") %>%
+  mutate(
+    label = case_match(term,
+                       "eng_factorVery well"               ~ "English: Very well",
+                       "eng_factorWell"                    ~ "English: Well",
+                       "eng_factorNot well"                ~ "English: Not well",
+                       "lang_isolated"                     ~ "Ling. isolated HH",
+                       "edu_collapsedBachelor's+"          ~ "Bachelor's+",
+                       "edu_collapsedSome college/Assoc."  ~ "Some college",
+                       "edu_collapsedHS/GED"               ~ "HS/GED",
+                       "yrs_us"                            ~ "Each year in U.S.",
+                       "SEX2"                              ~ "Female",
+                       "married_bin"                       ~ "Married",
+                       "origin_regionAsia"                 ~ "Origin: Asia",
+                       "origin_regionAfrica"               ~ "Origin: Africa",
+                       "origin_regionEurope"               ~ "Origin: Europe",
+                       "hh_supergroupSingle householder with family" ~ "HH: Single head w/ family",
+                       "hh_supergroupNonfamily / solo households"    ~ "HH: Nonfamily / solo"
+    ),
+    quadrant = case_when(
+      access_pct > 0 & wage_pct > 0 ~ "Both stages",
+      access_pct > 0 & wage_pct < 0 ~ "Access only",
+      access_pct < 0 & wage_pct > 0 ~ "Wage only",
+      TRUE                          ~ "Both penalties"
+    )
+  )
+
+p_two_stage <- ggplot(two_stage,
+                      aes(x = access_pct, y = wage_pct, color = quadrant)) +
+  geom_hline(yintercept = 0, color = gray_mid, linewidth = 0.4) +
+  geom_vline(xintercept = 0, color = gray_mid, linewidth = 0.4) +
+  geom_point(size = 5) +
+  geom_text_repel(aes(label = label), size = 3.5,
+                  fontface = "bold", color = ink,
+                  box.padding = 0.7, point.padding = 0.4,
+                  max.overlaps = 20) +
+  scale_color_manual(values = c(
+    "Both stages"    = as.character(artsy["mustard"]),
+    "Access only"    = accent_burgundy,
+    "Wage only"      = as.character(artsy["teal"]),
+    "Both penalties" = "#a86670"
+  )) +
+  scale_x_continuous(labels = function(x) paste0(x, "%"),
+                     expand = expansion(mult = c(0.15, 0.15))) +
+  scale_y_continuous(labels = function(x) paste0(x, "%"),
+                     expand = expansion(mult = c(0.15, 0.15))) +
+  annotate("text", x = Inf, y = Inf, hjust = 1.1, vjust = 1.5,
+           label = "Boosts BOTH access\nand wages",
+           size = 3, color = gray_mid, fontface = "italic") +
+  annotate("text", x = Inf, y = -Inf, hjust = 1.1, vjust = -1,
+           label = "Opens door but\nno wage premium\n(brain waste)",
+           size = 3, color = gray_mid, fontface = "italic") +
+  annotate("text", x = -Inf, y = -Inf, hjust = -0.1, vjust = -1,
+           label = "Double penalty",
+           size = 3, color = gray_mid, fontface = "italic") +
+  annotate("text", x = -Inf, y = Inf, hjust = -0.1, vjust = 1.5,
+           label = "Wage premium\ndespite access barrier",
+           size = 3, color = gray_mid, fontface = "italic") +
+  labs(
+    title    = "Access channel × wage channel — the two-stage immigrant labor market",
+    subtitle = "How each attribute affects entry into employment AND wages once employed",
+    x = "Effect on employment access (% change in odds)",
+    y = "Effect on wages once employed (% change)",
+    caption  = paste0("Source: ACS 5-year PUMS (2020-2024). ",
+                      "Access from binary logit (N = ", scales::comma(nrow(access_df)),
+                      "); wages from Mincer (N = ", scales::comma(nrow(mincer_df)), ").")
+  )
+print(p_two_stage)
+ggsave("output/chart_two_stage_summary.png", p_two_stage,
+       width = 10, height = 12, dpi = 300)
