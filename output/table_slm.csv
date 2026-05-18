@@ -1,7 +1,9 @@
-"Term","Estimate"
-"ρ (spatial lag)",0.038
-"% linguistically isolated",0.36
-"% foreign-born",-0.237
-"Unemployment rate",0.087
-"Median HH income (thousands)",-0.214
-"Intercept",34.611
+"Term","Estimate","Std_Error","P_value"
+"ρ (spatial lag)",0.306,0.0530948877659042,"0.00000000827"
+"% linguistically isolated",-0.289,0.173,"0.095212"
+"% foreign-born",0.066,0.127,"0.600587"
+"Unemployment rate",-0.074,0.2,"0.711099"
+"Employment-to-pop ratio",-0.395,0.107,"0.000207"
+"Rent-burdened share",-0.061,0.064,"0.336634"
+"Median HH income (thousands)",0.558,0.047,"< 0.0000000000000002"
+"Intercept",36.138,8.359,"0.0000154"
