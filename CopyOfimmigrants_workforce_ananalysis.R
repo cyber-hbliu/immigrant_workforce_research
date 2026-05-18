@@ -130,7 +130,7 @@ if (!dir.exists("output")) dir.create("output")
 # -----------------------------------------------------------------------------
 pums_vars <- c(
   "AGEP", "SEX", "NATIVITY", "SCHL", "ESR", "CIT", "POBP", "POVPIP",
-  "NP", "WAGP", "INDP", "NAICSP", "ENG", "HHL", "LNGI", "YOEP",
+  "NP", "WAGP", "INDP", "NAICSP", "OCCP", "ENG", "HHL", "LNGI", "YOEP",
   "PUMA", "COW", "WAOB", "HHLDRRAC1P", "MAR", "MIG"
 )
 
@@ -376,7 +376,88 @@ pums_philly$yrs_us <- pmax(acs_year - yoep_num, 0)
 
 pums_philly$wage_num <- as.numeric(pums_philly$WAGP)
 
+# -----------------------------------------------------------------------------
+# Step 14b. Feature engineering: industry sector, occupation tier, class of worker
+# -----------------------------------------------------------------------------
+# Maps NAICSP (NAICS code) to 2-digit sector groups, OCCP to three occupational
+# skill tiers, and COW to four class-of-worker categories.
+# Verify NAICSP/OCCP code ranges against PUMS 2023 data dictionary if needed.
 
+# --- Industry sector (NAICSP first 2 digits = NAICS sector code) -------------
+naicsp_str <- as.character(pums_philly$NAICSP)
+naicsp_2   <- substr(naicsp_str, 1, 2)
+
+naicsp_to_sector <- c(
+  "11" = "Agriculture/Forestry/Fishing",
+  "21" = "Mining/Oil/Gas",
+  "22" = "Utilities",
+  "23" = "Construction",
+  "31" = "Manufacturing", "32" = "Manufacturing", "33" = "Manufacturing",
+  "42" = "Wholesale Trade",
+  "44" = "Retail Trade", "45" = "Retail Trade",
+  "48" = "Transportation/Warehousing", "49" = "Transportation/Warehousing",
+  "51" = "Information",
+  "52" = "Finance/Insurance",
+  "53" = "Real Estate",
+  "54" = "Professional/Scientific/Tech",
+  "55" = "Management of Companies",
+  "56" = "Admin/Support/Waste Mgmt",
+  "61" = "Educational Services",
+  "62" = "Health Care/Social Assistance",
+  "71" = "Arts/Entertainment/Recreation",
+  "72" = "Accommodation/Food Services",
+  "81" = "Other Services",
+  "92" = "Public Administration"
+)
+
+pums_philly$sector <- naicsp_to_sector[naicsp_2]
+pums_philly$sector[is.na(pums_philly$sector) | naicsp_str == "0"] <-
+  "Not in labor force / Military"
+
+# --- Occupation tier (OCCP numeric, broad SOC major groups) ------------------
+occp_num <- suppressWarnings(as.numeric(as.character(pums_philly$OCCP)))
+
+pums_philly$occ_tier <- case_when(
+  occp_num >= 0010 & occp_num <= 3550  ~ "Professional/Managerial",
+  occp_num >= 3601 & occp_num <= 5940  ~ "Service/Sales/Office",
+  occp_num >= 6005 & occp_num <= 9760  ~ "Production/Trades/Transport",
+  TRUE                                 ~ NA_character_
+)
+pums_philly$occ_tier <- factor(
+  pums_philly$occ_tier,
+  levels = c("Production/Trades/Transport",
+             "Service/Sales/Office",
+             "Professional/Managerial")
+)
+
+# --- Class of worker (COW codes) ---------------------------------------------
+# 1-2 = Private (for-profit + nonprofit)
+# 3-5 = Government (local + state + federal)
+# 6-7 = Self-employed (unincorporated + incorporated)
+# 8   = Unpaid family worker
+# 9   = Unemployed, never worked
+cow_num <- suppressWarnings(as.numeric(as.character(pums_philly$COW)))
+
+pums_philly$cow_simplified <- case_when(
+  cow_num %in% 1:2 ~ "Private employee",
+  cow_num %in% 3:5 ~ "Government employee",
+  cow_num %in% 6:7 ~ "Self-employed",
+  cow_num == 8     ~ "Unpaid family worker",
+  TRUE             ~ NA_character_
+)
+pums_philly$cow_simplified <- factor(
+  pums_philly$cow_simplified,
+  levels = c("Private employee", "Government employee",
+             "Self-employed", "Unpaid family worker")
+)
+
+# Re-build foreign_born subset to pick up new columns
+foreign_born <- pums_philly[pums_philly$foreign_born, ]
+
+# Quick summaries
+table(pums_philly$sector, useNA = "ifany")
+table(pums_philly$occ_tier, useNA = "ifany")
+table(pums_philly$cow_simplified, useNA = "ifany")
 # -----------------------------------------------------------------------------
 # Step 15. Foreign-born subset
 # -----------------------------------------------------------------------------
@@ -1089,7 +1170,22 @@ cat("Unemployment rate:         I =",
     round(moran_un$estimate[1], 3),
     "  p =", format.pval(moran_un$p.value, digits = 3), "\n")
 
+# Sensitivity: re-compute Moran's I under three weight specifications
+nb_rook <- poly2nb(spatial_df, queen = FALSE)
+lw_rook <- nb2listw(nb_rook, style = "W", zero.policy = TRUE)
 
+coords  <- st_coordinates(st_centroid(spatial_df))
+nb_knn5 <- knn2nb(knearneigh(coords, k = 5))
+lw_knn5 <- nb2listw(nb_knn5, style = "W")
+
+# Re-run Moran's I for poverty under all three
+moran_pov_queen <- moran.test(spatial_df$pct_poverty_fb, lw,      zero.policy = TRUE)
+moran_pov_rook  <- moran.test(spatial_df$pct_poverty_fb, lw_rook, zero.policy = TRUE)
+moran_pov_knn   <- moran.test(spatial_df$pct_poverty_fb, lw_knn5)
+
+cat("Queen:", round(moran_pov_queen$estimate[1], 3), "\n")
+cat("Rook: ", round(moran_pov_rook$estimate[1], 3), "\n")
+cat("KNN-5:", round(moran_pov_knn$estimate[1], 3), "\n")
 # -----------------------------------------------------------------------------
 # Step 33. Local Moran's I (LISA) — four workforce-mobility indicators
 # -----------------------------------------------------------------------------
