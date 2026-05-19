@@ -1331,25 +1331,40 @@ theta_p <- smry[imr_idx[1], "Pr(>|t|)"]
 cat("\n--- Selection diagnostic ---\n")
 cat(sprintf("Inverse Mills Ratio coefficient θ = %.4f (p = %.4f)\n",
             theta, theta_p))
-cat("Interpretation:\n")
-cat("  θ > 0   → employed FB positively selected; OLS underestimates wages\n")
-cat("            for the marginal worker\n")
-cat("  θ < 0   → employed FB negatively selected; OLS overestimates wages\n")
 
 # OLS vs Heckman comparison on key coefficients
 cat("\n--- OLS vs Heckman-corrected coefficients (key terms) ---\n")
 ols_coefs    <- coef(mincer_fit)
 heck_coefs   <- coef(heckman_fit, part = "outcome")
-compare_vars <- c("edu_factorBachelor's+", "eng_factor_useVery well",
-                  "yrs_us", "female", "origin_regionEurope")
+compare_specs <- list(
+  list(label = "Bachelor's+",      ols = "edu_collapsedBachelor's+",      heck = "edu_factorBachelor's+"),
+  list(label = "Some college",     ols = "edu_collapsedSome college/Assoc.", heck = "edu_factorSome college/Assoc."),
+  list(label = "HS/GED",           ols = "edu_collapsedHS/GED",           heck = "edu_factorHS/GED"),
+  list(label = "English: Very well", ols = "eng_factorVery well",          heck = "eng_factor_useVery well"),
+  list(label = "English: Well",    ols = "eng_factorWell",                heck = "eng_factor_useWell"),
+  list(label = "English: Not well", ols = "eng_factorNot well",           heck = "eng_factor_useNot well"),
+  list(label = "Lang. isolated",   ols = "lang_isolated",                 heck = "lang_isolated"),
+  list(label = "Years in U.S.",    ols = "yrs_us",                        heck = "yrs_us"),
+  list(label = "Female",           ols = "SEX2",                          heck = "female"),
+  list(label = "Origin: Europe",   ols = "origin_regionEurope",           heck = "origin_regionEurope"),
+  list(label = "Origin: Africa",   ols = "origin_regionAfrica",           heck = "origin_regionAfrica"),
+  list(label = "Origin: Asia",     ols = "origin_regionAsia",             heck = "origin_regionAsia")
+)
+
 available    <- intersect(compare_vars,
                           intersect(names(ols_coefs), names(heck_coefs)))
-heckman_compare <- data.frame(
-  Variable   = available,
-  OLS        = round(ols_coefs[available], 4),
-  Heckman    = round(heck_coefs[available], 4),
-  Difference = round(heck_coefs[available] - ols_coefs[available], 4)
-)
+heckman_compare <- do.call(rbind, lapply(compare_specs, function(s) {
+  if (s$ols %in% names(ols_coefs) && s$heck %in% names(heck_coefs)) {
+    data.frame(
+      Variable   = s$label,
+      OLS        = round(ols_coefs[s$ols], 4),
+      Heckman    = round(heck_coefs[s$heck], 4),
+      Difference = round(heck_coefs[s$heck] - ols_coefs[s$ols], 4),
+      OLS_pct    = round((exp(ols_coefs[s$ols])  - 1) * 100, 1),
+      Heckman_pct= round((exp(heck_coefs[s$heck]) - 1) * 100, 1)
+    )
+  }
+}))
 print(heckman_compare, row.names = FALSE)
 write.csv(heckman_compare, "output/3_heckman_comparison.csv", row.names = FALSE)
 saveRDS(heckman_fit, "output/4_heckman_fit.rds")
