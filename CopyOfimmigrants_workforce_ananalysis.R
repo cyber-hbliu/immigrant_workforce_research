@@ -5,7 +5,7 @@
 #   What explains workforce opportunity variation among Philadelphia's
 #   foreign-born residents?
 #
-# THREE-STAGE PROGRESSIVE STRUCTURE (层层递进的逻辑推演):
+# THREE-STAGE PROGRESSIVE STRUCTURE
 #   STAGE A — ACCESS:  Who gets employed at all?
 #                       (Binary logit on employment status)
 #   STAGE B — WAGES:   Among the employed, what shapes earnings?
@@ -147,7 +147,7 @@ philly_pumas <- c("03216", "03221", "03222", "03223", "03224",
 acs_year   <- 2024
 options(tigris_use_cache = TRUE, scipen = 999)
 set.seed(2025)
-if (!dir.exists("new_output")) dir.create("new_output")
+if (!dir.exists("output")) dir.create("output")
 
 weighted_median <- function(x, w) {
   ok <- !is.na(x) & !is.na(w) & w > 0
@@ -599,7 +599,7 @@ p1_trend <- ggplot(philly_trend, aes(x = year, y = foreign_bornE)) +
     )
   )
 print(p1_trend)
-ggsave("new_output/chart1_pop_trend.png", p1_trend,
+ggsave("output/chart1_pop_trend.png", p1_trend,
        width = 10, height = 5, dpi = 300)
 
 # -----------------------------------------------------------------------------
@@ -671,7 +671,7 @@ p_origins <- ggplot(top_countries,
         axis.line.x = element_blank(), axis.ticks.x = element_blank(),
         axis.text = element_blank(), axis.title = element_blank())
 print(p_origins)
-ggsave("new_output/chart_origin_treemap.png", p_origins,
+ggsave("output/chart2_origin_treemap.png", p_origins,
        width = 10, height = 7, dpi = 300)
 
 # -----------------------------------------------------------------------------
@@ -714,7 +714,7 @@ p2_wage <- ggplot(wage_by_eng,
                      "estimates in Stage B below.")
   )
 print(p2_wage)
-ggsave("new_output/chart2_wage_by_eng.png", p2_wage,
+ggsave("output/chart3_wage_by_eng.png", p2_wage,
        width = 10, height = 5, dpi = 300)
 
 # -----------------------------------------------------------------------------
@@ -768,7 +768,7 @@ p_industry <- ggplot(industry_long,
                       scales::comma(nrow(workers_only)), " employed workers.")
   )
 print(p_industry)
-ggsave("new_output/chart_industry_fb_vs_us.png", p_industry,
+ggsave("output/chart4_industry_fb_vs_us.png", p_industry,
        width = 10, height = 14, dpi = 300)
 
 # -----------------------------------------------------------------------------
@@ -841,13 +841,15 @@ p_cor_ind <- ggcorrplot(
 ) +
   labs(
     title    = "Individual-level correlations among Philadelphia's immigrants",
-    subtitle = "PRIMARY correlation matrix — 27 person-level attributes",
+    subtitle = "Person-level attributes of foreign-born residents",
     caption  = paste0("Source: ACS 5-year PUMS (2020-2024). ",
-                      "N = ", scales::comma(nrow(fb_ind)), " FB individuals.")
+                      "N = ", scales::comma(nrow(fb_ind)), " foreign-born individuals.\n",
+                      "Tract-level co-variation reported separately to avoid ",
+                      "ecological-fallacy conflation (Robinson 1950).")
   ) +
   theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5))
 print(p_cor_ind)
-ggsave("new_output/chart_correlation_individual_PRIMARY.png", p_cor_ind,
+ggsave("output/chart5_correlation_individual_PRIMARY.png", p_cor_ind,
        width = 10, height = 13, dpi = 300)
 
 # -----------------------------------------------------------------------------
@@ -880,14 +882,15 @@ p_cor_tract <- ggcorrplot(
   ggtheme = theme_editorial
 ) +
   labs(
-    title    = "Tract-level co-variation of workforce indicators",
-    subtitle = "SUPPLEMENTARY — spatial-context lens",
+    title    = "Tract-level co-variation of workforce indicators in Philadelphia",
+    subtitle = "Neighborhood-context view across census tracts",
     caption  = paste0("Source: ACS 5-year estimates (2024 vintage). ",
-                      "N = ", nrow(cor_df_tract), " tracts.")
+                      "N = ", nrow(cor_df_tract), " tracts. ",
+                      "Tract-level correlations describe places, not individuals.")
   ) +
   theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5))
 print(p_cor_tract)
-ggsave("new_output/chart_correlation_tract_SUPP.png", p_cor_tract,
+ggsave("output/chart6_correlation_tract_SUPP.png", p_cor_tract,
        width = 10, height = 11, dpi = 300)
 
 
@@ -947,7 +950,7 @@ access_tidy <- tidy(access_fit, conf.int = TRUE, exponentiate = TRUE) %>%
   filter(term != "(Intercept)") %>%
   mutate(across(where(is.numeric), ~ round(.x, 3)))
 print(access_tidy)
-write_csv(access_tidy, "new_output/access_logit.csv")
+write_csv(access_tidy, "output/1_access_logit.csv")
 
 # -----------------------------------------------------------------------------
 # Step A2. Access-channel coefficient plot (focal predictors)
@@ -1002,18 +1005,18 @@ p_access <- ggplot(access_focal,
                      breaks = c(0.25, 0.5, 1, 2, 4),
                      expand = expansion(mult = c(0.08, 0.08))) +
   labs(
-    title    = "STAGE A — Who gets employed? The access channel",
-    subtitle = "Binary logit odds ratios, 95% CI. OR > 1 = higher employment probability",
+    title    = "Who reaches employment? Access channels for Philadelphia's foreign-born residents",
+    subtitle = "Binary logit odds ratios with 95% confidence intervals; OR > 1 indicates higher employment probability",
     x = "Odds ratio (log scale)", y = NULL,
     caption  = paste0("Source: ACS 5-year PUMS (2020-2024). N = ",
                       scales::comma(nrow(access_df)),
                       " working-age (16-65) foreign-born.\n",
                       "Controls: age, age², yrs_us², origin, household. ",
-                      "Reference: English 'Not at all', Education '<HS', ",
-                      "Male, Unmarried.")
+                      "Reference categories: English 'Not at all', ",
+                      "Education '<HS', Male, Unmarried.")
   )
 print(p_access)
-ggsave("new_output/chartA_access_logit.png", p_access,
+ggsave("output/chart7_access_logit.png", p_access,
        width = 10, height = 14, dpi = 300)
 
 
@@ -1097,7 +1100,7 @@ mincer_tidy <- tidy(mincer_robust, conf.int = TRUE) %>%
     pct_low    = (exp(conf.low)  - 1) * 100,
     pct_high   = (exp(conf.high) - 1) * 100
   )
-write_csv(mincer_tidy, "new_output/mincer_coefficients.csv")
+write_csv(mincer_tidy, "output/2_mincer_coefficients.csv")
 
 # -----------------------------------------------------------------------------
 # Step B3. Mincer focal coefficient plot
@@ -1150,20 +1153,22 @@ p_mincer <- ggplot(coef_plot_df,
   scale_x_continuous(labels = function(x) paste0(x, "%"),
                      expand = expansion(mult = c(0.05, 0.05))) +
   labs(
-    title    = "STAGE B — Four channels of wage variation",
-    subtitle = "Mincer regression: % effect on annual wages, 95% CI (HC1 robust)",
+    title    = "What shapes wages? Four channels of variation among employed foreign-born workers",
+    subtitle = "Mincer regression: percent effect on annual wages with 95% CI (HC1-robust standard errors)",
     x = NULL, y = NULL,
     caption  = paste0("Source: ACS 5-year PUMS (2020-2024). N = ",
                       scales::comma(nrow(mincer_df)),
-                      ". Adj R² = ",
+                      ". Adjusted R² = ",
                       round(summary(mincer_fit)$adj.r.squared, 3),
-                      ". Controls: age, age², yrs_us², origin, SOC, COW, ",
-                      "household.\nReference: English 'Not at all', ",
+                      ". Controls: age, age², yrs_us², origin, SOC group, ",
+                      "class of worker, household.\n",
+                      "Reference categories: English 'Not at all', ",
                       "Education '<HS', Male, Unmarried.")
   )
 print(p_mincer)
-ggsave("new_output/chartB_mincer_focal.png", p_mincer,
-       width = 10, height = 8, dpi = 300)
+
+ggsave("output/chart8_mincer_focal.png", p_mincer,
+       width = 10, height = 12, dpi = 300)
 
 # -----------------------------------------------------------------------------
 # Step B4. Mincer full coefficient plot — all variables grouped
@@ -1233,21 +1238,22 @@ p_mincer_full <- ggplot(coef_full_df,
   scale_x_continuous(labels = function(x) paste0(x, "%"),
                      expand = expansion(mult = c(0.08, 0.08))) +
   labs(
-    title    = "STAGE B — Full Mincer regression results",
-    subtitle = "% effect on annual wages, 95% CI (HC1 robust), grouped by channel",
+    title    = "The full wage equation for Philadelphia's foreign-born workers",
+    subtitle = "Mincer regression coefficients with 95% CI (HC1-robust), grouped by channel",
     x = NULL, y = NULL,
     caption  = paste0("Source: ACS 5-year PUMS (2020-2024). N = ",
                       scales::comma(nrow(mincer_df)),
-                      ". Adj R² = ",
+                      ". Adjusted R² = ",
                       round(summary(mincer_fit)$adj.r.squared, 3),
-                      ". SOC group (22) and COW (7) fixed effects suppressed.\n",
-                      "Signif: *** p<0.001, ** p<0.01, * p<0.05, . p<0.1. ",
-                      "Reference: English 'Not at all', Education '<HS', ",
-                      "Origin 'Latin America', Household 'Coupled'.")
+                      ". SOC group (22 levels) and class-of-worker (7 levels) ",
+                      "fixed effects included but suppressed.\n",
+                      "Significance: *** p<0.001, ** p<0.01, * p<0.05, . p<0.1. ",
+                      "Reference categories: English 'Not at all', ",
+                      "Education '<HS', Origin 'Latin America', Household 'Coupled'.")
   )
 print(p_mincer_full)
-ggsave("new_output/chartB_mincer_full.png", p_mincer_full,
-       width = 10, height = 14, dpi = 300)
+ggsave("output/chart9_mincer_full.png", p_mincer_full,
+       width = 10, height = 12, dpi = 300)
 
 # -----------------------------------------------------------------------------
 # Step B5. ROBUSTNESS — Heckman two-step selection correction
@@ -1345,8 +1351,8 @@ heckman_compare <- data.frame(
   Difference = round(heck_coefs[available] - ols_coefs[available], 4)
 )
 print(heckman_compare, row.names = FALSE)
-write.csv(heckman_compare, "new_output/heckman_comparison.csv", row.names = FALSE)
-saveRDS(heckman_fit, "new_output/heckman_fit.rds")
+write.csv(heckman_compare, "output/3_heckman_comparison.csv", row.names = FALSE)
+saveRDS(heckman_fit, "output/4_heckman_fit.rds")
 
 # -----------------------------------------------------------------------------
 # Step B6. BRIDGE A↔B — Two-stage summary chart
@@ -1434,17 +1440,19 @@ p_two_stage <- ggplot(two_stage,
            label = "Wage premium\ndespite access barrier",
            size = 3, color = gray_mid, fontface = "italic") +
   labs(
-    title    = "Access channel × wage channel",
-    subtitle = "Each attribute's effect on entry into employment AND wages once employed",
+    title    = "Access and wages — Philadelphia's two-channel immigrant labor market",
+    subtitle = "How each attribute affects entry into employment AND wages once employed",
     x = "Effect on employment access (% change in odds)",
     y = "Effect on wages once employed (% change)",
     caption  = paste0("Source: ACS 5-year PUMS (2020-2024). ",
-                      "Access from binary logit (N = ", scales::comma(nrow(access_df)),
-                      "); wages from Mincer (N = ", scales::comma(nrow(mincer_df)), ").")
+                      "Access estimates from binary logit (N = ",
+                      scales::comma(nrow(access_df)),
+                      "); wage estimates from Mincer regression (N = ",
+                      scales::comma(nrow(mincer_df)), ").")
   )
 print(p_two_stage)
-ggsave("new_output/chartB_two_stage_summary.png", p_two_stage,
-       width = 10, height = 14, dpi = 300)
+ggsave("output/chart10_two_stage_summary.png", p_two_stage,
+       width = 10, height = 12, dpi = 300)
 
 
 # =============================================================================
@@ -1533,7 +1541,7 @@ for (label in names(moran_indicators)) {
 }
 moran_results$P_fmt <- format.pval(moran_results$P_value, digits = 3)
 print(moran_results[, c("Indicator", "Moran_I", "P_fmt")])
-write.csv(moran_results, "new_output/moran_global.csv", row.names = FALSE)
+write.csv(moran_results, "output/5_moran_global.csv", row.names = FALSE)
 
 # Sensitivity on the headline outcome (FB earnings)
 moran_earn      <- moran.test(spatial_df$median_earn_fbE, lw,
@@ -1608,8 +1616,8 @@ map_fb_share <- make_choropleth(
   "Source: ACS 5-year estimates."
 )
 print(map_fb_share)
-ggsave("new_output/mapC_fb_share.png", map_fb_share, 
-       width = 10, height = 12, dpi = 300)
+ggsave("output/map1_fb_share.png", 
+       map_fb_share, width = 10, height = 10, dpi = 300)
 
 map_fb_earnings <- make_choropleth(
   "median_earn_fbE", "Median earnings", scales::dollar,
@@ -1618,8 +1626,7 @@ map_fb_earnings <- make_choropleth(
   "Source: ACS 5-year estimates, table B20017."
 )
 print(map_fb_earnings)
-ggsave("new_output/mapC_fb_earnings.png", 
-       map_fb_earnings, width = 10, height = 12, dpi = 300)
+ggsave("output/map2_fb_earnings.png", map_fb_earnings, width = 10, height = 10, dpi = 300)
 
 map_emp_to_pop <- make_choropleth(
   "pct_emp_to_pop", "% employed", pct_label,
@@ -1628,8 +1635,7 @@ map_emp_to_pop <- make_choropleth(
   "Source: ACS 5-year estimates, table B23025."
 )
 print(map_emp_to_pop)
-ggsave("new_output/mapC_emp_to_pop.png", 
-       map_emp_to_pop, width = 10, height = 12, dpi = 300)
+ggsave("output/map3_emp_to_pop.png", map_emp_to_pop, width = 10, height = 10, dpi = 300)
 
 map_mgmt_prof <- make_choropleth(
   "pct_mgmt_prof", "% mgmt/prof", pct_label,
@@ -1638,8 +1644,7 @@ map_mgmt_prof <- make_choropleth(
   "Source: ACS 5-year estimates, table C24010."
 )
 print(map_mgmt_prof)
-ggsave("new_output/mapC_mgmt_prof.png", 
-       map_mgmt_prof, width = 10, height = 12, dpi = 300)
+ggsave("output/map4_mgmt_prof.png", map_mgmt_prof, width = 10, height = 10, dpi = 300)
 
 map_service_occ <- make_choropleth(
   "pct_service_occ", "% service", pct_label,
@@ -1648,8 +1653,7 @@ map_service_occ <- make_choropleth(
   "Source: ACS 5-year estimates, table C24010."
 )
 print(map_service_occ)
-ggsave("new_output/mapC_service_occ.png", 
-       map_service_occ, width = 10, height = 12, dpi = 300)
+ggsave("output/map5_service_occ.png", map_service_occ, width = 10, height = 10, dpi = 300)
 
 map_lang_iso <- make_choropleth(
   "pct_lang_isolated", "% lang. isolated", pct_label,
@@ -1658,8 +1662,7 @@ map_lang_iso <- make_choropleth(
   "Source: ACS 5-year estimates, table C16002."
 )
 print(map_lang_iso)
-ggsave("new_output/mapC_lang_iso.png", 
-       map_lang_iso, width = 10, height = 12, dpi = 300)
+ggsave("output/map6_lang_iso.png", map_lang_iso, width = 10, height = 10, dpi = 300)
 
 # -----------------------------------------------------------------------------
 # Step C5. Moran scatter plots — visualize clustering structure
@@ -1716,8 +1719,8 @@ p_moran_earnings <- make_moran_scatter(
   "Low-earning cluster\n(workforce-mobility priority zones)"
 )
 print(p_moran_earnings)
-ggsave("new_output/chartC_moran_earnings.png", p_moran_earnings,
-       width = 10, height = 10, dpi = 300)
+ggsave("output/chart10_moran_earnings.png", p_moran_earnings,
+       width = 10, height = 11, dpi = 300)
 
 p_moran_emp <- make_moran_scatter(
   "pct_emp_to_pop", "employment-to-pop ratio",
@@ -1726,8 +1729,8 @@ p_moran_emp <- make_moran_scatter(
   "Low-engagement cluster\n(workforce-policy priority zones)"
 )
 print(p_moran_emp)
-ggsave("new_output/chartC_moran_emp.png", p_moran_emp,
-       width = 10, height = 10, dpi = 300)
+ggsave("output/chart11_moran_emp.png", p_moran_emp,
+       width = 10, height = 11, dpi = 300)
 
 p_moran_lang <- make_moran_scatter(
   "pct_lang_isolated", "linguistic isolation",
@@ -1736,8 +1739,8 @@ p_moran_lang <- make_moran_scatter(
   "Low-isolation cluster\n(English-accessible zones)"
 )
 print(p_moran_lang)
-ggsave("new_output/chartC_moran_lang.png", p_moran_lang,
-       width = 10, height = 10, dpi = 300)
+ggsave("output/chart12_moran_lang.png", p_moran_lang,
+       width = 10, height = 11, dpi = 300)
 
 p_moran_fb <- make_moran_scatter(
   "pct_foreign_born", "foreign-born share",
@@ -1746,8 +1749,8 @@ p_moran_fb <- make_moran_scatter(
   "Low-FB cluster\n(US-born dominant tracts)"
 )
 print(p_moran_fb)
-ggsave("new_output/chartC_moran_fb.png", p_moran_fb,
-       width = 10, height = 10, dpi = 300)
+ggsave("output/chart13_moran_fb.png", p_moran_fb,
+       width = 10, height = 11, dpi = 300)
 
 p_moran_mgmt <- make_moran_scatter(
   "pct_mgmt_prof", "% mgmt/prof occupations",
@@ -1756,8 +1759,8 @@ p_moran_mgmt <- make_moran_scatter(
   "Low high-skill cluster\n(limited upper-tier access)"
 )
 print(p_moran_mgmt)
-ggsave("new_output/chartC_moran_mgmt.png", p_moran_mgmt,
-       width = 10, height = 10, dpi = 300)
+ggsave("output/chart14_moran_mgmt.png", p_moran_mgmt,
+       width = 10, height = 11, dpi = 300)
 
 p_moran_service <- make_moran_scatter(
   "pct_service_occ", "% service occupations",
@@ -1766,8 +1769,8 @@ p_moran_service <- make_moran_scatter(
   "Low service-occ cluster\n(diversified labor market)"
 )
 print(p_moran_service)
-ggsave("new_output/chartC_moran_service.png", p_moran_service,
-       width = 10, height = 10, dpi = 300)
+ggsave("output/chart15_moran_service.png", p_moran_service,
+       width = 10, height = 11, dpi = 300)
 
 # -----------------------------------------------------------------------------
 # Step C6. LISA cluster maps — identify hot/cold spot tracts
@@ -1798,7 +1801,7 @@ map_lisa_fbshare <- make_lisa_map(
   "Source: ACS 5-year estimates. Hot spots = established immigrant enclaves."
 )
 print(map_lisa_fbshare)
-ggsave("new_output/mapC_lisa_fbshare.png", map_lisa_fbshare,
+ggsave("output/map7_lisa_fbshare.png", map_lisa_fbshare,
        width = 10, height = 12, dpi = 300)
 
 map_lisa_earnings <- make_lisa_map(
@@ -1808,7 +1811,7 @@ map_lisa_earnings <- make_lisa_map(
   "Source: ACS table B20017. Cold spots = workforce-mobility priority zones."
 )
 print(map_lisa_earnings)
-ggsave("new_output/mapC_lisa_earnings.png", map_lisa_earnings,
+ggsave("output/map8_lisa_earnings.png", map_lisa_earnings,
        width = 10, height = 12, dpi = 300)
 
 map_lisa_emp <- make_lisa_map(
@@ -1818,7 +1821,7 @@ map_lisa_emp <- make_lisa_map(
   "Source: ACS table B23025. Cold spots = low-engagement priority zones."
 )
 print(map_lisa_emp)
-ggsave("new_output/mapC_lisa_emp.png", map_lisa_emp,
+ggsave("output/map9_lisa_emp.png", map_lisa_emp,
        width = 10, height = 12, dpi = 300)
 
 map_lisa_mgmt <- make_lisa_map(
@@ -1828,7 +1831,7 @@ map_lisa_mgmt <- make_lisa_map(
   "Source: ACS table C24010. Upper-tier concentration zones."
 )
 print(map_lisa_mgmt)
-ggsave("new_output/mapC_lisa_mgmt.png", map_lisa_mgmt,
+ggsave("output/map10_lisa_mgmt.png", map_lisa_mgmt,
        width = 10, height = 12, dpi = 300)
 
 map_lisa_service <- make_lisa_map(
@@ -1838,7 +1841,7 @@ map_lisa_service <- make_lisa_map(
   "Source: ACS table C24010. Lower-tier concentration zones."
 )
 print(map_lisa_service)
-ggsave("new_output/mapC_lisa_service.png", map_lisa_service,
+ggsave("output/map11_lisa_service.png", map_lisa_service,
        width = 10, height = 12, dpi = 300)
 
 map_lisa_lang <- make_lisa_map(
@@ -1848,7 +1851,7 @@ map_lisa_lang <- make_lisa_map(
   "Source: ACS table C16002. Hot spots = ESL-program priority zones."
 )
 print(map_lisa_lang)
-ggsave("new_output/mapC_lisa_lang.png", map_lisa_lang,
+ggsave("output/map12_lisa_lang.png", map_lisa_lang,
        width = 10, height = 12, dpi = 300)
 
 # -----------------------------------------------------------------------------
@@ -1907,11 +1910,9 @@ sdm_impacts <- impacts(sdm_fit, listw = lw, R = 500)
 print(sdm_impacts)
 
 # Save artifacts
-saveRDS(spatial_df, "new_output/spatial_df_clean.rds")
-saveRDS(ols_fit,    "new_output/ols_fit.rds")
-saveRDS(slm_fit,    "new_output/slm_fit.rds")
-saveRDS(sdm_fit,    "new_output/sdm_fit.rds")
-saveRDS(mincer_fit, "new_output/mincer_fit.rds")
-saveRDS(access_fit, "new_output/access_fit.rds")
-
-
+saveRDS(spatial_df, "output/5_spatial_df_clean.rds")
+saveRDS(ols_fit,    "output/7_ols_fit.rds")
+saveRDS(slm_fit,    "output/8_slm_fit.rds")
+saveRDS(sdm_fit,    "output/9_sdm_fit.rds")
+saveRDS(mincer_fit, "output/10_mincer_fit.rds")
+saveRDS(access_fit, "output/11_access_fit.rds")
