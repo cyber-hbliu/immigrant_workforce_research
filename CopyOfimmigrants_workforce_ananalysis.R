@@ -1469,7 +1469,125 @@ print(p_two_stage)
 ggsave("output/chart10_two_stage_summary.png", p_two_stage,
        width = 10, height = 12, dpi = 300)
 
+# -----------------------------------------------------------------------------
+# Step B6b. Heckman-corrected two-channel chart
+# -----------------------------------------------------------------------------
+# Same access × wage logic as the OLS version, but uses Heckman-corrected
+# wage coefficients for the y-axis. Reveals three patterns hidden by OLS:
+#   (1) English moves into stronger "both stages" position
+#   (2) Origin: Europe drops dramatically (was mostly selection)
+#   (3) Origin: Asia flips quadrant (positive selection masked penalty)
+# Brain waste isolates to Bachelor's+ alone.
+# -----------------------------------------------------------------------------
 
+# Heckman outcome coefficients to % effects
+heck_coefs_named <- coef(heckman_fit, part = "outcome")
+
+# Map Heckman coefficient names back to standardized term names
+# (matching the access_tidy / mincer_tidy convention used in two_stage above)
+heck_to_standard <- c(
+  "eng_factor_useVery well"            = "eng_factorVery well",
+  "eng_factor_useWell"                 = "eng_factorWell",
+  "eng_factor_useNot well"             = "eng_factorNot well",
+  "lang_isolated"                      = "lang_isolated",
+  "edu_factorBachelor's+"              = "edu_collapsedBachelor's+",
+  "edu_factorSome college/Assoc."      = "edu_collapsedSome college/Assoc.",
+  "edu_factorHS/GED"                   = "edu_collapsedHS/GED",
+  "yrs_us"                             = "yrs_us",
+  "female"                             = "SEX2",
+  "origin_regionAsia"                  = "origin_regionAsia",
+  "origin_regionAfrica"                = "origin_regionAfrica",
+  "origin_regionEurope"                = "origin_regionEurope"
+)
+
+heck_wage <- tibble::tibble(
+  heck_term = names(heck_coefs_named),
+  estimate  = heck_coefs_named
+) %>%
+  filter(heck_term %in% names(heck_to_standard)) %>%
+  mutate(
+    term     = heck_to_standard[heck_term],
+    wage_pct = (exp(estimate) - 1) * 100
+  ) %>%
+  select(term, wage_pct)
+
+two_stage_heck <- inner_join(
+  access_focal_clean %>% select(term, access_or, access_pct),
+  heck_wage,
+  by = "term"
+) %>%
+  mutate(
+    label = case_match(term,
+                       "eng_factorVery well"               ~ "English: Very well",
+                       "eng_factorWell"                    ~ "English: Well",
+                       "eng_factorNot well"                ~ "English: Not well",
+                       "lang_isolated"                     ~ "Ling. isolated HH",
+                       "edu_collapsedBachelor's+"          ~ "Bachelor's+",
+                       "edu_collapsedSome college/Assoc."  ~ "Some college",
+                       "edu_collapsedHS/GED"               ~ "HS/GED",
+                       "yrs_us"                            ~ "Each year in U.S.",
+                       "SEX2"                              ~ "Female",
+                       "origin_regionAsia"                 ~ "Origin: Asia",
+                       "origin_regionAfrica"               ~ "Origin: Africa",
+                       "origin_regionEurope"               ~ "Origin: Europe"
+    ),
+    quadrant = case_when(
+      access_pct > 0 & wage_pct > 0 ~ "Both stages",
+      access_pct > 0 & wage_pct < 0 ~ "Access only",
+      access_pct < 0 & wage_pct > 0 ~ "Wage only",
+      TRUE                          ~ "Both penalties"
+    )
+  )
+
+p_two_stage_heck <- ggplot(two_stage_heck,
+                           aes(x = access_pct, y = wage_pct, color = quadrant)) +
+  geom_hline(yintercept = 0, color = gray_mid, linewidth = 0.4) +
+  geom_vline(xintercept = 0, color = gray_mid, linewidth = 0.4) +
+  geom_point(size = 5) +
+  geom_text_repel(aes(label = label), size = 3.5,
+                  fontface = "bold", color = ink,
+                  box.padding = 0.7, point.padding = 0.4,
+                  max.overlaps = 20) +
+  scale_color_manual(values = c(
+    "Both stages"    = as.character(artsy["mustard"]),
+    "Access only"    = accent_burgundy,
+    "Wage only"      = as.character(artsy["teal"]),
+    "Both penalties" = "#a86670"
+  )) +
+  scale_x_continuous(labels = function(x) paste0(x, "%"),
+                     expand = expansion(mult = c(0.15, 0.15))) +
+  scale_y_continuous(labels = function(x) paste0(x, "%"),
+                     expand = expansion(mult = c(0.15, 0.15))) +
+  annotate("text", x = Inf, y = Inf, hjust = 1.1, vjust = 1.5,
+           label = "Boosts BOTH access\nand wages",
+           size = 3, color = gray_mid, fontface = "italic") +
+  annotate("text", x = Inf, y = -Inf, hjust = 1.1, vjust = -1,
+           label = "Opens door but\nno wage premium\n(brain waste)",
+           size = 3, color = gray_mid, fontface = "italic") +
+  annotate("text", x = -Inf, y = -Inf, hjust = -0.1, vjust = -1,
+           label = "Double penalty",
+           size = 3, color = gray_mid, fontface = "italic") +
+  annotate("text", x = -Inf, y = Inf, hjust = -0.1, vjust = 1.5,
+           label = "Wage premium\ndespite access barrier",
+           size = 3, color = gray_mid, fontface = "italic") +
+  labs(
+    title    = "What changes when we correct for who reaches employment",
+    subtitle = "Access channel × Heckman-corrected wage channel",
+    x = "Effect on employment access (% change in odds)",
+    y = "Effect on wages once employed, selection-corrected (% change)",
+    caption  = paste0("Source: ACS 5-year PUMS (2020-2024). ",
+                      "Access from binary logit (N = ",
+                      scales::comma(nrow(access_df)),
+                      "); wages from Heckman two-step correction ",
+                      "(N = ", scales::comma(nrow(heckman_data)),
+                      " selection; ", scales::comma(sum(heckman_data$employed_bin)),
+                      " outcome).\n",
+                      "Married and household structure used as Heckman ",
+                      "exclusion restrictions, hence omitted from wage equation.")
+  )
+print(p_two_stage_heck)
+ggsave("output/chart10.1_two_stage_heckman.png", p_two_stage_heck,
+       width = 10, height = 11, dpi = 300)
 # =============================================================================
 # =============================================================================
 # STAGE C — SPATIAL CHANNEL: Where do these patterns cluster?
