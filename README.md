@@ -1,3 +1,8 @@
+# Research questions
+1. Does neighborhood immigrant density change the limited-English wage differential (protective vs isolation hypotheses)?
+2. Do rising wages and leaving the city move together (spatial assimilation), and does this differ by English proficiency and region of origin?
+
+
 # Summary
 Philadelphia faces a critical turning point. After a decade of immigrant-driven growth, the city's foreign-born population declined by 0.9% in 2023—the first drop in over ten years—even as national immigration rebounded. Drawing on 2019-2023 ACS PUMS data, our analysis reveals why this decline threatens the city's future and what can be done to reverse it. Philadelphia's 230,000 foreign-born residents—15% of the population—bring strong educational foundations, with 41% holding high school diplomas or bachelor's degrees. Yet a massive economic divide undermines their potential: immigrants who speak English "very well" earn $66,800 annually, while those who speak English "not at all" earn just $30,000—a staggering wage gap that exceeds income differences based on education, age, or country of origin. 
 
