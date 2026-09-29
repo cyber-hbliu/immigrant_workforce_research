@@ -42,50 +42,6 @@ function axes(g, x, y, w, h, opts = {}) {
 function title(g, text) { return g.append("text").attr("class", "title").attr("x", 0).attr("y", -14).text(text); }
 
 // ---------- chapter 2: wage gradient -> decomposition ----------
-function initWage() {
-  const { svg, w, h } = svgBox("#g-wage");
-  const m = { t: 40, r: 40, b: 40, l: 100 }, cw = w - m.l - m.r, ch = h - m.t - m.b;
-  const g = svg.append("g").attr("transform", `translate(${m.l},${m.t})`);
-  const t1 = state.data.results.t1;
-  const y = d3.scaleBand().domain(t1.map(d => d.eng)).range([0, ch * 0.58]).padding(0.45);
-  const x = d3.scaleLinear().domain([0, 42]).range([0, cw]);
-  axes(g, x, y, cw, ch * 0.58, { xf: d => "$" + d, xt: 6 });
-  title(g, "Median hourly wage of foreign-born workers by English, 2022–2024");
-  const rows = g.selectAll(".row").data(t1).join("g").attr("class", "row").attr("transform", d => `translate(0,${y(d.eng) + y.bandwidth() / 2})`);
-  rows.append("line").attr("x1", d => x(d.lo)).attr("x2", d => x(d.hi)).attr("stroke", C.ink2).attr("stroke-width", 2).style("opacity", 0);
-  rows.append("rect").attr("x", 0).attr("y", -y.bandwidth() / 2).attr("height", y.bandwidth()).attr("width", 0).attr("fill", (d, i) => C.english[i]);
-  rows.append("text").attr("class", "label").attr("x", d => x(d.hi) + 8).attr("dy", 4).text(d => fmt$(d.median)).style("opacity", 0);
-  hover(rows, d => `<b>${d.eng}</b><br>median ${fmt$(d.median)}<br>90% interval ${fmt$(d.lo)} to ${fmt$(d.hi)}`);
-  const ann = g.append("text").attr("class", "label").attr("x", cw).attr("y", ch * 0.58 + 40).attr("text-anchor", "end").style("opacity", 0)
-    .text("holding cohort, education, occupation and area constant, 0.059 log points per step");
-  // decomposition bars
-  const oa = state.data.results.oaxaca;
-  const dg = g.append("g").attr("transform", `translate(0,${ch * 0.8})`).style("opacity", 0);
-  const dy = d3.scaleBand().domain(["Standard controls", "With English"]).range([0, ch * 0.2]).padding(0.4);
-  const dx = d3.scaleLinear().domain([0, oa.gap]).range([0, cw]);
-  dg.append("text").attr("class", "title").attr("y", -12).text(`Native to foreign-born log wage gap, ${oa.gap.toFixed(3)}`);
-  const parts = [["Standard controls", oa.base], ["With English", oa.with_english]];
-  parts.forEach(([k, v]) => {
-    const yy = dy(k);
-    dg.append("rect").attr("x", 0).attr("y", yy).attr("height", dy.bandwidth()).attr("width", dx(v.explained)).attr("fill", C.teal);
-    dg.append("rect").attr("x", dx(v.explained)).attr("y", yy).attr("height", dy.bandwidth()).attr("width", dx(v.unexplained)).attr("fill", C.grey2);
-    dg.append("text").attr("x", -8).attr("y", yy + dy.bandwidth() / 2 + 4).attr("text-anchor", "end").text(k);
-    dg.append("text").attr("class", "label").attr("x", dx(v.explained) / 2).attr("y", yy + dy.bandwidth() / 2 + 4).attr("text-anchor", "middle").attr("fill", "#fff").text(`explained ${Math.round(v.explained / oa.gap * 100)}%`);
-    dg.append("text").attr("class", "note").attr("x", dx(v.explained) + dx(v.unexplained) / 2).attr("y", yy + dy.bandwidth() / 2 + 4).attr("text-anchor", "middle").text(`unexplained ${Math.round(v.unexplained / oa.gap * 100)}%`);
-  });
-  state.charts.wage = {
-    step(i) {
-      rows.select("rect").transition().duration(T).ease(ease).delay((d, j) => j * 120).attr("width", d => x(d.median));
-      rows.select("text").transition().delay(500).duration(400).style("opacity", 1);
-      rows.select("line").transition().delay(600).duration(400).style("opacity", i >= 0 ? 1 : 0);
-      ann.transition().duration(500).style("opacity", i >= 1 ? 1 : 0);
-      dg.transition().duration(600).style("opacity", i >= 2 ? 1 : 0);
-      caption("#c-wage", i < 2 ? "Weighted medians with 90 percent replicate-weight intervals. Wage and salary workers aged 25 to 64."
-        : "Two-fold Oaxaca decomposition with pooled coefficients, 2022–2024.");
-    }
-  };
-}
-
 // ---------- chapter 4b: county roses ----------
 function initCounty() {
   const { svg, w, h } = svgBox("#s-county");
@@ -120,12 +76,12 @@ function initSlopes() {
   const showScatter = on => { d3.select("#s-scatter").classed("off", !on); d3.select("#g-slopes").classed("off", on); };
   showScatter(true);
   const sb = svgBox("#s-scatter");
-  if (state.pumas) { const sc = CH.linkedMap(sb.svg, state.pumas, { width: sb.w, height: sb.h, mode: "scatter" }); sc.trend(true); }
+  const Rz = state.data.results;
+  const ws = state.pumas ? CH.wageScatter(sb.svg, { width: sb.w, height: sb.h, pumas: state.pumas, t1: Rz.t1, oaxaca: Rz.oaxaca, engColors: C.english }) : { step() {} };
   // the hidden svg shares the visible one's box
   const svg = d3.select("#g-slopes"), w = sb.w, h = sb.h; svg.selectAll("*").remove(); svg.attr("viewBox", `0 0 ${w} ${h}`);
-  const Rz = state.data.results;
   const chart = CH.gradient(svg, { width: w, height: h, S: Rz.slopes, limited: Rz.enclave.A.limited, inter: Rz.slopes.interaction, sd: 5.4, mean: 12 });
-  state.charts.slopes = { step(i) { showScatter(i === 0); chart.step(i); } };
+  state.charts.slopes = { step(i) { showScatter(i <= 3); ws.step(i); chart.step(i - 3); } };
 }
 
 // ---------- chapter 9: own-language density ----------
@@ -197,7 +153,13 @@ function initInteractive() {
   state.charts.enclave = { step(i) { if (window.occPanelsChart) window.occPanelsChart.step(i); caption("#c-enclave", i === 0 ? "Fitted log wage by area immigrant density from the two-level model, no occupation controls. Move the slider to read both groups at any density." : "The same lines with occupation fixed effects. The distance between them is the within-occupation differential."); } };
   state.charts.occ = { step(i) { setCtl("occ-sort", i === 0 ? "Limited English" : "wage"); caption("#c-occ", i === 0 ? "Percentage of each group in twelve occupation groups, 2022–2024, sorted by the limited-English percentage. Color is the group's median hourly wage there. The right column divides the limited-English median by the proficient median." : "Sorted by the native-born median wage. Descriptive statistics for the model sample."); } };
   state.charts.compare = { step(i) { if (window.cityCompareChart) window.cityCompareChart.step(i); setCtl("inter-bonf", i === 2); caption("#c-compare", i === 0 ? "Every limited-English × density interaction in the paper, sorted by |t|, with 95 percent intervals. Hover a point for the estimate, the standard error and the sample." : "Marks with a black rim clear the Bonferroni line for seventeen tests, |t| above 2.92."); } };
-  state.charts.moves = { step(i) { setCtl("flow-group", i === 3 ? "nb" : "fb"); setCtl("flow-movers", i !== 2); setCtl("flow-window", i === 0 ? "all" : "2022-2024"); } };
+  state.charts.moves = { step(i) {
+    setCtl("flow-group", i === 4 ? "nb" : "fb"); setCtl("flow-movers", i !== 3); setCtl("mv-var", "1");
+    const L = window.flowLink || {};
+    if (L.focusWindow) L.focusWindow(i === 1 ? "2022-2024" : null);
+    if (L.highlightAll) L.highlightAll(i === 1 ? "city_to_suburb" : null);
+    d3.select("#s-moves").classed("dim", i === 0 || i === 1);
+  } };
   state.charts.grid = { step(i) { setCtl("cell-metric", i === 0 ? "median_hourly" : i === 1 ? "limited_eng_prop" : "suburb_prop"); } };
 }
 
@@ -215,7 +177,7 @@ async function boot() {
   try { const mr = await d3.csv("data/move_rates.csv"); state.data.moveRates = mr.map(d => ({ ...d, fb: d.fb === "TRUE" || d.fb === "true", n: +d.n, pct: +d.pct })); }
   catch (e) { state.data.moveRates = state.data.mobility ? state.data.mobility.move_rates.map(d => ({ ...d, fb: true })) : []; }
   try { const ir = await d3.csv("data/interactions_region.csv"); state.data.interactionsRegion = ir.filter(d => d.Estimate).map(d => ({ region: d.sample, est: d.Estimate, se: d["Std. Error"] })); } catch (e) { state.data.interactionsRegion = []; }
-  const inits = { wage: initWage, county: initCounty, slopes: initSlopes, ownlang: initOwnlang, panel: initPanel, interactive: initInteractive };
+  const inits = { county: initCounty, slopes: initSlopes, ownlang: initOwnlang, panel: initPanel, interactive: initInteractive };
   function initAll() { Object.values(inits).forEach(f => f()); }
   initAll();
   const scroller = scrollama();

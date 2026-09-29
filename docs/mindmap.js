@@ -12,7 +12,7 @@
   const ORDER = ["data", "sample", "eq", "q1", "q2", "q3", "nat", "own", "mig", "app"];
   const byId = Object.fromEntries(FW.boxes.map(b => [b.id, b]));
   let R = null;
-  const PAN = {"p-area": "ch-map", "p-calc": "ch-enclave", "p-cohort": "ch-cohort", "p-coef": "ch-compare", "p-moves": "ch-moves", "p-occ": "ch-occ", "p-flow": "ch-globe", "p-tables": "tables", "p-gap": "ch-wage", "p-wage": "ch-wage", "p-cells": "ch-grid", "p-pop": "ch-globe", "p-county": "ch-county"};
+  const PAN = {"p-area": "ch-map", "p-calc": "ch-enclave", "p-cohort": "ch-cohort", "p-coef": "ch-compare", "p-moves": "ch-moves", "p-occ": "ch-occ", "p-flow": "ch-globe", "p-tables": "tables", "p-gap": "ch-slopes", "p-wage": "ch-slopes", "p-cells": "ch-grid", "p-pop": "ch-globe", "p-county": "ch-county"};
 
   FW.headings.forEach(h => g.append("text").attr("class", "fw-h").attr("x", h.x).attr("y", h.y).text(h.text));
   FW.labels.forEach(l => g.append("text").attr("class", l.cls).attr("x", l.x).attr("y", l.y).attr("text-anchor", l.anchor || "middle").text(l.text));

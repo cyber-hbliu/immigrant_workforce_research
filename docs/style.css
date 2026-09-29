@@ -264,6 +264,9 @@ table.data tr.sub td:first-child { padding-left: 24px; }
 .graphic .controls input[type=range] { width: 130px; }
 .graphic svg.half { flex: none; height: 44%; }
 .graphic svg.half.full { height: 100%; flex: 1; }
+.graphic svg.flow-top { flex: none; height: 58%; }
+.graphic svg.flow-bottom { flex: 1; transition: opacity 0.5s; }
+.graphic svg.dim { opacity: 0.25; }
 .graphic .hidden { display: none !important; }
 .graphic .mini-detail { position: static; width: auto; padding: 8px 12px; margin: 6px 0 0; font-size: 12px; background: var(--bg-2); border-radius: 8px; }
 .graphic .mini-detail dl { display: flex; flex-wrap: wrap; gap: 2px 16px; grid-template-columns: none; }

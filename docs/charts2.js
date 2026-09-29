@@ -107,6 +107,51 @@
     return { show, step(i) { if (i <= 1) show(["prof"]); else if (i === 2) show(["prof", "lim", "p17", "l17"], { dim: ["p17", "l17"] }); else show(["prof", "lim", "nat", "ctl"], { decomp: true }); } };
   };
 
+  // ---------- chapter 5, first half: the English ladder beside the density scatter ----------
+  // opts: { width, height, pumas, t1: [{eng, median, lo, hi}], oaxaca, engColors }
+  CH.wageScatter = function (svg, opts) {
+    svg.selectAll("*").remove();
+    const w = opts.width, h = opts.height, sw = Math.round(w * 0.58);
+    const gS = svg.append("g");
+    const sc = CH.linkedMap(gS, opts.pumas, { width: sw, height: h, mode: "scatter", title: "Wage by immigrant density, 48 PUMAs, r = −0.37" });
+    sc.trend(true);
+    const y = sc.y, m = sc.m, ch = y.range()[0];
+    // ladder: the four English categories on the same wage axis
+    const lx0 = sw + 30, lw = w - lx0 - 20, gl = svg.append("g").attr("transform", `translate(${lx0},${m.t})`);
+    const t1 = opts.t1, x = d3.scalePoint().domain(t1.map(d => d.eng)).range([28, lw - 40]);
+    gl.append("text").attr("class", "title").attr("y", -16).text("By English, 2022–2024");
+    gl.append("g").attr("class", "grid").call(d3.axisLeft(y).ticks(5).tickSize(-lw).tickFormat(""));
+    gl.append("line").attr("x1", 0).attr("x2", 0).attr("y1", 0).attr("y2", ch).attr("stroke", K.axis);
+    const rows = gl.selectAll("g.r").data(t1).join("g").attr("class", "r").attr("transform", d => `translate(${x(d.eng)},0)`);
+    rows.append("line").attr("y1", d => y(d.lo)).attr("y2", d => y(d.hi)).attr("stroke", (d, i) => opts.engColors[i]).attr("stroke-width", 3).attr("stroke-linecap", "round");
+    rows.append("circle").attr("cy", d => y(d.median)).attr("r", 7).attr("fill", (d, i) => opts.engColors[i]).attr("stroke", "#fff").attr("stroke-width", 1.5);
+    halo(rows.append("text").attr("class", "label").attr("x", 11).attr("y", d => y(d.median) + 4).style("font-weight", 700).text(d => "$" + d.median.toFixed(0)));
+    rows.append("text").attr("class", "note").attr("y", ch + 16).attr("text-anchor", "middle").attr("fill", K.ink).text(d => d.eng.replace("Not at all", "none").replace("Not well", "not well").replace("Very well", "very well").replace("Well", "well"));
+    gl.append("text").attr("class", "note").attr("x", lw / 2).attr("y", ch + 32).attr("text-anchor", "middle").attr("fill", K.muted).text("speaks English · 90 percent intervals");
+    hover(rows, d => `<b>Speaks English ${d.eng.toLowerCase()}</b><br>median ${d3.format("$.2f")(d.median)}<br>90% interval ${d3.format("$.0f")(d.lo)} to ${d3.format("$.0f")(d.hi)}`);
+    // step 1: the model annotation, drawn as the step between adjacent categories
+    const ann = gl.append("g").style("opacity", 0);
+    const py = y(t1[3].median) - 44;
+    ["holding cohort, education,", "occupation and area constant:", "+0.059 log points per step, about 6%"].forEach((t, i) => ann.append("text").attr("class", "note").attr("x", 6).attr("y", py + i * 14).attr("fill", K.tealDark).style("font-weight", 700).text(t));
+    // step 2: decomposition inset, below the ladder
+    const oa = opts.oaxaca, gd = svg.append("g").attr("transform", `translate(${lx0 + 6},${m.t + 16})`).style("opacity", 0);
+    const bw = lw - 10, dx = d3.scaleLinear().domain([0, oa.gap]).range([0, bw]);
+    gd.append("text").attr("class", "label").style("font-weight", 700).attr("y", 0).text(`Native to foreign-born gap, ${oa.gap.toFixed(3)} log points`);
+    [["standard controls", oa.base], ["with English added", oa.with_english]].forEach(([k, v], i) => {
+      const yy = 12 + i * 40;
+      gd.append("text").attr("class", "note").attr("x", 0).attr("y", yy + 8).attr("fill", K.ink2).text(`${k}: `).append("tspan").attr("fill", K.tealDark).style("font-weight", 700).text(`explained ${Math.round(v.explained / oa.gap * 100)}%`).append("tspan").attr("fill", K.muted).style("font-weight", 400).text(`, unexplained ${Math.round(v.unexplained / oa.gap * 100)}%`);
+      gd.append("rect").attr("x", 0).attr("y", yy + 14).attr("width", dx(v.explained)).attr("height", 10).attr("fill", K.teal);
+      gd.append("rect").attr("x", dx(v.explained)).attr("y", yy + 14).attr("width", dx(v.unexplained)).attr("height", 10).attr("fill", K.grey2);
+    });
+    function step(i) {
+      sc.dim(i < 3); sc.trend(i >= 3);
+      gl.transition().duration(T).style("opacity", i >= 3 ? 0.35 : 1);
+      ann.transition().duration(T).style("opacity", i >= 1 && i < 3 ? 1 : 0);
+      gd.transition().duration(T).style("opacity", i === 2 ? 1 : 0);
+    }
+    return { step };
+  };
+
   // ---------- chapter 7: the occupational channel, four panels, one slider ----------
   // panels: [{ title, gap, prof, lim, sd, note }], opts.d current density in SD
   CH.occPanels = function (svg, opts) {

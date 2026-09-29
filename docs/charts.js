@@ -49,7 +49,7 @@ window.CH = (function () {
     sg.append("g").attr("class", "axis").attr("transform", `translate(0,${ch})`).call(d3.axisBottom(x).ticks(6).tickFormat(d => d + "%").tickSizeOuter(0));
     sg.append("g").attr("class", "axis").call(d3.axisLeft(y).ticks(5).tickFormat(d => "$" + d).tickSizeOuter(0)).select(".domain").remove();
     sg.append("text").attr("x", cw / 2).attr("y", ch + 36).attr("text-anchor", "middle").text("foreign-born percentage of residents");
-    sg.append("text").attr("class", "title").attr("x", 0).attr("y", -16).text(mode === "scatter" || stacked ? "Foreign-born median hourly wage by immigrant density, 48 PUMAs, r = −0.37" : "Median wage by density, r = −0.37");
+    sg.append("text").attr("class", "title").attr("x", 0).attr("y", -16).text(opts.title || (mode === "scatter" || stacked ? "Foreign-born median hourly wage by immigrant density, 48 PUMAs, r = −0.37" : "Median wage by density, r = −0.37"));
     // regression line (least squares on the 48 points, drawn as the trend)
     const xs = feats.map(f => +f.properties.puma_fb_prop), ys = feats.map(f => +f.properties.fb_median_wage);
     const mx = d3.mean(xs), my = d3.mean(ys), b = d3.sum(xs.map((v, i) => (v - mx) * (ys[i] - my))) / d3.sum(xs.map(v => (v - mx) ** 2)), a = my - b * mx;
@@ -104,6 +104,7 @@ window.CH = (function () {
     }
     color(key);
     return {
+      y, m, dots, dim: on => { dots.transition().duration(T).attr("fill-opacity", on ? 0.12 : 0.7); },
       color, showFlows, trend: on => trend.transition().duration(T).style("opacity", on ? 1 : 0),
       step(i) { if (i === 0) { color("puma_fb_prop"); trend.style("opacity", 0); showFlows(false); } else if (i === 1) { color("fb_median_wage"); trend.transition().duration(T).style("opacity", 1); showFlows(false); } else { color("puma_fb_prop"); showFlows(true); } }
     };
@@ -236,7 +237,7 @@ window.CH = (function () {
     const ttl = g.append("text").attr("class", "title").attr("y", -18);
     const note = g.append("text").attr("class", "note").attr("y", -5);
     const body = g.append("g");
-    let cur = { window: opts.window || "2022-2024", fb: opts.fb !== false, exclude: !!opts.exclude };
+    let cur = { window: opts.window || "2022-2024", fb: opts.fb !== false, exclude: !!opts.exclude }, rbAll = null, hl = null;
     function draw() {
       let rows = rates.filter(d => d.window === cur.window && (String(d.fb) === String(cur.fb)) && (!cur.exclude || d.move_type !== "stayed")).map(d => ({ ...d }));
       if (cur.window === "2022-2024" && cur.fb) { // the paper reports arrivals from abroad landing in the city and the suburbs at 3,400 to 5,500 a year
@@ -256,11 +257,12 @@ window.CH = (function () {
       const L = stack(left, r => ORIGIN[r.move_type]), Rr = stack(right, dest);
       const ribbons = rows.map(r => { const a = L[ORIGIN[r.move_type]], b = Rr[dest(r)], hgt = yS(+r.n); const o = { r, ay0: a.cursor, ay1: a.cursor + hgt, by0: b.cursor, by1: b.cursor + hgt }; a.cursor += hgt; b.cursor += hgt; return o; });
       const wg = d => d.r.wage || (cur.window === "2022-2024" && cur.fb ? WAGE[d.r.move_type] : null);
-      const col = d => d.r.move_type === "stayed" ? K.grey2 : wg(d) ? (wg(d) > 25 ? K.tealDark : K.orange) : K.grey;
+      const col = d => opts.colorOf ? opts.colorOf(d.r.move_type) : d.r.move_type === "stayed" ? K.grey2 : wg(d) ? (wg(d) > 25 ? K.tealDark : K.orange) : K.grey;
       const area = d => `M0,${d.ay0} C${cw / 2},${d.ay0} ${cw / 2},${d.by0} ${cw},${d.by0} L${cw},${d.by1} C${cw / 2},${d.by1} ${cw / 2},${d.ay1} 0,${d.ay1} Z`;
       const rb = body.append("g").selectAll("path").data(ribbons).join("path").attr("d", area).attr("fill", col).attr("fill-opacity", 0.55).attr("stroke", "#fff").attr("stroke-width", 0.5).style("cursor", "pointer");
-      rb.on("mouseenter", function () { rb.attr("fill-opacity", 0.18); d3.select(this).attr("fill-opacity", 0.9); }).on("mouseleave", () => rb.attr("fill-opacity", 0.55));
-      hover(rb, d => `<b>${MOVE[d.r.move_type]}</b><br>${(+d.r.pct).toFixed(1)}% of ${cur.fb ? "foreign-born" : "native-born"} adults 25 to 64, ${fmtN(Math.round(+d.r.n))} a year<br>${wg(d) ? "movers' median hourly wage " + fmt$(wg(d)) : "median wage not reported in the paper"}`);
+      rbAll = rb;
+      rb.on("mouseenter", function (ev, d) { if (opts.onHover) opts.onHover(d.r.move_type); else { rb.attr("fill-opacity", 0.18); d3.select(this).attr("fill-opacity", 0.9); } }).on("mouseleave", () => { if (opts.onHover) opts.onHover(null); else rb.attr("fill-opacity", 0.55); });
+      hover(rb, d => `<b>${MOVE[d.r.move_type]}, ${cur.window.replace("-", "–")}</b><br>${(+d.r.pct).toFixed(1)}% of ${cur.fb ? "foreign-born" : "native-born"} adults 25 to 64, ${fmtN(Math.round(+d.r.n))} a year${wg(d) ? "<br>movers' median hourly wage " + fmt$(wg(d)) : ""}`);
       const node = (obj, xx, anchor, dx) => Object.entries(obj).forEach(([k, v]) => { body.append("rect").attr("x", xx - (anchor === "end" ? 6 : 0)).attr("y", v.y0).attr("width", 6).attr("height", Math.max(1, v.y1 - v.y0)).attr("fill", K.ink); body.append("text").attr("class", "label").attr("x", xx + dx).attr("y", (v.y0 + v.y1) / 2 + 4).attr("text-anchor", anchor).text(`${k} ${v.pct.toFixed(1)}%`); });
       node(L, 0, "end", -12); node(Rr, cw, "start", 12);
       body.append("text").attr("class", "note").attr("x", -12).attr("y", ch + 14).attr("text-anchor", "end").attr("fill", K.muted).text("a year earlier");
@@ -269,7 +271,8 @@ window.CH = (function () {
       note.text(opts.compact ? "" : cur.exclude && cur.window === "2022-2024" && cur.fb ? "percentages of all adults in the group · teal: movers' median wage above 25 dollars · orange: below · grey: not reported in the paper" : "percentages of all adults in the group");
     }
     draw();
-    return { set(o) { Object.assign(cur, o); draw(); }, step(i) { if (i === 0) { cur = { window: "2022-2024", fb: true, exclude: false }; } else if (i === 1) { cur = { window: "2022-2024", fb: true, exclude: true }; } else { cur = { window: "2022-2024", fb: false, exclude: true }; } draw(); } };
+    function highlight(type) { hl = type; if (rbAll) rbAll.attr("fill-opacity", d => !type ? 0.55 : d.r.move_type === type ? 0.9 : 0.12); }
+    return { highlight, set(o) { Object.assign(cur, o); draw(); }, step(i) { if (i === 0) { cur = { window: "2022-2024", fb: true, exclude: false }; } else if (i === 1) { cur = { window: "2022-2024", fb: true, exclude: true }; } else { cur = { window: "2022-2024", fb: false, exclude: true }; } draw(); } };
   }
 
   return { linkedMap, interactions, INTERACTIONS, occMatrix, moveFlow, hover, K };

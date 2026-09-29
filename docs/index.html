@@ -44,21 +44,6 @@
   </div>
 </section>
 
-<section class="chapter" id="ch-wage" data-chapter="wage">
-  <div class="graphic"><svg id="g-wage"></svg></div>
-  <div class="steps">
-    <div class="step" data-step="wage-0"><h2>English is the steepest gradient</h2>
-      <p>Among foreign-born workers, median hourly pay rises from 15 dollars for those who speak no English to 36 dollars for those who speak it very well. The step from "well" to "very well" is the largest one.</p>
-    </div>
-    <div class="step" data-step="wage-1">
-      <p>Part of that is composition. Workers who speak English very well are also more educated and have been in the country longer. Holding those things, arrival cohort, occupation and area constant, each step up the four-point scale is still associated with about 6 percent higher pay, 0.059 log points in the main specification.</p>
-    </div>
-    <div class="step" data-step="wage-2">
-      <p>Between natives and immigrants the raw hourly gap is about 11 percent. Age, education and family structure explain a quarter of it. Add English and they explain 72 percent. What is left is three percentage points.</p>
-    </div>
-  </div>
-</section>
-
 <section class="chapter" id="ch-cohort" data-chapter="cohort">
   <div class="graphic"><div class="controls" id="cohort-toggles">
       <span>Show</span>
@@ -92,7 +77,7 @@
       <p>The area unit is the PUMA, about 100,000 people, larger than most cities. Immigrant density peaks in Northeast Philadelphia, where the Central and Lower Northeast, Far Northeast and North Delaware PUMAs are 28, 26 and 23 percent foreign-born. Next come two suburban PUMAs in Chester and Montgomery counties at 19 percent.</p>
     </div>
     <div class="step" data-step="map-1">
-      <p>The same map can show where movers go. The circles show which suburban PUMAs received the foreign-born residents who left the city in the past year. The globe shows every country of birth. Chapter 11 asks who those movers are.</p>
+      <p>The same map can show where movers go. The circles show which suburban PUMAs received the foreign-born residents who left the city in the past year. The globe shows every country of birth. Chapter 10 asks who those movers are.</p>
     </div>
   </div>
 </section>
@@ -115,16 +100,25 @@
 <section class="chapter" id="ch-slopes" data-chapter="slopes">
   <div class="graphic"><svg id="s-scatter"></svg><svg id="g-slopes" class="off"></svg></div>
   <div class="steps">
-    <div class="step" data-step="slopes-0"><h2>Denser area, lower pay</h2>
-      <p>Foreign-born median wages are highest in western Delaware County, 59 dollars an hour, and northern Chester County, 54 dollars, and no other PUMA exceeds 44. The wage map is close to the inverse of the density map. Each dot is one of the 48 PUMAs, sized by limited English among its foreign-born, and the correlation between foreign-born percentage and foreign-born median wage is −0.37. Hover a dot or drag a box across the chart.</p>
+    <div class="step" data-step="slopes-0"><h2>The wage gradient by English</h2>
+      <p>Among foreign-born workers in 2022–2024, median hourly pay rises from 15 dollars for those who speak no English to 18 for "not well," 23 for "well," and 36 for "very well," and the 90 percent intervals do not overlap between adjacent categories. The step from "well" to "very well" is larger than the two steps below it.</p>
     </div>
     <div class="step" data-step="slopes-1">
-      <p>A two-level model nests 7,355 foreign-born workers in the 48 PUMAs, with a random intercept and a random limited-English slope for each PUMA. For immigrants who speak English well, hourly pay is about 8 percent lower per standard deviation of area immigrant density, a step of 5.4 percentage points, with a standard error of 1.8. The band is the interval of that slope. Move the mouse across the chart to read the fitted wage at any density.</p>
+      <p>Part of that is composition. Workers who speak English very well are also more educated and have been in the country longer. Holding those things, arrival cohort, occupation and area constant, each step up the four-point scale is still associated with about 6 percent higher pay, 0.059 log points in the main specification.</p>
     </div>
     <div class="step" data-step="slopes-2">
-      <p>Limited English lowers the log wage by 0.234 at mean density, a differential of 21 percent. For immigrants with limited English the density slope is about 3 percent and not distinguishable from zero. The difference between the two slopes is the interaction the protective and isolation views argue about. It is 0.049 with a standard error of 0.029 (p = 0.09), so the gap narrows from 25 percent one standard deviation below the mean to 13 percent two above it, but the interval does not exclude zero. The 2017–2021 window, dashed, gives 0.050 with a standard error of 0.028. The interval rules out a large isolating effect and does not rule out a narrowing of up to about 10 percent per standard deviation.</p>
+      <p>Between natives and immigrants the raw hourly gap is about 11 percent. Age, education and family structure explain a quarter of it. Add English and they explain 72 percent. What is left is three percentage points.</p>
     </div>
     <div class="step" data-step="slopes-3">
+      <p>Now the same wages by area. Foreign-born median wages are highest in western Delaware County, 59 dollars an hour, and northern Chester County, 54 dollars, and no other PUMA exceeds 44. The wage map is close to the inverse of the density map. Each dot is one of the 48 PUMAs, sized by limited English among its foreign-born, and the correlation between foreign-born percentage and foreign-born median wage is −0.37. Hover a dot or drag a box across the chart.</p>
+    </div>
+    <div class="step" data-step="slopes-4">
+      <p>A two-level model nests 7,355 foreign-born workers in the 48 PUMAs, with a random intercept and a random limited-English slope for each PUMA. For immigrants who speak English well, hourly pay is about 8 percent lower per standard deviation of area immigrant density, a step of 5.4 percentage points, with a standard error of 1.8. The band is the interval of that slope. Move the mouse across the chart to read the fitted wage at any density.</p>
+    </div>
+    <div class="step" data-step="slopes-5">
+      <p>Limited English lowers the log wage by 0.234 at mean density, a differential of 21 percent. For immigrants with limited English the density slope is about 3 percent and not distinguishable from zero. The difference between the two slopes is the interaction the protective and isolation views argue about. It is 0.049 with a standard error of 0.029 (p = 0.09), so the gap narrows from 25 percent one standard deviation below the mean to 13 percent two above it, but the interval does not exclude zero. The 2017–2021 window, dashed, gives 0.050 with a standard error of 0.028. The interval rules out a large isolating effect and does not rule out a narrowing of up to about 10 percent per standard deviation.</p>
+    </div>
+    <div class="step" data-step="slopes-6">
       <p>Is this just cheap housing? Cheaper areas hold both more immigrants and lower-wage workers of every origin. The same model on the 47,893 native-born workers in the same 48 PUMAs gives a gradient of 2.0 percent per standard deviation, with a standard error of 1.1. Adding the PUMA's native median wage as a control leaves the immigrant gradient at 6.4 percent and moves the interaction to 0.059 (p = 0.05). About a quarter of the gradient is shared with natives or absorbed by the area's wage level. The rest is specific to the foreign-born.</p>
     </div>
   </div>
@@ -203,28 +197,29 @@
 
 <section class="chapter" id="ch-moves" data-chapter="moves">
   <div class="graphic"><div class="controls">
-      <label>Window <select id="flow-window"><option value="all">all three windows</option><option value="2022-2024">2022–2024</option><option value="2017-2021">2017–2021</option><option value="2012-2016">2012–2016</option></select></label>
       <label>Group <select id="flow-group"><option value="fb">foreign-born</option><option value="nb">native-born</option></select></label>
       <label><input type="checkbox" id="flow-movers" checked> movers only</label>
-    </div><svg id="s-flow" class="half"></svg><div class="controls" id="mv-controls">
-      <label>Covariate <select id="mv-var">
+      <label>Model covariate <select id="mv-var">
         <option value="1">hourly wage</option>
         <option value="2">English score</option>
         <option value="3">graduate degree</option>
         <option value="4">married</option>
       </select></label>
-    </div><svg id="s-moves" class="half"></svg></div>
+    </div><svg id="s-flow" class="flow-top"></svg><svg id="s-moves" class="flow-bottom"></svg></div>
   <div class="steps">
     <div class="step" data-step="moves-0"><h2>Who leaves the city</h2>
       <p>The one-year migration question in the ACS records where each adult lived a year earlier. Across the three windows the pattern of moves among foreign-born adults aged 25 to 64 barely changes. Moves within the suburbs stay near 6 percent of foreign-born adults and moves within the city between 2 and 3 percent. Arrivals from abroad were 3.3 percent in 2012–2016, 2.0 percent in 2017–2021 and 2.7 percent in 2022–2024. Moves from the city to a suburb ran at 0.5, 1.0 and 0.7 percent, and moves from a suburb into the city at 0.6, 0.5 and 0.6 percent.</p>
     </div>
     <div class="step" data-step="moves-1">
-      <p>In 2022–2024 the flows are small but not random. The 2,400 a year who moved from the city to a suburb earned a median of 33 dollars an hour. The 1,900 who moved the other way earned 20. New arrivals from abroad landed in the city and the suburbs at 3,400 to 5,500 a year, earning 16 and 22 dollars. Below, the multinomial model: a worker whose hourly wage is one log unit higher is 1.30 times as likely to move from the city to a suburb, with an interval from 0.97 to 1.74, and 0.71 times as likely to move within the city. Among prior city residents, doubling hourly pay raises the odds of leaving the city by about 40 percent.</p>
+      <p>In 2022–2024 the flows are small but not random. The 2,400 a year who moved from the city to a suburb earned a median of 33 dollars an hour. The 1,900 who moved the other way earned 20. New arrivals from abroad landed in the city and the suburbs at 3,400 to 5,500 a year, earning 16 and 22 dollars. Hover a ribbon for the count and the movers' median wage.</p>
     </div>
     <div class="step" data-step="moves-2">
-      <p>Put the stayers back and the flows shrink to their true size. In 2022–2024, 85.7 percent of foreign-born adults lived in the same house as a year earlier. Of the remainder, 5.9 percent moved within the suburbs, 2.7 percent arrived from abroad, 2.3 percent moved within the city, 2.1 percent arrived from another state, 0.7 percent moved from the city to a suburb and 0.6 percent from a suburb into the city. Immigrants who moved from the city to a suburb earn 5 percent more than observationally similar stayers, with a standard error of 6 percent, an interval too wide to detect selection on unobserved earning capacity.</p>
+      <p>The model below pools the three windows and colors the ribbons. A worker whose hourly wage is one log unit higher is 1.30 times as likely to move from the city to a suburb, with an interval from 0.97 to 1.74, and 0.71 times as likely to move within the city, with an interval from 0.61 to 0.83. Among prior city residents, doubling hourly pay raises the odds of leaving the city by about 40 percent. Immigrants who moved from the city to a suburb earn 5 percent more than observationally similar stayers, with a standard error of 6 percent, an interval too wide to detect selection on unobserved earning capacity. Switch the covariate to English, a graduate degree or marriage to recolor the ribbons.</p>
     </div>
     <div class="step" data-step="moves-3">
+      <p>Put the stayers back and the flows shrink to their true size. In 2022–2024, 85.7 percent of foreign-born adults lived in the same house as a year earlier. Of the remainder, 5.9 percent moved within the suburbs, 2.7 percent arrived from abroad, 2.3 percent moved within the city, 2.1 percent arrived from another state, 0.7 percent moved from the city to a suburb and 0.6 percent from a suburb into the city.</p>
+    </div>
+    <div class="step" data-step="moves-4">
       <p>Native-born adults move between the city and the suburbs at nearly the same rates, 0.6 and 0.7 percent. What differs is arrival from abroad, 2.7 percent of foreign-born adults against 0.2 percent of the native-born, and it lands in the suburbs more often than in the city, 5,500 to 3,400 a year.</p>
     </div>
   </div>
@@ -253,10 +248,10 @@
     </div><svg id="s-cells"></svg><div class="detail mini-detail" id="d-cells"></div></div>
   <div class="steps">
     <div class="step" data-step="grid-0"><h2>The same windows by country of birth</h2>
-      <p>The paper's cells group arrivals by region of birth and arrival cohort. Pooling the cohorts instead gives 53 countries of birth with at least 50 respondents in a window, from the same sample of foreign-born workers aged 25 to 64. Each column is a country, each row a survey window, and color is the real median hourly wage in 2024 dollars. Among Asian-born workers the median ranges from 19 to 26 dollars for Bangladesh to 44 to 53 dollars for India and Taiwan. Among Latin American-born workers it runs from 15 to 20 dollars for Mexico, Guatemala and El Salvador to 23 to 30 dollars for Jamaica and Trinidad and Tobago. Countries are ordered by weighted population within each region. Hover a cell, or click a country for its three windows.</p>
+      <p>The paper's cells group arrivals by region of birth and arrival cohort. Pooling the cohorts instead gives 53 countries of birth with at least 50 respondents in a window, from the same sample of foreign-born workers aged 25 to 64. Each row is a country, the three columns are the survey windows, and color is the real median hourly wage in 2024 dollars. Among Asian-born workers the median ranges from 19 to 26 dollars for Bangladesh to 44 to 53 dollars for India and Taiwan. Among Latin American-born workers it runs from 15 to 20 dollars for Mexico, Guatemala and El Salvador to 23 to 30 dollars for Jamaica and Trinidad and Tobago. Countries are ordered by weighted population within each region. Hover a cell, or click a country for its three windows.</p>
     </div>
     <div class="step" data-step="grid-1">
-      <p>Color the same grid by the percentage with limited English and the low-wage columns light up. Between 59 and 62 percent of Guatemalan-born workers report limited English in every window, 42 to 67 percent of Honduran-born, 40 to 53 percent of Salvadoran-born, 38 to 51 percent of Mexican-born and 44 to 47 percent of Dominican-born. Among workers born in Canada, England, Ireland, Jamaica, Trinidad and Tobago, Guyana, Ghana and Nigeria, fewer than 2 percent do in any window.</p>
+      <p>Color the same grid by the percentage with limited English and the low-wage rows light up. Between 59 and 62 percent of Guatemalan-born workers report limited English in every window, 42 to 67 percent of Honduran-born, 40 to 53 percent of Salvadoran-born, 38 to 51 percent of Mexican-born and 44 to 47 percent of Dominican-born. Among workers born in Canada, England, Ireland, Jamaica, Trinidad and Tobago, Guyana, Ghana and Nigeria, fewer than 2 percent do in any window.</p>
     </div>
     <div class="step" data-step="grid-2">
       <p>Color it by the percentage living outside Philadelphia County and the ordering changes again. Workers born in Mexico and India are the most suburban, 86 to 91 and 85 to 87 percent outside the city in every window. Those born in Albania, Cambodia, Brazil, Haiti and the Dominican Republic are the most concentrated in the city, with between 24 and 64 percent outside it. Wage and residence do not line up: the Mexican-born and the Indian-born sit at opposite ends of the wage grid and at the same end of this one.</p>

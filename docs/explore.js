@@ -107,9 +107,9 @@ function cellsPanel() {
     median_hourly: +d.median_hourly, limited_eng_prop: +d.limited_pct, suburb_prop: (1 - +d.city_prop) * 100 }));
   if (!cells.length) return;
   const regions = ["Asia", "Latin America", "Europe", "Africa", "Northern America"], windows = ["2012-2016", "2017-2021", "2022-2024"];
-  const col = r => C.region[r] || "#6b6b6b";
+  const col2 = r => C.region[r] || "#6b6b6b";
   const on = new Set(regions), rb = d3.select("#cell-regions");
-  rb.selectAll("button").data(regions).join("button").attr("class", "on").style("border-color", d => col(d)).text(d => d).on("click", function (ev, r) { on.has(r) ? on.delete(r) : on.add(r); d3.select(this).classed("on", on.has(r)); draw(); });
+  rb.selectAll("button").data(regions).join("button").attr("class", "on").style("border-color", d => col2(d)).text(d => d).on("click", function (ev, r) { on.has(r) ? on.delete(r) : on.add(r); d3.select(this).classed("on", on.has(r)); draw(); });
   const sel = d3.select("#cell-metric");
   const fmts = { median_hourly: d => "$" + d.toFixed(0), suburb_prop: d => d.toFixed(0) + "%", limited_eng_prop: d => d.toFixed(0) + "%" };
   const interp = { median_hourly: d3.interpolate("#f6efd9", "#7a5a10"), suburb_prop: d3.interpolate("#dff4f4", "#0a4f55"), limited_eng_prop: d3.interpolate("#fbe4cf", "#9a4d00") };
@@ -117,37 +117,46 @@ function cellsPanel() {
   function draw() {
     const key = sel.node().value, fmt = fmts[key];
     const bands = regions.filter(r => on.has(r)).map(r => ({ region: r, countries: [...new Set(cells.filter(d => d.region === r).map(d => d.label))].sort((a, b) => size.get(b) - size.get(a)) }));
-    const { svg, w, h } = box("#s-cells"); const m = { t: 8, r: 10, b: 4, l: 76 }, cw = w - m.l - m.r;
+    const { svg, w, h } = box("#s-cells"); const m = { t: 6, r: 10, b: 30, l: 0 }, cw = w - m.l - m.r, H = h - m.t - m.b;
     const g = svg.append("g").attr("transform", `translate(${m.l},${m.t})`);
-    const labelH = 74, headH = 22, gapX = 70;
-    // pack bands into rows: largest square cell such that every row fits the width and the rows fit the height
-    let cs = 46, rowsOf = [];
-    for (; cs >= 14; cs -= 1) {
-      rowsOf = []; let cur = [], used = 0;
-      bands.forEach(b => { const need = b.countries.length * (cs + 2) + (cur.length ? gapX : 0); if (cur.length && used + need > cw) { rowsOf.push(cur); cur = []; used = 0; } cur.push(b); used += need; });
-      if (cur.length) rowsOf.push(cur);
-      if (rowsOf.every(r => r.length) && rowsOf.length * (headH + 3 * (cs + 2) + labelH) <= h - m.t - m.b && d3.max(bands, b => b.countries.length * (cs + 2)) <= cw) break;
+    const labelW = 104, headH = 36, gapX = 30, gapY = 22;
+    // vertical heatmaps: countries as rows, the three windows as columns, regions packed into as few columns as fit
+    let cs = 40, cols = [];
+    const bh = (b, c) => headH + b.countries.length * (c + 2) + gapY;
+    for (; cs >= 12; cs -= 1) {
+      // best fit: tallest bands first, each into the column with the most room that still fits
+      cols = []; const heights = [];
+      bands.slice().sort((a, b) => b.countries.length - a.countries.length).forEach(b => {
+        let best = -1; heights.forEach((hh, i) => { if (hh + bh(b, cs) <= H && (best < 0 || hh < heights[best])) best = i; });
+        if (best < 0) { cols.push([b]); heights.push(bh(b, cs)); } else { cols[best].push(b); heights[best] += bh(b, cs); }
+      });
+      const colW = labelW + 3 * (cs + 2);
+      if (cols.length * colW + (cols.length - 1) * gapX <= cw && bands.every(b => bh(b, cs) - gapY <= H)) break;
     }
+    // keep the paper's region order within each column
+    cols.forEach(c => c.sort((a, b) => regions.indexOf(a.region) - regions.indexOf(b.region)));
+    const colW = labelW + 3 * (cs + 2);
     const ext = d3.extent(cells.filter(d => on.has(d.region)), d => d[key]), sc = d3.scaleSequential(interp[key]).domain(ext);
-    const fs = cs >= 34 ? 11 : cs >= 26 ? 9.5 : 0;
-    let yy = 0;
-    const place = []; rowsOf.forEach(row => { let xx = 0; row.forEach(b => { place.push({ b, xx, yy }); xx += b.countries.length * (cs + 2) + gapX; }); yy += headH + 3 * (cs + 2) + labelH; });
-    place.forEach(({ b, xx, yy }) => {
-      const bg = g.append("g").attr("transform", `translate(${xx},${yy})`);
-      bg.append("text").attr("class", "label").attr("x", 0).attr("y", 14).style("font-weight", 700).attr("fill", col(b.region)).text(b.region + "-born");
-      const x = d3.scaleBand().domain(b.countries).range([0, b.countries.length * (cs + 2)]).paddingInner(2 / (cs + 2)), y = d3.scaleBand().domain(windows).range([headH, headH + 3 * (cs + 2)]).paddingInner(2 / (cs + 2));
-      windows.forEach(wn => bg.append("text").attr("class", "note").attr("x", -8).attr("y", y(wn) + y.bandwidth() / 2 + 4).attr("text-anchor", "end").attr("fill", "#595959").text(xx > 0 ? wn.slice(0, 4) : wn.replace("-", "–")));
-      const data = cells.filter(d => d.region === b.region);
-      const cell = bg.selectAll("g.hc").data(data).join("g").attr("class", "hc").attr("transform", d => `translate(${x(d.label)},${y(d.window)})`).style("cursor", "pointer");
-      cell.append("rect").attr("width", x.bandwidth()).attr("height", y.bandwidth()).attr("rx", 3).attr("fill", d => sc(d[key])).attr("stroke", "#fff");
-      if (fs) cell.append("text").attr("x", x.bandwidth() / 2).attr("y", y.bandwidth() / 2 + fs * 0.35).attr("text-anchor", "middle").attr("class", "label").style("font-size", fs + "px").attr("fill", d => (d[key] - ext[0]) / (ext[1] - ext[0]) > 0.6 ? "#fff" : C.ink).text(d => fmt(d[key]));
-      hover(cell, d => `<b>${d.country}, ${d.window.replace("-", "–")}</b><br>${fmt$(d.median_hourly)} median hourly wage, 2024 dollars · ${d.limited_eng_prop.toFixed(0)}% limited English · ${d.suburb_prop.toFixed(0)}% outside the city<br>n = ${fmtN(d.n)} respondents`);
-      cell.on("click", (ev, d) => show(d.label));
-      if (xx > 0) bg.selectAll("text.wn").data([0]).join("g"); 
-      bg.selectAll("text.cn").data(b.countries).join("text").attr("class", "note cn").attr("transform", d => `translate(${x(d) + x.bandwidth() / 2 + 3},${y.range()[1] + 6}) rotate(-52)`).attr("text-anchor", "end").attr("fill", C.ink).style("font-size", cs >= 30 ? "11px" : "10px").style("cursor", "pointer").text(d => d).on("click", (ev, d) => show(d));
+    const fs = cs >= 30 ? 11 : cs >= 22 ? 9.5 : 0;
+    cols.forEach((col, ci) => {
+      let yy = 0;
+      col.forEach(b => {
+        const bg = g.append("g").attr("transform", `translate(${ci * (colW + gapX) + labelW},${yy})`);
+        bg.append("text").attr("class", "label").attr("x", -labelW).attr("y", 12).style("font-weight", 700).attr("fill", col2(b.region)).text(b.region + "-born");
+        const x = d3.scaleBand().domain(windows).range([0, 3 * (cs + 2)]).paddingInner(2 / (cs + 2)), y = d3.scaleBand().domain(b.countries).range([headH, headH + b.countries.length * (cs + 2)]).paddingInner(2 / (cs + 2));
+        windows.forEach(wn => bg.append("text").attr("class", "note").attr("x", x(wn) + x.bandwidth() / 2).attr("y", headH - 6).attr("text-anchor", "middle").attr("fill", "#595959").style("font-size", cs >= 24 ? "10px" : "8.5px").text(cs >= 38 ? wn.replace("-", "–") : wn.slice(2, 4) + "–" + wn.slice(7)));
+        const data = cells.filter(d => d.region === b.region);
+        const cell = bg.selectAll("g.hc").data(data).join("g").attr("class", "hc").attr("transform", d => `translate(${x(d.window)},${y(d.label)})`).style("cursor", "pointer");
+        cell.append("rect").attr("width", x.bandwidth()).attr("height", y.bandwidth()).attr("rx", 3).attr("fill", d => sc(d[key])).attr("stroke", "#fff");
+        if (fs) cell.append("text").attr("x", x.bandwidth() / 2).attr("y", y.bandwidth() / 2 + fs * 0.35).attr("text-anchor", "middle").attr("class", "label").style("font-size", fs + "px").attr("fill", d => (d[key] - ext[0]) / (ext[1] - ext[0]) > 0.6 ? "#fff" : C.ink).text(d => fmt(d[key]));
+        hover(cell, d => `<b>${d.country}, ${d.window.replace("-", "–")}</b><br>${fmt$(d.median_hourly)} median hourly wage, 2024 dollars · ${d.limited_eng_prop.toFixed(0)}% limited English · ${d.suburb_prop.toFixed(0)}% outside the city<br>n = ${fmtN(d.n)} respondents`);
+        cell.on("click", (ev, d) => show(d.label));
+        bg.selectAll("text.cn").data(b.countries).join("text").attr("class", "note cn").attr("x", -8).attr("y", d => y(d) + y.bandwidth() / 2 + 3.5).attr("text-anchor", "end").attr("fill", C.ink).style("font-size", cs >= 24 ? "11px" : "10px").style("cursor", "pointer").text(d => d).on("click", (ev, d) => show(d));
+        yy += headH + b.countries.length * (cs + 2) + gapY;
+      });
     });
     // legend
-    const lg = g.append("g").attr("transform", `translate(${cw - 120},${Math.max(0, yy - labelH + 24)})`);
+    const lg = g.append("g").attr("transform", `translate(${cw - 120},${H + 6})`);
     const ls = d3.scaleLinear().domain(ext).range([0, 110]);
     d3.range(0, 111, 3).forEach(v => lg.append("rect").attr("x", v).attr("y", 0).attr("width", 3).attr("height", 8).attr("fill", sc(ls.invert(v))));
     lg.append("text").attr("class", "note").attr("x", 0).attr("y", 20).text(fmt(ext[0])); lg.append("text").attr("class", "note").attr("x", 110).attr("y", 20).attr("text-anchor", "end").text(fmt(ext[1]));
@@ -199,35 +208,44 @@ function coefTable() {
 
 // ---------- 6. moves ----------
 function moves() {
-  const T4 = R.tables.find(t => t.number === "Table 4"), names = ["Moved within the city", "Moved within the suburbs", "City to suburb", "Suburb to city"];
+  const T4 = R.tables.find(t => t.number === "Table 4"), names = ["Moved within the city", "Moved within the suburbs", "City to suburb", "Suburb to city"], types = ["within_city", "within_suburbs", "city_to_suburb", "suburb_to_city"];
   const parse = c => { const m = c.match(/([\d.]+) \(([\d.]+) to ([\d.]+)\)/); return m ? { rrr: +m[1], lo: +m[2], hi: +m[3] } : null; };
   const sel = d3.select("#mv-var");
   const TXT = { 1: ["How the chance of each type of move changes with pay", "a worker whose hourly wage is 2.7 times higher (one unit of log wage), against staying put"],
     2: ["How the chance of each type of move changes with English", "one step up the four-point English scale, against staying put"],
     3: ["How the chance of each type of move changes with a graduate degree", "a worker with a graduate degree against one without, against staying put"],
     4: ["How the chance of each type of move changes with marriage", "a married worker against an unmarried one, against staying put"] };
+  let rows = [], rowSel = null;
+  const colorFor = d => !d ? "#a1a1a1" : d.lo > 1 ? C.orange : d.hi < 1 ? C.teal : d.rrr > 1 ? "#f3c9a3" : "#9fdcdc";
   function draw() {
-    const k = +sel.node().value, rr = T4.rows.slice(0, 4).map((r, i) => ({ move: names[i], ...parse(r[k]) }));
+    const k = +sel.node().value, rr = T4.rows.slice(0, 4).map((r, i) => ({ move: names[i], type: types[i], ...parse(r[k]) }));
+    rows = rr; window.flowLink.colorOf = t => colorFor(rr.find(d => d.type === t));
     const { svg, w, h } = box("#s-moves"); if (!svg.node().getBoundingClientRect().width) return;
-    const m = { t: 56, r: 150, b: 50, l: 190 }, cw = w - m.l - m.r, ch = Math.min(300, h - m.t - m.b);
+    const m = { t: 56, r: 150, b: 44, l: 190 }, cw = w - m.l - m.r, ch = Math.min(220, h - m.t - m.b);
     const g = svg.append("g").attr("transform", `translate(${m.l},${m.t})`);
     g.append("text").attr("class", "title").attr("x", -m.l + 10).attr("y", -38).text(TXT[k][0]);
-    g.append("text").attr("class", "note").attr("x", -m.l + 10).attr("y", -22).attr("fill", "#7f7f7f").text("relative risk of each move in a year for " + TXT[k][1]);
-    g.append("text").attr("class", "note").attr("x", -m.l + 10).attr("y", -8).attr("fill", "#7f7f7f").text("foreign-born workers who lived in the metro a year earlier · multinomial logit, Table 4 · replicate-weight intervals");
+    g.append("text").attr("class", "note").attr("x", -m.l + 10).attr("y", -22).attr("fill", "#7f7f7f").text("relative risk in a year for " + TXT[k][1]);
+    g.append("text").attr("class", "note").attr("x", -m.l + 10).attr("y", -8).attr("fill", "#7f7f7f").text("foreign-born workers, three windows pooled · multinomial logit, Table 4 · hover a row to trace its ribbon");
     const y = d3.scaleBand().domain(names).range([0, ch]).padding(0.5), x = d3.scaleLog().domain([0.3, 3]).range([0, cw]);
     g.append("g").attr("class", "grid").call(d3.axisLeft(y).tickSize(-cw).tickFormat(""));
     g.append("g").attr("class", "axis").attr("transform", `translate(0,${ch})`).call(d3.axisBottom(x).tickValues([0.3, 0.5, 0.7, 1, 1.4, 2, 3]).tickFormat(d => d === 1 ? "same" : d + "×").tickSizeOuter(0));
     g.append("line").attr("x1", x(1)).attr("x2", x(1)).attr("y1", 0).attr("y2", ch).attr("stroke", C.ink);
-    const r = g.selectAll("g.r").data(rr).join("g").attr("class", "r").attr("transform", d => `translate(0,${y(d.move) + y.bandwidth() / 2})`);
+    const r = g.selectAll("g.r").data(rr).join("g").attr("class", "r").attr("transform", d => `translate(0,${y(d.move) + y.bandwidth() / 2})`).style("cursor", "pointer");
+    rowSel = r;
     r.append("text").attr("x", -12).attr("dy", 4).attr("text-anchor", "end").attr("class", "label").text(d => d.move);
-    r.append("line").attr("x1", d => x(d.lo)).attr("x2", d => x(d.hi)).attr("stroke", d => d.lo > 1 || d.hi < 1 ? C.orange : C.grey).attr("stroke-width", 3).attr("stroke-linecap", "round");
-    r.append("circle").attr("cx", d => x(d.rrr)).attr("r", 6).attr("fill", d => d.lo > 1 || d.hi < 1 ? C.orange : C.grey).attr("stroke", "#fff");
+    r.append("line").attr("x1", d => x(d.lo)).attr("x2", d => x(d.hi)).attr("stroke", d => colorFor(d)).attr("stroke-width", 4).attr("stroke-linecap", "round");
+    r.append("circle").attr("cx", d => x(d.rrr)).attr("r", 6).attr("fill", d => colorFor(d)).attr("stroke", "#fff");
     r.append("text").attr("class", "label").attr("x", d => x(d.hi) + 10).attr("dy", 4).text(d => `${d.rrr.toFixed(2)}× (${d.lo.toFixed(2)} to ${d.hi.toFixed(2)})`);
     hover(r, d => `<b>${d.move}</b><br>${d.rrr.toFixed(2)} times as likely as staying, for ${TXT[k][1].split(", against")[0]}<br>95% interval ${d.lo.toFixed(2)} to ${d.hi.toFixed(2)}${d.lo > 1 || d.hi < 1 ? "" : " · includes 1, so not distinguishable from no change"}`);
-    g.append("text").attr("class", "note").attr("x", x(1) - 8).attr("y", ch + 36).attr("text-anchor", "end").attr("fill", "#7f7f7f").text("← less likely to make this move");
-    g.append("text").attr("class", "note").attr("x", x(1) + 8).attr("y", ch + 36).attr("fill", "#7f7f7f").text("more likely →");
-    g.append("text").attr("class", "note").attr("x", cw + 140).attr("y", ch + 36).attr("text-anchor", "end").attr("fill", "#7f7f7f").text("orange: interval excludes 1");
+    r.on("mouseenter", (ev, d) => highlight(d.type)).on("mouseleave", () => highlight(null));
+    g.append("text").attr("class", "note").attr("x", x(1) - 8).attr("y", ch + 32).attr("text-anchor", "end").attr("fill", "#7f7f7f").text("← less likely to make this move");
+    g.append("text").attr("class", "note").attr("x", x(1) + 8).attr("y", ch + 32).attr("fill", "#7f7f7f").text("more likely →");
+    g.append("text").attr("class", "note").attr("x", cw + 140).attr("y", ch + 32).attr("text-anchor", "end").attr("fill", "#7f7f7f").text("strong color: interval excludes 1");
+    if (window.flowLink.redraw) window.flowLink.redraw();
   }
+  function highlight(t) { if (rowSel) rowSel.transition().duration(200).style("opacity", d => !t || d.type === t ? 1 : 0.25); if (window.flowLink.highlight) window.flowLink.highlight(t); }
+  window.flowLink.onHover = t => { if (rowSel) rowSel.style("opacity", d => !t || d.type === t ? 1 : 0.25); };
+  window.flowLink.highlightAll = highlight;
   sel.on("change", draw); window.drawMoves = draw; draw(); window.addEventListener("resize", draw);
 }
 
@@ -313,22 +331,22 @@ function occPanel() {
 
 // ---------- move flow ----------
 function flowPanel() {
-  let chart;
+  const wins = ["2012-2016", "2017-2021", "2022-2024"];
+  let panels = [], focused = null;
+  window.flowLink = { colorOf: null, onHover: null };
   function draw() {
-    const win = d3.select("#flow-window").node().value, all = win === "all";
-    d3.select("#s-flow").classed("full", all); d3.select("#s-moves").classed("hidden", all); d3.select("#mv-controls").classed("hidden", all);
+    const fb = d3.select("#flow-group").node().value === "fb", excl = d3.select("#flow-movers").node().checked;
     const { svg, w, h } = box("#s-flow");
-    if (all) {
-      svg.append("text").attr("class", "title").attr("x", 0).attr("y", 18).text("Foreign-born adults 25 to 64, one year of moves in each window, movers only");
-      svg.append("text").attr("class", "note").attr("x", 0).attr("y", 34).attr("fill", "#7f7f7f").text("percentages of all foreign-born adults in the group · the same ribbon layout in each window, so a flow can be followed down the page");
-      const wins = ["2012-2016", "2017-2021", "2022-2024"], ph = (h - 44) / 3;
-      wins.forEach((wn, i) => { const g = svg.append("g").attr("transform", `translate(0,${44 + i * ph})`); CH.moveFlow(g, R.moveRates, { width: w, height: ph, window: wn, fb: true, exclude: true, compact: true }); });
-      return;
-    }
-    chart = CH.moveFlow(svg, R.moveRates, { width: w, height: h, window: win, fb: d3.select("#flow-group").node().value === "fb", exclude: d3.select("#flow-movers").node().checked });
-    if (window.drawMoves) window.drawMoves();
+    svg.append("text").attr("class", "title").attr("x", 0).attr("y", 16).text(`${fb ? "Foreign-born" : "Native-born"} adults 25 to 64, one year of moves in each window${excl ? ", movers only" : ""}`);
+    svg.append("text").attr("class", "note").attr("x", 0).attr("y", 31).attr("fill", "#7f7f7f").text("percentages of all adults in the group · ribbon color from the model below: teal less likely, orange more likely, grey not in the model");
+    const ph = (h - 40) / 3;
+    panels = wins.map((wn, i) => { const g = svg.append("g").attr("transform", `translate(0,${40 + i * ph})`); const c = CH.moveFlow(g, R.moveRates, { width: w, height: ph, window: wn, fb, exclude: excl, compact: true, colorOf: t => window.flowLink.colorOf ? window.flowLink.colorOf(t) : "#a1a1a1", onHover: t => { if (window.flowLink.onHover) window.flowLink.onHover(t); highlight(t); } }); return { g, c, wn }; });
+    focusWindow(focused);
   }
-  d3.selectAll("#flow-window, #flow-group, #flow-movers").on("change", draw); window.addEventListener("resize", draw);
+  function highlight(t) { panels.forEach(p => p.c.highlight(t)); }
+  function focusWindow(wn) { focused = wn; panels.forEach(p => p.g.transition().duration(600).style("opacity", !wn || p.wn === wn ? 1 : 0.2)); }
+  window.flowLink.highlight = highlight; window.flowLink.focusWindow = focusWindow; window.flowLink.redraw = draw;
+  d3.selectAll("#flow-group, #flow-movers").on("change", draw); window.addEventListener("resize", draw);
   draw();
 }
 
