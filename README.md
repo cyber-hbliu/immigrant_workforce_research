@@ -1,8 +1,6 @@
-# Immigrant wages in metropolitan Philadelphia, 2012–2024
+# mmigrant wages are lower in immigrant-dense areas in metropolitan Philadelphia，and the limited-English differential is mostly occupational.
 
-Immigrant wages are lower in immigrant-dense areas, and the limited-English differential is mostly occupational.
-
-Live site: https://cyber-hbliu.github.io/immigrant_workforce_research/
+Live site: http://phillyimmigrant.usllab.org/
 Author: Hebe Liu, [Urban Spatial Lab](https://usllab.org/)
 
 ## The question
@@ -49,24 +47,6 @@ The gap itself is mostly occupational. Limited-English immigrants earn 21 percen
 The own-language check narrows the gap, but not in the way the protective view describes. Limited-English wages do not vary with own-language density. Proficient wages fall with it, by about 6 percent per standard deviation. New York shows the same pattern, and its two own-language estimates are the only ones among the seventeen interaction terms that survive a correction for that number of tests.
 
 Higher earners leave the city. Foreign-born adults who moved from the city to a suburb in 2022–2024 earned a median of 33 dollars an hour, against 20 dollars for those who moved the other way, and doubling hourly pay raises the odds of leaving the city by about 40 percent among prior city residents. At matched duration, Latin American arrivals of the 2010s are 7 points less suburban than the 2000s cohort was, a shift toward the city that the spatial assimilation model does not predict.
-
-## The site
-
-The site is a scrolling story in thirteen chapters, each a full-screen D3 chart driven by the text beside it, followed by a Methods page that draws the flowchart above with a click on any box or arrow. Every number on the site is taken from the paper or from the exported data files in `docs/data`.
-
-## Repository
-
-```
-docs/                 the published site (GitHub Pages)
-docs/data/            exported estimates and geometry used by the charts
-immigrant_mobility_philly_v10.R   analysis pipeline
-nyc_comparison.R      the New York comparison
-figures_paper.R       paper figures
-section14_web_export.R            exports for the site
-paper/                the draft
-```
-
-The R scripts read the ACS PUMS files, which are not included in the repository. The site itself needs only a static file server, for example `python3 -m http.server -d docs`.
 
 ## Data
 
