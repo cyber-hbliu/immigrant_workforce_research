@@ -12,6 +12,7 @@
   const ORDER = ["data", "sample", "eq", "q1", "q2", "q3", "nat", "own", "mig", "app"];
   const byId = Object.fromEntries(FW.boxes.map(b => [b.id, b]));
   let R = null;
+  const PAN = {"p-area": "ch-map", "p-calc": "ch-enclave", "p-cohort": "ch-cohort", "p-coef": "ch-compare", "p-moves": "ch-moves", "p-occ": "ch-occ", "p-flow": "ch-globe", "p-tables": "tables", "p-gap": "ch-wage", "p-wage": "ch-wage", "p-cells": "ch-grid", "p-pop": "ch-globe", "p-county": "ch-county"};
 
   FW.headings.forEach(h => g.append("text").attr("class", "fw-h").attr("x", h.x).attr("y", h.y).text(h.text));
   FW.labels.forEach(l => g.append("text").attr("class", l.cls).attr("x", l.x).attr("y", l.y).attr("text-anchor", l.anchor || "middle").text(l.text));
@@ -118,7 +119,7 @@
     const n = ORDER.indexOf(d.id), outs = (d.outputs || []).map(o => `<span class="chip">${o}</span>`).join("");
     pop.html(`<button class="close" aria-label="close">×</button><div class="mm-kicker">${n >= 0 ? `Step ${n + 1} · ` : ""}${d.kicker || ""} · finding</div><h2>${d.title}</h2><p class="mm-summary">${d.summary || ""}</p>
       <div class="mm-chart"></div>${d.finding ? `<p class="mm-finding">${d.finding}</p>` : ""}
-      <div class="mm-actions"><a class="primary" href="#story/ch-${d.story}">Read it in the story</a><a href="#data/${d.panel}">Open the data</a></div>`);
+      <div class="mm-actions"><a class="primary" href="#story/ch-${d.story}">Read it in the story</a><a href="#story/${PAN[d.panel] || "ch-" + d.story}">Open the chart</a></div>`);
     if (R && CHART[d.id]) CHART[d.id](pop.select(".mm-chart"));
     box.classed("on", b => b === d); hits.select(".fw-arrow").classed("on", false);
     placeAt(ev); pop.select(".close").on("click", hide);
@@ -127,7 +128,7 @@
     const d = byId[a.tgt], from = byId[a.src], n = ORDER.indexOf(d.id), steps = (d.steps || []).map(s => `<li>${s}</li>`).join("");
     pop.html(`<button class="close" aria-label="close">×</button><div class="mm-kicker">${n >= 0 ? `Step ${n + 1} · ` : ""}method</div><h2>${from ? from.title + " → " : ""}${d.title}</h2><p class="mm-summary">${d.summary || ""}</p>
       ${steps ? `<h3>How it was done</h3><ol>${steps}</ol>` : ""}
-      <div class="mm-actions"><a href="#data/${d.panel}">Open the data</a></div>`);
+      <div class="mm-actions"><a href="#story/${PAN[d.panel] || "ch-" + d.story}">Open the chart</a></div>`);
     hits.select(".fw-arrow").classed("on", x => x === a); box.classed("on", false);
     placeAt(ev); pop.select(".close").on("click", hide);
   }

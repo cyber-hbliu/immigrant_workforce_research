@@ -29,7 +29,7 @@ function areas() {
   function draw() {
     const { svg, w, h } = box("#s-area");
     if (!G) { svg.append("text").attr("x", 20).attr("y", 40).attr("class", "title").text("Upload data/pumas.geojson for the map"); return; }
-    chart = CH.linkedMap(svg, G, { width: w, height: h, stacked: false, mobility: R.mobility ? R.mobility.flows : null, onSelect: detail });
+    chart = CH.linkedMap(svg, G, { width: w, height: h, stacked: true, mobility: R.mobility ? R.mobility.flows : null, onSelect: detail });
     chart.color(d3.select("#area-var").node().value); chart.trend(true);
     chart.showFlows(d3.select("#area-flows").node().value !== "none", d3.select("#area-flows").node().value);
   }
@@ -92,14 +92,16 @@ function cohorts() {
     g.append("line").attr("x1", 0).attr("x2", cw).attr("y1", y(0)).attr("y2", y(0)).attr("stroke", C.axis);
     g.append("text").attr("x", cw / 2).attr("y", ch + 34).attr("text-anchor", "middle").text("years since migration");
     g.append("line").attr("x1", x(t0)).attr("x2", x(t0)).attr("y1", 0).attr("y2", ch).attr("stroke", C.ink).attr("stroke-dasharray", "3 3");
-    const rows = [];
+    const rows = [], labels = [];
     keys.filter(k => on.has(k)).forEach(k => {
       const pts = d3.range(0, Math.min(30, mx[k]) + 1).map(t => ({ t, v: f(k, t) }));
       g.append("path").datum(pts).attr("d", d3.line().x(d => x(d.t)).y(d => y(d.v)).curve(d3.curveMonotoneX)).attr("fill", "none").attr("stroke", cols[k]).attr("stroke-width", 2.4);
-      const e = pts[pts.length - 1]; g.append("text").attr("class", "label").attr("x", x(e.t) + 8).attr("y", y(e.v) + 4).text(names[k]);
+      const e = pts[pts.length - 1]; labels.push({ x: x(e.t) + 8, y: y(e.v) + 4, t: names[k] });
       if (t0 <= mx[k]) { g.append("circle").attr("cx", x(t0)).attr("cy", y(f(k, t0))).attr("r", 5).attr("fill", cols[k]).attr("stroke", "#fff"); rows.push(`<dt>${names[k]}</dt><dd>${f(k, t0).toFixed(1)}%</dd>`); }
       else rows.push(`<dt>${names[k]}</dt><dd style="color:var(--muted)">not observed</dd>`);
     });
+    labels.sort((a, b) => a.y - b.y); for (let i = 1; i < labels.length; i++) if (labels[i].y - labels[i - 1].y < 13) labels[i].y = labels[i - 1].y + 13;
+    labels.forEach(l => g.append("text").attr("class", "label").attr("x", l.x).attr("y", l.y).text(l.t));
     d3.select("#d-cohort").html(`<h3>Gap to natives at ${t0} years</h3><dl>${rows.join("")}</dl><p style="margin:10px 0 0;font-size:12.5px;color:var(--muted)">Entry gaps: pre-2000 cohorts 21 to 22 percent, post-2000 cohorts 17 to 18 percent. Contrast 5.1 log points, SE 2.2, p = 0.02. Catch-up about 1.3 percent per year.</p>`);
   }
   sl.on("input", draw); draw(); window.addEventListener("resize", draw);
@@ -327,9 +329,8 @@ async function boot() {
   try { const mr = await d3.csv("data/move_rates.csv"); R.moveRates = mr.map(d => ({ ...d, fb: d.fb === "TRUE" || d.fb === "true", n: +d.n, pct: +d.pct })); }
   catch (e) { R.moveRates = R.mobility ? R.mobility.move_rates.map(d => ({ ...d, fb: true })) : []; }
   try { const ir = await d3.csv("data/interactions_region.csv"); R.interactionsRegion = ir.filter(d => d.Estimate).map(d => ({ region: d.sample, est: d.Estimate, se: d["Std. Error"] })); } catch (e) { R.interactionsRegion = []; }
-  pop(); wageEng(); flowMapPanel(); areas(); countyPanel(); calc(); cohorts(); gapPanel(); occPanel(); cellsPanel(); coefTable(); flowPanel(); moves(); tablesPanel();
+  flowMapPanel(); areas(); calc(); cohorts(); occPanel(); cellsPanel(); coefTable(); flowPanel(); moves(); tablesPanel(); window.dispatchEvent(new Event("resize"));
 }
-let booted = false;
-window.exploreBoot = () => { if (!booted) { booted = true; boot(); } };
+boot();
 
 })();

@@ -6,14 +6,13 @@
 <title>Immigrant wages in metropolitan Philadelphia</title>
 <meta name="description" content="Immigrant wages are lower in immigrant-dense areas, and the limited-English differential is mostly occupational. A scrolling data story from ACS PUMS 2012–2024.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
 <nav class="rail" aria-label="Sections">
   <a href="#story" data-view="story" class="on"><svg viewBox="0 0 24 24"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5z"/><path d="M4 20.5V5.5"/><path d="M8 7h8M8 10.5h8"/></svg><span>Story</span></a>
-  <a href="#data" data-view="data"><svg viewBox="0 0 24 24"><path d="M4 20h16"/><rect x="6" y="11" width="3" height="7"/><rect x="11" y="6" width="3" height="12"/><rect x="16" y="9" width="3" height="9"/></svg><span>Data</span></a>
   <a href="#methods" data-view="methods"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="5"/><rect x="14" y="3" width="7" height="5"/><rect x="8.5" y="16" width="7" height="5"/><path d="M6.5 8v4h11V8M12 12v4"/></svg><span>Methods</span></a>
 </nav>
 
@@ -25,52 +24,49 @@
     <div><div class="kicker">The data</div><p>American Community Survey public-use microdata for 2012 to 2024 in three windows. 240,089 wage and salary workers aged 25 to 64 in the 48 PUMAs of the Philadelphia-Camden-Wilmington metropolitan area, 29,299 of them foreign-born. The area models use the 7,355 foreign-born workers of 2022–2024, with New York as the comparison.</p></div>
     <div><div class="kicker">The answer</div><p>Immigrant wages are about 8 percent lower per standard deviation of area immigrant density for proficient workers and about 3 percent lower for limited-English workers. The 21 percent limited-English differential falls to 9 percent within an occupation, so most of it is occupational. Higher earners are the ones who leave the city for the suburbs.</p></div>
   </div>
-  <p class="byline">Hebe Liu · Urban Spatial Lab · scroll for the story</p>
+  <p class="byline">Hebe Liu · <a href="https://usllab.org/">Urban Spatial Lab</a></p>
   <div class="scroll-cue"><span></span>scroll</div>
 </header>
 <main class="story">
 
-<!-- 1. where people come from -->
 <section class="chapter" id="ch-globe" data-chapter="globe">
-  <div class="graphic"><svg id="g-globe"></svg><div class="g-caption" id="c-globe"></div></div>
+  <div class="graphic"><svg id="s-flowmap"></svg><div class="g-caption" id="c-globe"></div></div>
   <div class="steps">
-    <div class="step" data-step="globe-0">
-      <h2>240,000 people</h2>
-      <p>About one in seven Philadelphians was born outside the United States. The largest groups come from China, India, the Dominican Republic and Vietnam, and the tail runs through Jamaica, Ukraine, Haiti, Liberia and Cameroon.</p>
+    <div class="step" data-step="globe-0"><h2>240,000 people</h2>
+      <p>About one in seven Philadelphians was born outside the United States. Across the metropolitan area, 468,039 residents were born abroad in 2022–2024. The largest groups were born in India (52,106), Mexico (35,992), China (35,265), the Dominican Republic (25,322) and Vietnam (17,363).</p>
     </div>
     <div class="step" data-step="globe-1">
-      <p>Asia and Latin America each account for roughly a third of the foreign-born. Europe and Africa make up most of the rest. Singer's 2004 typology filed Philadelphia under former gateways, cities that drew immigrants before 1930 and few afterward. The numbers since then argue for a reclassification.</p>
+      <p>Asia and Latin America each account for roughly a third of the foreign-born. Europe and Africa make up most of the rest. Singer's 2004 typology filed Philadelphia under former gateways, cities that drew immigrants before 1930 and few afterward. Its immigrant population has grown again since.</p>
     </div>
     <div class="step" data-step="globe-2">
-      <p>The city's foreign-born population rose from <a class="dl" href="#data/p-pop">187,000 in 2013 to 240,000 in 2024</a>, a decade high. This is a story about what those people earn, and about whether living among other immigrants changes it.</p>
+      <p>The city's foreign-born population rose from 187,000 in 2013 to 240,000 in 2024, the highest of the twelve years. This is a story about what those people earn, and about whether living among other immigrants changes it.</p>
     </div>
   </div>
 </section>
 
-<!-- 2. language gradient -->
 <section class="chapter" id="ch-wage" data-chapter="wage">
   <div class="graphic"><svg id="g-wage"></svg><div class="g-caption" id="c-wage"></div></div>
   <div class="steps">
-    <div class="step" data-step="wage-0">
-      <h2>English is the steepest gradient</h2>
-      <p>Among foreign-born workers, <a class="dl" href="#data/p-wage">median hourly pay rises from 15 dollars for those who speak no English to 36 dollars for those who speak it very well</a>. The step from "well" to "very well" is the largest one.</p>
+    <div class="step" data-step="wage-0"><h2>English is the steepest gradient</h2>
+      <p>Among foreign-born workers, median hourly pay rises from 15 dollars for those who speak no English to 36 dollars for those who speak it very well. The step from "well" to "very well" is the largest one.</p>
     </div>
     <div class="step" data-step="wage-1">
-      <p>Part of that is composition. Workers who speak English very well are also more educated and have been in the country longer. Holding those things, occupation and area constant, each step up the four-point scale is still associated with 7 percent higher pay.</p>
+      <p>Part of that is composition. Workers who speak English very well are also more educated and have been in the country longer. Holding those things, arrival cohort, occupation and area constant, each step up the four-point scale is still associated with about 6 percent higher pay, 0.059 log points in the main specification.</p>
     </div>
     <div class="step" data-step="wage-2">
-      <p>Between natives and immigrants the raw hourly gap is about 11 percent. Age, education and family structure explain a quarter of it. <a class="dl" href="#data/p-gap">Add English and they explain 72 percent</a>. What is left is three percentage points.</p>
+      <p>Between natives and immigrants the raw hourly gap is about 11 percent. Age, education and family structure explain a quarter of it. Add English and they explain 72 percent. What is left is three percentage points.</p>
     </div>
   </div>
 </section>
 
-<!-- 3. cohorts -->
 <section class="chapter" id="ch-cohort" data-chapter="cohort">
-  <div class="graphic"><svg id="g-cohort"></svg><div class="g-caption" id="c-cohort"></div></div>
+  <div class="graphic"><div class="controls" id="cohort-toggles">
+      <span>Show</span>
+      <label>Years since migration <input type="range" id="co-t" min="0" max="30" step="1" value="10"> <span id="co-tv">10</span></label>
+    </div><svg id="s-cohort"></svg><div class="detail mini-detail" id="d-cohort"></div><div class="g-caption" id="c-cohort"></div></div>
   <div class="steps">
-    <div class="step" data-step="cohort-0">
-      <h2>Newer arrivals started closer</h2>
-      <p>Every arrival cohort starts below comparable natives and <a class="dl" href="#data/p-cohort">closes the gap at about 1.3 percent a year</a>. Immigrants who came before 2000 started 21 to 22 percent behind.</p>
+    <div class="step" data-step="cohort-0"><h2>Newer arrivals started closer</h2>
+      <p>Every arrival cohort starts below comparable natives and closes the gap at about 1.3 percent a year. Immigrants who came before 2000 started 21 to 22 percent behind.</p>
     </div>
     <div class="step" data-step="cohort-1">
       <p>Those who arrived after 2000 started 17 to 18 percent behind. The difference of 4 to 5 points is about two standard errors (p = 0.02). It runs opposite to the declining cohort quality Borjas found for national arrivals of the 1950s to 1970s. Curves stop at each cohort's longest observed duration.</p>
@@ -78,26 +74,33 @@
   </div>
 </section>
 
-<!-- 4. geography -->
 <section class="chapter" id="ch-map" data-chapter="map">
-  <div class="graphic"><svg id="g-map"></svg><div class="g-caption" id="c-map"></div></div>
+  <div class="graphic"><div class="controls">
+      <label>Color by <select id="area-var">
+        <option value="puma_fb_prop">foreign-born percentage of residents</option>
+        <option value="fb_limited_prop">limited English among the foreign-born</option>
+        <option value="fb_median_wage">foreign-born median hourly wage</option>
+      </select></label>
+      <label>Overlay <select id="area-flows">
+        <option value="none">none</option>
+        <option value="city_to_suburb">where city-to-suburb movers went, 2022–2024</option>
+        <option value="suburb_to_city">where suburb-to-city movers went, 2022–2024</option>
+      </select></label>
+    </div><svg id="s-area"></svg><div class="detail mini-detail" id="d-area"></div><div class="g-caption" id="c-map"></div></div>
   <div class="steps">
-    <div class="step" data-step="map-0">
-      <h2>Where immigrants live</h2>
-      <p>The area unit is the PUMA, about 100,000 people, larger than most cities. Immigrant density peaks in Northeast Philadelphia, where the Central and Lower Northeast, Far Northeast and North Delaware PUMAs are <a class="dl" href="#data/p-area">28, 26 and 23 percent foreign-born</a>. Next come two suburban PUMAs in Chester and Montgomery counties at 19 percent. Every PUMA is also a dot in the scatter against foreign-born median wage, and the two answer each other. Across the 48 PUMAs the correlation is −0.37.</p>
+    <div class="step" data-step="map-0"><h2>Where immigrants live</h2>
+      <p>The area unit is the PUMA, about 100,000 people, larger than most cities. Immigrant density peaks in Northeast Philadelphia, where the Central and Lower Northeast, Far Northeast and North Delaware PUMAs are 28, 26 and 23 percent foreign-born. Next come two suburban PUMAs in Chester and Montgomery counties at 19 percent. Every PUMA is also a dot in the scatter against foreign-born median wage, and the two answer each other. Across the 48 PUMAs the correlation is −0.37.</p>
     </div>
     <div class="step" data-step="map-1">
-      <p>The same map can show where movers go. Foreign-born residents who left the city for a suburb in the past year landed mostly in the inner ring, and the circles show which PUMAs received them. <a class="dl" href="#data/p-flow">The globe shows every country of birth</a>. Chapter 11 asks who those movers are.</p>
+      <p>The same map can show where movers go. The circles show which suburban PUMAs received the foreign-born residents who left the city in the past year. The globe shows every country of birth. Chapter 11 asks who those movers are.</p>
     </div>
   </div>
 </section>
 
-<!-- 4b. county roses -->
 <section class="chapter" id="ch-county" data-chapter="county">
-  <div class="graphic"><svg id="g-county"></svg><div class="g-caption" id="c-county"></div></div>
+  <div class="graphic"><svg id="s-county"></svg><div class="g-caption" id="c-county"></div></div>
   <div class="steps">
-    <div class="step" data-step="county-0">
-      <h2>Immigrant geography by county</h2>
+    <div class="step" data-step="county-0"><h2>Immigrant geography by county</h2>
       <p>Each rose is a county and each petal one measure, all percentages on the same scale, 0 at the center and 100 at the outer ring. Philadelphia County holds the most foreign-born residents and the highest foreign-born percentage, 15.5 percent, and 31 percent of them speak limited English. Its foreign-born median wage is 21.48 dollars against 27.62 for the native-born, 78 percent, and a third of foreign-born adults hold a degree.</p>
     </div>
     <div class="step" data-step="county-1">
@@ -109,13 +112,11 @@
   </div>
 </section>
 
-<!-- 5. density slopes by group -->
 <section class="chapter" id="ch-slopes" data-chapter="slopes">
   <div class="graphic"><svg id="g-slopes"></svg><div class="g-caption" id="c-slopes"></div></div>
   <div class="steps">
-    <div class="step" data-step="slopes-0">
-      <h2>Denser area, lower pay</h2>
-      <p>A two-level model nests 7,355 foreign-born workers in the 48 PUMAs. For immigrants who speak English well, hourly pay is <a class="dl" href="#data/p-calc">about 8 percent lower per standard deviation of area immigrant density</a>, a step of 5.4 percentage points.</p>
+    <div class="step" data-step="slopes-0"><h2>Denser area, lower pay</h2>
+      <p>A two-level model nests 7,355 foreign-born workers in the 48 PUMAs. For immigrants who speak English well, hourly pay is about 8 percent lower per standard deviation of area immigrant density, a step of 5.4 percentage points.</p>
     </div>
     <div class="step" data-step="slopes-1">
       <p>For immigrants with limited English the slope is about 3 percent and not distinguishable from zero. The difference between the two slopes is the interaction the protective and isolation views argue about. It is 0.049 with a standard error of 0.029, and it points the same way in 2017–2021.</p>
@@ -126,27 +127,38 @@
   </div>
 </section>
 
-<!-- 6. occupation -->
 <section class="chapter" id="ch-enclave" data-chapter="enclave">
-  <div class="graphic"><svg id="g-enclave"></svg><div class="g-caption" id="c-enclave"></div></div>
+  <div class="graphic"><div class="controls">
+      <label>Measure <select id="calc-measure">
+        <option value="generic">generic immigrant density, Philadelphia</option>
+        <option value="occ">generic density, within occupations</option>
+        <option value="own-phl">own-language density, Philadelphia (exploratory)</option>
+        <option value="own-nyc">own-language density, New York (exploratory)</option>
+      </select></label>
+      <label>Density <input type="range" id="calc-d" min="-1.5" max="2.5" step="0.1" value="0"> <span id="calc-dv">0.0 SD</span></label>
+    </div><svg id="s-calc"></svg><div class="detail mini-detail" id="d-calc"></div><div class="g-caption" id="c-enclave"></div></div>
   <div class="steps">
-    <div class="step" data-step="enclave-0">
-      <h2>Two lines, one occupation</h2>
+    <div class="step" data-step="enclave-0"><h2>Two lines, one occupation</h2>
       <p>The vertical distance between the lines is the limited-English differential at mean density, 21 percent. Both lines fall with density, the proficient line faster.</p>
     </div>
     <div class="step" data-step="enclave-1">
-      <p>Compare workers in the same occupation and <a class="dl" href="#data/p-calc">the differential falls to 9 percent</a>. Holding occupation constant removes about 60 percent of the differential, 40 percent of the density gradient, and all of the interaction. Most of what limited English costs is the occupation it sorts a worker into.</p>
+      <p>Compare workers in the same occupation and the differential falls to 9 percent. Holding occupation constant removes about 60 percent of the differential, 40 percent of the density gradient, and all of the interaction. Most of what limited English costs is the occupation it sorts a worker into.</p>
     </div>
   </div>
 </section>
 
-<!-- 6b. occupations -->
 <section class="chapter" id="ch-occ" data-chapter="occ">
-  <div class="graphic"><svg id="g-occ"></svg><div class="g-caption" id="c-occ"></div></div>
+  <div class="graphic"><div class="controls">
+      <label>Sort by <select id="occ-sort">
+        <option value="Limited English">limited-English percentage</option>
+        <option value="Proficient immigrants">proficient-immigrant percentage</option>
+        <option value="Native-born">native-born percentage</option>
+        <option value="wage">native-born median wage</option>
+      </select></label>
+    </div><svg id="s-occ"></svg><div class="g-caption" id="c-occ"></div></div>
   <div class="steps">
-    <div class="step" data-step="occ-0">
-      <h2>Which occupations limited English sorts into</h2>
-      <p>The fixed effects say most of the differential is occupational. This is what that looks like. <a class="dl" href="#data/p-occ">Thirty-seven percent of limited-English workers are in service occupations and 14 percent each in production and in transportation</a>, against 12, 3 and 6 percent of the native-born. Proficient immigrants cluster where the native-born do, in management and in computing, engineering and science, and in the last of those they hold a larger proportion than the native-born.</p>
+    <div class="step" data-step="occ-0"><h2>Which occupations limited English sorts into</h2>
+      <p>The fixed effects say most of the differential is occupational. This is what that looks like. Thirty-seven percent of limited-English workers are in service occupations and 14 percent each in production and in transportation, against 12, 3 and 6 percent of the native-born. Proficient immigrants cluster where the native-born do, in management and in computing, engineering and science, and in the last of those they hold a larger proportion than the native-born.</p>
     </div>
     <div class="step" data-step="occ-1">
       <p>Inside an occupation the gap is smaller but does not vanish. The right column divides the limited-English median by the proficient median in the same occupation group. In service work the two groups earn within 17 percent of each other. In sales and in construction the limited-English median is under three quarters of the proficient one. These are descriptive medians for the same sample the models use, not model estimates.</p>
@@ -154,30 +166,30 @@
   </div>
 </section>
 
-<!-- 7. own-language density -->
 <section class="chapter" id="ch-ownlang" data-chapter="ownlang">
   <div class="graphic"><svg id="g-ownlang"></svg><div class="g-caption" id="c-ownlang"></div></div>
   <div class="steps">
-    <div class="step" data-step="ownlang-0">
-      <h2>What about your own language?</h2>
+    <div class="step" data-step="ownlang-0"><h2>What about your own language?</h2>
       <p>Immigrant density as a whole may be the wrong measure. An exploratory check uses the density of the worker's own home language instead, for the 5,732 workers who speak a language other than English at home. Its five highest values are all Spanish, led by North Philadelphia at 41 percent of residents.</p>
     </div>
     <div class="step" data-step="ownlang-1">
       <p>On this measure the differential does narrow, by about 5 percent per standard deviation. But look at which line moves. Limited-English wages do not vary with own-language density. Proficient wages fall with it, by about 6 percent per standard deviation. The differential narrows because the proficient earn less, not because the limited-English earn more.</p>
     </div>
     <div class="step" data-step="ownlang-2">
-      <p>The same model in the New York metropolitan area, with 54,089 workers in 141 PUMAs, gives the same picture. <a class="dl" href="#data/p-coef">The interaction is 0.045 against Philadelphia's 0.046</a>, and again the narrowing comes from the proficient side. A former gateway and a traditional one agree.</p>
+      <p>The same model in the New York metropolitan area, with 54,089 workers in 141 PUMAs, gives the same picture. The interaction is 0.045 against Philadelphia's 0.046, and again the narrowing comes from the proficient side. A former gateway and a traditional one agree.</p>
     </div>
   </div>
 </section>
 
-<!-- 7b. Philadelphia vs New York grid -->
 <section class="chapter" id="ch-compare" data-chapter="compare">
-  <div class="graphic"><svg id="g-compare"></svg><div class="g-caption" id="c-compare"></div></div>
+  <div class="graphic"><div class="controls">
+      <label>Sort by <select id="inter-sort"><option value="t">|t|</option><option value="est">estimate</option><option value="name">city and measure</option></select></label>
+      <label><input type="checkbox" id="inter-bonf"> mark the Bonferroni line for 17 tests</label>
+      
+    </div><svg id="s-coef"></svg><div class="g-caption" id="c-compare"></div></div>
   <div class="steps">
-    <div class="step" data-step="compare-0">
-      <h2>Seventeen tests, one grid</h2>
-      <p>Every limited-English × density interaction the paper reports, in one plot. Twelve for Philadelphia, five for New York. Circles are generic density, diamonds co-ethnic, squares own-language, hollow marks hold occupation constant, and size is the sample. Most intervals cross zero. <a class="dl" href="#data/p-coef">The two areas differ by about one standard error on generic density and by two, with opposite signs, on co-ethnic density.</a></p>
+    <div class="step" data-step="compare-0"><h2>Seventeen tests, one grid</h2>
+      <p>Every limited-English × density interaction the paper reports, in one plot. Twelve for Philadelphia, five for New York. Circles are generic density, diamonds co-ethnic, squares own-language, hollow marks hold occupation constant, and size is the sample. Most intervals cross zero. The two areas differ by about one standard error on generic density and by two, with opposite signs, on co-ethnic density.</p>
     </div>
     <div class="step" data-step="compare-1">
       <p>With this many tests a single result at the 5 percent level is weak evidence. The Bonferroni line for seventeen tests is |t| above 2.92. Only the two New York own-language terms clear it. Philadelphia's own-language interaction, at p = 0.04, does not. The paper reports all seventeen for that reason.</p>
@@ -185,44 +197,57 @@
   </div>
 </section>
 
-<!-- 8. moves -->
 <section class="chapter" id="ch-moves" data-chapter="moves">
-  <div class="graphic"><svg id="g-moves"></svg><div class="g-caption" id="c-moves"></div></div>
+  <div class="graphic"><div class="controls">
+      <label>Window <select id="flow-window"><option value="2022-2024">2022–2024</option><option value="2017-2021">2017–2021</option><option value="2012-2016">2012–2016</option></select></label>
+      <label>Group <select id="flow-group"><option value="fb">foreign-born</option><option value="nb">native-born</option></select></label>
+      <label><input type="checkbox" id="flow-movers" checked> movers only</label>
+    </div><svg id="s-flow" class="half"></svg><div class="controls">
+      <label>Covariate <select id="mv-var">
+        <option value="1">log hourly wage</option>
+        <option value="2">English score</option>
+        <option value="3">graduate degree</option>
+        <option value="4">married</option>
+      </select></label>
+    </div><svg id="s-moves" class="half"></svg><div class="g-caption" id="c-moves"></div></div>
   <div class="steps">
-    <div class="step" data-step="moves-0">
-      <h2>Who leaves the city</h2>
+    <div class="step" data-step="moves-0"><h2>Who leaves the city</h2>
       <p>In a year, 85.7 percent of the metro's foreign-born adults stay in the same house. Of the rest, 5.9 percent move within the suburbs, 2.7 percent arrive from abroad, 2.3 percent move within the city, 2.1 percent arrive from another state, 0.7 percent move from the city to a suburb and 0.6 percent the other way.</p>
     </div>
     <div class="step" data-step="moves-1">
-      <p>Take the stayers out and the flows are small but not random. The 2,400 a year who moved from the city to a suburb earned a median of 33 dollars an hour. The 1,900 who moved the other way earned 20. New arrivals from abroad landed in the city and the suburbs at 3,400 to 5,500 a year, earning 16 and 22 dollars. Among prior city residents, doubling hourly pay raises the odds of a city-to-suburb move by about 40 percent. <a class="dl" href="#data/p-moves">In the multinomial model the estimate is 1.30 with an interval from 0.97 to 1.74</a>.</p>
+      <p>Take the stayers out and the flows are small but not random. The 2,400 a year who moved from the city to a suburb earned a median of 33 dollars an hour. The 1,900 who moved the other way earned 20. New arrivals from abroad landed in the city and the suburbs at 3,400 to 5,500 a year, earning 16 and 22 dollars. Among prior city residents, doubling hourly pay raises the odds of a city-to-suburb move by about 40 percent. In the multinomial model the estimate is 1.30 with an interval from 0.97 to 1.74.</p>
     </div>
     <div class="step" data-step="moves-2">
-      <p>Native-born adults move between the city and the suburbs at nearly the same rates, 0.6 and 0.7 percent. What differs is arrival. The foreign-born flow from abroad has no native counterpart, and it lands mostly in the suburbs.</p>
+      <p>Native-born adults move between the city and the suburbs at nearly the same rates, 0.6 and 0.7 percent. What differs is arrival from abroad, 2.7 percent of foreign-born adults against 0.2 percent of the native-born, and it lands in the suburbs more often than in the city, 5,500 to 3,400 a year.</p>
     </div>
   </div>
 </section>
 
-<!-- 9. cohorts over twelve years -->
 <section class="chapter" id="ch-panel" data-chapter="panel">
   <div class="graphic"><svg id="g-panel"></svg><div class="g-caption" id="c-panel"></div></div>
   <div class="steps">
-    <div class="step" data-step="panel-0">
-      <h2>Cohorts over twelve years</h2>
-      <p>Following the same arrival cohorts across three survey windows, real wages rose in eleven of twelve cells. The proportion living outside the city barely moved. At the group level the data cannot detect a link between wage growth and suburbanization.</p>
+    <div class="step" data-step="panel-0"><h2>Cohorts over twelve years</h2>
+      <p>Following the same arrival cohorts across three survey windows, real median wages rose in eleven of the twelve cells observed in all three windows, by about 10 dollars for Asian-born arrivals of the 1990s and 2000s and by 1 to 8 dollars elsewhere, and were flat for African-born arrivals of the 1990s. The suburban percentage moved much less. For cohorts that arrived before 2010 it sits between 59 and 86 percent in every window. The cell fixed-effects regression gives 9.7 percentage points of suburbanization per log point of wage growth with a standard error of 10.7, so the data cannot detect a group-level link between wage growth and suburbanization.</p>
     </div>
     <div class="step" data-step="panel-1">
-      <p>The 2010s arrivals look different, but part of that is duration. Compare them with the 2000s cohort at the same number of years after arrival and one difference holds. Latin American arrivals of the 2010s are <a class="dl" href="#data/p-tables">7 points less suburban</a>, a difference of about two standard errors. European arrivals show the same size with too few respondents to establish it. Asian arrivals are 5 points more suburban.</p>
+      <p>The 2010s arrivals look different, but part of that is duration. Compare them with the 2000s cohort at the same number of years after arrival and one difference holds. Latin American arrivals of the 2010s are 7 points less suburban, a difference of about two standard errors. European arrivals show the same size with too few respondents to establish it. Asian arrivals are 5 points more suburban.</p>
     </div>
   </div>
 </section>
 
-<!-- 10. heatmap of cells -->
 <section class="chapter" id="ch-grid" data-chapter="grid">
-  <div class="graphic"><svg id="g-grid"></svg><div class="g-caption" id="c-grid"></div></div>
+  <div class="graphic"><div class="controls">
+      <label>Metric <select id="cell-metric">
+        <option value="median_hourly">median hourly wage, 2024 dollars</option>
+        <option value="suburb_prop">percent living outside the city</option>
+        <option value="limited_eng_prop">percent with limited English</option>
+        <option value="rent_burden">mean rent burden, percent of income</option>
+      </select></label>
+      <span id="cell-regions"></span>
+    </div><svg id="s-cells"></svg><div class="detail mini-detail" id="d-cells"></div><div class="g-caption" id="c-grid"></div></div>
   <div class="steps">
-    <div class="step" data-step="grid-0">
-      <h2>Every cell, every window</h2>
-      <p>The same forty-four cells as a grid. Rows are arrival cohort by region of birth, columns are the three survey windows, and color is the real median hourly wage in 2024 dollars. Hover a cell for the number. Asian-born arrivals of the 1990s and 2000s <a class="dl" href="#data/p-cells">gained about 10 dollars over twelve years</a>, the largest real gains in the table.</p>
+    <div class="step" data-step="grid-0"><h2>Every cell, every window</h2>
+      <p>The same forty-four cells as a grid. Rows are arrival cohort by region of birth, columns are the three survey windows, and color is the real median hourly wage in 2024 dollars. Hover a cell for the number. Asian-born arrivals of the 1990s and 2000s gained about 10 dollars over twelve years, the largest real gains in the table.</p>
     </div>
     <div class="step" data-step="grid-1">
       <p>Switch the color to the percentage living outside the city and the grid goes flat. Most cells sit between 59 and 86 percent in every window and drift up by a few points. The exceptions are in the last row block, the 2010s arrivals, and only for Latin America does the difference from the cohort before survive a duration-matched comparison.</p>
@@ -232,270 +257,30 @@
 
 </main>
 
-<footer class="outro">
-  <h2>What this adds up to</h2>
-  <p>In metropolitan Philadelphia, immigrant wages are about 8 percent lower per standard deviation of area immigrant density for workers who speak English well and about 3 percent lower, an estimate not distinguishable from zero, for those who do not. The wage difference between the two groups does not vary detectably with that density, and most of it is associated with the occupations limited-English workers hold. On the density of a worker's own home language the difference narrows, in Philadelphia and in New York, because proficient workers earn less where their language is common. Higher earners leave the city, and Latin American arrivals of the 2010s are settling inside it more often than the cohort before them did.</p>
-  <p class="meta">Data: American Community Survey PUMS, 2012–2016, 2017–2021 and 2022–2024 five-year files, Philadelphia-Camden-Wilmington MSA. Working paper, code and full tables at <a href="https://github.com/cyber-hbliu/immigrant_workforce_research">github.com/cyber-hbliu/immigrant_workforce_research</a>.</p>
+<footer class="outro view-head">
+  <h1>What this adds up to</h1>
+  <p class="lead">In metropolitan Philadelphia, foreign-born wages are about 8 percent lower per standard deviation of area immigrant density for workers who speak English well and about 3 percent lower, an estimate not distinguishable from zero, for those who do not, against 2 percent for native-born workers in the same areas, and the wage difference between limited-English and proficient workers does not vary detectably with that density. That difference is 21 percent, of which 9 percent remains within an occupation, so most of it is associated with the occupations limited-English workers hold. An exploratory measure of the density of the worker's own home language narrows the differential in Philadelphia and in New York because proficient workers earn less where their language is common. On the residential side, higher earners move from the city to the suburbs, and Latin American arrivals of the 2010s are seven points less suburban than the 2000s cohort was at the same duration of residence.</p>
+  <p class="meta">Data: American Community Survey PUMS, 2012–2016, 2017–2021 and 2022–2024 five-year files, Philadelphia-Camden-Wilmington MSA. Working paper, code and full tables at <a href="https://github.com/cyber-hbliu/immigrant_workforce_research">github.com/cyber-hbliu/immigrant_workforce_research</a>. Hebe Liu, <a href="https://usllab.org/">Urban Spatial Lab</a>.</p>
 </footer>
-</div>
 
-<div class="view" id="v-data" hidden>
-<main class="explore">
-  <section class="view-head">
-    <h1>Explore the data</h1>
-    <p class="lead">Every estimate in the paper, with the controls that produced it. American Community Survey public-use microdata, 2012 to 2024, 240,089 wage and salary workers aged 25 to 64 in the 48 PUMAs of the Philadelphia-Camden-Wilmington metropolitan area.</p>
-  </section>
-
-  <!-- 1. population -->
-  <section class="panel" id="p-pop">
-    <div class="panel-head">
-      <h2>The foreign-born population, 2013 to 2024</h2>
-      <p class="desc">One-year ACS estimates for the city of Philadelphia. The line is the count, the bars on the right are the twenty largest countries of birth as a percentage of the city's foreign-born.</p>
-    </div>
-    <div class="panel-body">
-      <svg id="s-pop"></svg>
-      <div class="detail" id="d-pop"></div>
-    </div>
-  </section>
-
-  <!-- 2. wages by English -->
-  <section class="panel" id="p-wage">
-    <div class="panel-head">
-      <h2>Hourly wages by English ability</h2>
-      <p class="desc">Weighted median hourly wage of foreign-born workers by the four ACS English categories, 2022–2024, with 95 percent intervals. The card gives the pooled regression estimate behind the story.</p>
-    </div>
-    <div class="panel-body">
-      <svg id="s-wage"></svg>
-      <div class="detail" id="d-wage"></div>
-    </div>
-  </section>
-
-  <!-- full-screen flow map -->
-  <section class="panel full" id="p-flow">
-    <svg id="s-flowmap"></svg>
-    <div class="flow-ui">
-      <h2>Where the foreign-born were born</h2>
-      <p class="desc">Residents of the Philadelphia-Camden-Wilmington metropolitan area born outside the United States, by country of birth, 2022–2024, all ages. Each line joins a country to Philadelphia and its width is the number of residents born there. Countries are colored by the same number. Hover a country for the count, drag to turn the globe.</p>
-      <p class="fine">Country of birth follows the ACS POBP codes. Historical and combined codes are mapped to a present-day country: Korea to South Korea, USSR to Russia, Czechoslovakia to Czechia, Yugoslavia to Serbia, Hong Kong to China, and England, Scotland, Northern Ireland and United Kingdom not specified to the United Kingdom. Codes without a boundary on the globe, such as Singapore, the smaller Caribbean islands and continent-level codes like Africa, are counted in the total but not drawn. The lines show origin and current residence, not the route or the year of migration.</p>
-    </div>
-  </section>
-
-  <!-- 3. area explorer -->
-  <section class="panel" id="p-area">
-    <div class="panel-head">
-      <h2>Areas</h2>
-      <p class="desc">The 48 Public Use Microdata Areas, 2022–2024, as a map and as a scatter of immigrant density against foreign-born median wage. Hover either side and the other answers. Drag a box across the scatter to select areas. Dot size is limited English among the foreign-born, the black rim marks the city.</p>
-    </div>
-    <div class="controls">
-      <label>Color by <select id="area-var">
-        <option value="puma_fb_prop">foreign-born percentage of residents</option>
-        <option value="fb_limited_prop">limited English among the foreign-born</option>
-        <option value="fb_median_wage">foreign-born median hourly wage</option>
-      </select></label>
-      <label>Overlay <select id="area-flows">
-        <option value="none">none</option>
-        <option value="city_to_suburb">where city-to-suburb movers went, 2022–2024</option>
-        <option value="suburb_to_city">where suburb-to-city movers went, 2022–2024</option>
-      </select></label>
-    </div>
-    <div class="panel-body">
-      <svg id="s-area" style="height:clamp(420px, calc(100vh - 300px), 620px)"></svg>
-      <div class="detail" id="d-area"><h3>Select an area</h3><p style="color:var(--muted)">Profiles appear here.</p></div>
-    </div>
-  </section>
-
-  <!-- counties -->
-  <section class="panel" id="p-county">
-    <div class="panel-head">
-      <h2>Immigrant geography by county</h2>
-      <p class="desc">Each rose is a county of the metropolitan area and each petal one measure, all percentages on one scale from 0 at the center to 100 at the outer ring, 2022–2024. The wage petal is the foreign-born median hourly wage as a percentage of the native-born median. Click a county to enlarge it, hover a petal for the value and the county's rank. Descriptive statistics for the analysis sample, all PUMAs assigned to the county holding their interior point.</p>
-    </div>
-    <div class="panel-body single"><svg id="s-county" style="height:clamp(480px, calc(100vh - 260px), 680px)"></svg></div>
-  </section>
-
-  <!-- 4. differential calculator -->
-  <section class="panel" id="p-calc">
-    <div class="panel-head">
-      <h2>The limited-English differential, by area density</h2>
-      <p class="desc">Move the slider along the density scale and read the fitted log wage of each group from the two-level model. One standard deviation of area immigrant density is 5.4 percentage points in Philadelphia.</p>
-    </div>
-    <div class="controls">
-      <label>Measure <select id="calc-measure">
-        <option value="generic">generic immigrant density, Philadelphia</option>
-        <option value="occ">generic density, within occupations</option>
-        <option value="own-phl">own-language density, Philadelphia (exploratory)</option>
-        <option value="own-nyc">own-language density, New York (exploratory)</option>
-      </select></label>
-      <label>Density <input type="range" id="calc-d" min="-1.5" max="2.5" step="0.1" value="0"> <span id="calc-dv">0.0 SD</span></label>
-    </div>
-    <div class="panel-body">
-      <svg id="s-calc"></svg>
-      <div class="detail" id="d-calc"></div>
-    </div>
-  </section>
-
-  <!-- 5. cohort explorer -->
-  <section class="panel" id="p-cohort">
-    <div class="panel-head">
-      <h2>Arrival cohorts and years since migration</h2>
-      <p class="desc">Predicted wage gap to comparable natives from the cohort specification with English, occupation, PUMA and year fixed effects. Curves stop at each cohort's longest observed duration.</p>
-    </div>
-    <div class="controls" id="cohort-toggles">
-      <span>Show</span>
-      <label>Years since migration <input type="range" id="co-t" min="0" max="30" step="1" value="10"> <span id="co-tv">10</span></label>
-    </div>
-    <div class="panel-body">
-      <svg id="s-cohort"></svg>
-      <div class="detail" id="d-cohort"></div>
-    </div>
-  </section>
-
-  <!-- 6. decomposition -->
-  <section class="panel" id="p-gap">
-    <div class="panel-head">
-      <h2>Decomposition of the native to foreign-born wage gap</h2>
-      <p class="desc">Oaxaca–Blinder decomposition of the 0.107 log point gap, 2022–2024, without and with the English score among the explanatory variables.</p>
-    </div>
-    <div class="panel-body">
-      <svg id="s-gap"></svg>
-      <div class="detail" id="d-gap"></div>
-    </div>
-  </section>
-
-  <!-- occupations -->
-  <section class="panel" id="p-occ">
-    <div class="panel-head">
-      <h2>Which occupations each group works in</h2>
-      <p class="desc">Twelve occupation groups by three groups of workers, 2022–2024. Circle size is the percentage of the group in the occupation, color is the group's median hourly wage there, and the right column divides the limited-English median by the proficient median in the same occupation. Descriptive statistics for the model sample.</p>
-    </div>
-    <div class="controls">
-      <label>Sort by <select id="occ-sort">
-        <option value="Limited English">limited-English percentage</option>
-        <option value="Proficient immigrants">proficient-immigrant percentage</option>
-        <option value="Native-born">native-born percentage</option>
-        <option value="wage">native-born median wage</option>
-      </select></label>
-    </div>
-    <div class="panel-body">
-      <svg id="s-occ" style="height:600px"></svg>
-      <div class="detail" id="d-occ"></div>
-    </div>
-  </section>
-
-  <!-- 7. cells -->
-  <section class="panel" id="p-cells">
-    <div class="panel-head">
-      <h2>Cohort by region cells across three windows</h2>
-      <p class="desc">Forty-four cells of foreign-born adults aged 25 to 64. Choose the metric, filter regions, click a row to trace it. The pseudo-panel regressions on these cells are in Table A2 below.</p>
-    </div>
-    <div class="controls">
-      <label>Metric <select id="cell-metric">
-        <option value="median_hourly">median hourly wage, 2024 dollars</option>
-        <option value="suburb_prop">percent living outside the city</option>
-        <option value="limited_eng_prop">percent with limited English</option>
-        <option value="rent_burden">mean rent burden, percent of income</option>
-      </select></label>
-      <span id="cell-regions"></span>
-    </div>
-    <div class="panel-body">
-      <svg id="s-cells"></svg>
-      <div class="detail" id="d-cells"><h3>Click a row</h3><p style="color:var(--muted)">The cell's three windows appear here.</p></div>
-    </div>
-  </section>
-
-  <!-- 8. coefficients -->
-  <section class="panel" id="p-coef">
-    <div class="panel-head">
-      <h2>Every interaction term, and every shared coefficient</h2>
-      <p class="desc">Two-level models with random intercept and limited-English slope by PUMA, and the occupation fixed-effects versions. Standard errors in parentheses. Own-language rows use the non-English home language subsamples. The dot plot shows the same numbers with two-standard-error bars.</p>
-    </div>
-    <div class="controls">
-      <label>Sort by <select id="inter-sort"><option value="t">|t|</option><option value="est">estimate</option><option value="name">city and measure</option></select></label>
-      <label><input type="checkbox" id="inter-bonf"> mark the Bonferroni line for 17 tests</label>
-      <button id="coef-csv">Download CSV</button>
-    </div>
-    <div class="panel-body single">
-      <svg id="s-coef" style="height:460px"></svg>
-      <div id="coef-table" class="tablewrap"></div>
-    </div>
-  </section>
-
-  <!-- 9. moves -->
-  <section class="panel" id="p-moves">
-    <div class="panel-head">
-      <h2>Residential moves in the past year</h2>
-      <p class="desc">Above, where adults aged 25 to 64 lived a year earlier and where they live now, by window and nativity, with ribbons colored by the movers' median wage where the paper reports it. Below, the multinomial logit relative to staying for foreign-born workers, relative risk ratios with 95 percent intervals from the 80 ACS replicate weights.</p>
-    </div>
-    <div class="controls">
-      <label>Covariate <select id="mv-var">
-        <option value="1">log hourly wage</option>
-        <option value="2">English score</option>
-        <option value="3">graduate degree</option>
-        <option value="4">married</option>
-      </select></label>
-    </div>
-    <div class="controls">
-      <label>Window <select id="flow-window"><option value="2022-2024">2022–2024</option><option value="2017-2021">2017–2021</option><option value="2012-2016">2012–2016</option></select></label>
-      <label>Group <select id="flow-group"><option value="fb">foreign-born</option><option value="nb">native-born</option></select></label>
-      <label><input type="checkbox" id="flow-movers" checked> movers only</label>
-    </div>
-    <div class="panel-body single"><svg id="s-flow" style="height:380px"></svg></div>
-    <div class="panel-body">
-      <svg id="s-moves" style="height:360px"></svg>
-      <div class="detail" id="d-moves">
-        <h3>Binary logit, prior city residents</h3>
-        <div class="big">0.476</div>
-        <dl><dt>standard error</dt><dd>0.140</dd><dt>outcome</dt><dd>city to suburb move</dd><dt>per unit of</dt><dd>log hourly wage</dd></dl>
-        <h3 style="margin-top:14px">Pseudo-panel, Table A2</h3>
-        <dl><dt>mean log wage on suburban percentage</dt><dd>9.74 (10.69)</dd><dt>with limited English</dt><dd>12.20 (13.44)</dd><dt>with rent burden</dt><dd>9.70 (10.95)</dd><dt>cell-window observations</dt><dd>44</dd><dt>within R-squared</dt><dd>0.022</dd></dl>
-      </div>
-    </div>
-  </section>
-
-  <!-- 10. tables -->
-  <section class="panel" id="p-tables">
-    <div class="panel-head">
-      <h2>Every table in the paper</h2>
-      <p class="desc">The five main tables and the two appendix tables, exactly as printed, with their notes. Each one downloads as CSV.</p>
-    </div>
-    <div class="tabs" id="tab-buttons"></div>
-    <div class="panel-body single">
-      <div class="tablewrap" id="tab-body"></div>
-    </div>
-  </section>
-</main>
-
-<footer class="outro">
-  <p class="meta">Working paper, code and full tables at <a href="https://github.com/cyber-hbliu/immigrant_workforce_research">github.com/cyber-hbliu/immigrant_workforce_research</a>. Hebe Liu, Urban Spatial Lab.</p>
-</footer>
+<section class="appendix" id="tables">
+  <div class="view-head"><h1>Every table in the paper</h1><p class="lead">The five main tables and the two appendix tables, exactly as printed, with their notes. Each one downloads as CSV. Below them, every coefficient Philadelphia and New York share.</p></div>
+  <div class="tabs" id="tab-buttons"></div>
+  <div class="tablewrap" id="tab-body"></div>
+  <div class="controls"><button id="coef-csv">Download the shared coefficients as CSV</button></div>
+  <div id="coef-table" class="tablewrap"></div>
+</section>
 </div>
 
 <div class="view" id="v-methods" hidden>
 <section class="framework" id="framework">
   <div class="view-head">
     <h1>Analytical framework</h1>
-    <p class="lead">The conceptual model and the order of estimation. Click a box for what it found, click an arrow for how the step was done. Every box links into the story and the data.</p>
+    <p class="lead">The conceptual model and the order of estimation. Click a box for what it found, click an arrow for how the step was done. Every box links to its chapter in the story.</p>
   </div>
   <div id="mindmap"><div id="mm-pop" class="mm-pop" hidden></div></div>
 </section>
 
-<main class="explore methods">
-  <div class="prose">
-    <h2>Data</h2>
-    <p>American Community Survey public-use microdata sample five-year files for 2012–2016, 2017–2021 and 2020–2024, the last restricted to interviews in 2022, 2023 and 2024 so that no year appears in two windows. The geography is the 48 Public Use Microdata Areas whose interior point falls inside the 2023 definition of the Philadelphia-Camden-Wilmington metropolitan statistical area. A PUMA holds about 100,000 residents and is larger than many cities, so every area effect here is at the scale of a district.</p>
-    <p>The analysis sample is wage and salary workers aged 25 to 64 with an hourly wage between 2 and 500 dollars, 240,089 worker-years of which 29,299 are foreign-born. The 2022–2024 foreign-born sample used in the area models holds 7,355 workers.</p>
-    <h2>Measures</h2>
-    <p>English proficiency is the ACS self-report on a four-point scale. Limited English is the bottom two categories. Area immigrant density is the foreign-born percentage of all residents in the worker's PUMA, standardized so that one unit is one standard deviation across foreign-born workers, 5.4 percentage points in 2022–2024. Co-ethnic density is the percentage of the PUMA's foreign-born who were born in the worker's region. Own-language density is the percentage of all residents aged 5 and over who speak the worker's home language, an exploratory measure added after the main specifications were estimated.</p>
-    <h2>Models</h2>
-    <p>The wage equation regresses log hourly wage on the English score and controls with occupation, PUMA-by-window and interview-year fixed effects. The area model is a two-level random-intercept, random-slope specification with foreign-born workers nested in PUMAs, and its interaction between limited English and density is the main estimate. The interaction is read together with the density slope for each English group, because a positive interaction can come from limited-English workers earning more or from proficient workers earning less. Checks re-estimate on 2017–2021, add occupation fixed effects, replace the density measure, run the same model on native-born workers, and repeat everything for the New York metropolitan area.</p>
-    <p>Residential moves come from the one-year migration question, with the city of Philadelphia as one migration area. A multinomial logit with replicate-weight standard errors and a binary logit on prior city residents relate the type of move to wages. A pseudo-panel of arrival-cohort by region-of-birth cells follows groups across the three windows.</p>
-    <h2>Inference</h2>
-    <p>Regression standard errors are clustered on PUMA-by-window. Cross-level interactions use Satterthwaite degrees of freedom. Seventeen limited-English interaction terms are estimated across the two metropolitan areas, so any single one at the 5 percent level is weak evidence on its own. The main specifications were fixed in the analysis script before estimation.</p>
-    <h2>Code and paper</h2>
-    <p>One R script downloads the data through the Census API, builds every sample, estimates every model and draws every figure. Script, results and the working paper are at <a href="https://github.com/cyber-hbliu/immigrant_workforce_research">github.com/cyber-hbliu/immigrant_workforce_research</a>.</p>
-    <p class="meta" style="font-family:var(--mono);font-size:13px;color:var(--muted)">Hebe Liu, Urban Spatial Lab, Philadelphia. Contact cyberhebe@gmail.com.</p>
-  </div>
-</main>
 </div>
 
 <script src="lib/d3.min.js"></script>

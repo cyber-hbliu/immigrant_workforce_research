@@ -41,67 +41,6 @@ function axes(g, x, y, w, h, opts = {}) {
 }
 function title(g, text) { return g.append("text").attr("class", "title").attr("x", 0).attr("y", -14).text(text); }
 
-// ---------- chapter 1: globe -> trend ----------
-function initGlobe() {
-  const { svg, w, h } = svgBox("#g-globe");
-  const g = svg.append("g");
-  const r = Math.min(w, h) * 0.4;
-  const proj = d3.geoOrthographic().scale(r).translate([w / 2, h / 2]).rotate([75, -20]).clipAngle(90);
-  const path = d3.geoPath(proj);
-  g.append("circle").attr("cx", w / 2).attr("cy", h / 2).attr("r", r).attr("fill", "#f6f5f1").attr("stroke", C.axis);
-  const land = g.append("path").datum(state.world).attr("fill", "#e4e2dc").attr("stroke", "#fff").attr("stroke-width", 0.5).attr("d", path);
-  const grat = g.append("path").datum(d3.geoGraticule10()).attr("fill", "none").attr("stroke", "#e6e6e6").attr("stroke-width", 0.4).attr("d", path);
-  const regionOf = { CHN: "Asia", IND: "Asia", VNM: "Asia", KOR: "Asia", PHL: "Asia", PAK: "Asia", BGD: "Asia",
-    DOM: "Latin America", MEX: "Latin America", JAM: "Latin America", HTI: "Latin America", BRA: "Latin America", GTM: "Latin America",
-    UKR: "Europe", ITA: "Europe", RUS: "Europe", GBR: "Europe", LBR: "Africa", NGA: "Africa", CMR: "Africa" };
-  const arcData = state.data.origins.map(o => ({ type: "LineString", coordinates: [[+o.lon, +o.lat], PHL], pct: +o.pct, name: o.country, region: regionOf[o.iso3] || "Other" }));
-  const sw = d3.scaleSqrt().domain([0, d3.max(arcData, d => d.pct)]).range([0.8, 6]);
-  const arcs = g.append("g").selectAll("path").data(arcData).join("path")
-    .attr("fill", "none").attr("stroke", C.tealDark).attr("stroke-opacity", 0.7).attr("stroke-width", d => sw(d.pct)).attr("d", path);
-  const phl = g.append("circle").attr("r", 5).attr("fill", C.orange).attr("stroke", "#fff").attr("stroke-width", 1.5);
-  const legend = g.append("g").attr("transform", `translate(${w - 150},${h - 90})`).style("opacity", 0);
-  Object.entries(C.region).forEach(([k, col], i) => {
-    legend.append("rect").attr("x", 0).attr("y", i * 18).attr("width", 12).attr("height", 3).attr("fill", col);
-    legend.append("text").attr("x", 18).attr("y", i * 18 + 4).text(k);
-  });
-  let rot = 75, timer;
-  function render() {
-    proj.rotate([rot, -20]); land.attr("d", path); grat.attr("d", path); arcs.attr("d", path);
-    const p = proj(PHL); phl.attr("cx", p[0]).attr("cy", p[1]);
-  }
-  render();
-  // trend chart, hidden until step 2
-  const m = { t: 40, r: 30, b: 40, l: 60 }, tw = w - m.l - m.r, th = h - m.t - m.b;
-  const tg = svg.append("g").attr("transform", `translate(${m.l},${m.t})`).style("opacity", 0);
-  const tr = state.data.trend;
-  const x = d3.scaleLinear().domain(d3.extent(tr, d => +d.year)).range([0, tw]);
-  const y = d3.scaleLinear().domain([170000, 250000]).range([th, 0]);
-  axes(tg, x, y, tw, th, { xf: d3.format("d"), yf: d => d3.format(",")(d), yt: 4 });
-  title(tg, "Foreign-born residents of Philadelphia, 2013 to 2024");
-  const line = d3.line().x(d => x(+d.year)).y(d => y(+d.foreign_born)).curve(d3.curveMonotoneX);
-  const tl = tg.append("path").datum(tr).attr("fill", "none").attr("stroke", C.teal).attr("stroke-width", 2.5).attr("d", line);
-  tg.selectAll("circle").data(tr).join("circle").attr("cx", d => x(+d.year)).attr("cy", d => y(+d.foreign_born)).attr("r", 3.5).attr("fill", C.teal);
-  const last = tr[tr.length - 1], first = tr[0];
-  tg.append("text").attr("class", "label").attr("x", x(+last.year) - 6).attr("y", y(+last.foreign_born) - 12).attr("text-anchor", "end").text(`${fmtN(+last.foreign_born)} · ${last.pct_foreign_born}% of residents`);
-  tg.append("text").attr("class", "note").attr("x", x(+first.year) + 6).attr("y", y(+first.foreign_born) + 18).text(`${fmtN(+first.foreign_born)} · ${first.pct_foreign_born}%`);
-  state.charts.globe = {
-    step(i) {
-      if (timer) timer.stop();
-      if (i <= 1) {
-        g.transition().duration(600).style("opacity", 1); tg.transition().duration(600).style("opacity", 0);
-        timer = d3.timer(() => { rot += 0.08; render(); });
-        if (i === 0) { arcs.transition().duration(600).attr("stroke", C.tealDark); legend.transition().duration(400).style("opacity", 0); }
-        else { arcs.transition().duration(600).attr("stroke", d => C.region[d.region] || C.grey); legend.transition().duration(400).style("opacity", 1); }
-        caption("#c-globe", i === 0 ? "Twenty largest origin countries, arc width proportional to the percentage of Philadelphia's foreign-born. ACS 2022–2024." : "Arcs colored by world region of birth.");
-      } else {
-        g.transition().duration(600).style("opacity", 0); tg.transition().duration(600).style("opacity", 1);
-        drawPath(tl, 1400);
-        caption("#c-globe", "Foreign-born population of Philadelphia County, ACS one-year estimates.");
-      }
-    }
-  };
-}
-
 // ---------- chapter 2: wage gradient -> decomposition ----------
 function initWage() {
   const { svg, w, h } = svgBox("#g-wage");
@@ -115,10 +54,10 @@ function initWage() {
   const rows = g.selectAll(".row").data(t1).join("g").attr("class", "row").attr("transform", d => `translate(0,${y(d.eng) + y.bandwidth() / 2})`);
   rows.append("line").attr("x1", d => x(d.lo)).attr("x2", d => x(d.hi)).attr("stroke", C.ink2).attr("stroke-width", 2).style("opacity", 0);
   rows.append("rect").attr("x", 0).attr("y", -y.bandwidth() / 2).attr("height", y.bandwidth()).attr("width", 0).attr("fill", (d, i) => C.english[i]);
-  rows.append("text").attr("class", "label").attr("x", d => x(d.median) + 8).attr("dy", 4).text(d => fmt$(d.median)).style("opacity", 0);
+  rows.append("text").attr("class", "label").attr("x", d => x(d.hi) + 8).attr("dy", 4).text(d => fmt$(d.median)).style("opacity", 0);
   hover(rows, d => `<b>${d.eng}</b><br>median ${fmt$(d.median)}<br>90% interval ${fmt$(d.lo)} to ${fmt$(d.hi)}`);
   const ann = g.append("text").attr("class", "label").attr("x", cw).attr("y", ch * 0.58 + 40).attr("text-anchor", "end").style("opacity", 0)
-    .text("holding education, occupation and area constant, +7% per step");
+    .text("holding cohort, education, occupation and area constant, 0.059 log points per step");
   // decomposition bars
   const oa = state.data.results.oaxaca;
   const dg = g.append("g").attr("transform", `translate(0,${ch * 0.8})`).style("opacity", 0);
@@ -147,51 +86,9 @@ function initWage() {
   };
 }
 
-// ---------- chapter 3: cohort curves ----------
-function initCohort() {
-  const { svg, w, h } = svgBox("#g-cohort");
-  const m = { t: 40, r: 120, b: 44, l: 60 }, cw = w - m.l - m.r, ch = h - m.t - m.b;
-  const g = svg.append("g").attr("transform", `translate(${m.l},${m.t})`);
-  const co = state.data.results.cohort, mx = state.data.results.cohort_max_ysm;
-  const names = { pre1990: "Before 1990", "1990s": "1990s", "2000s": "2000s", "2010s": "2010s", "2020s": "2020s" };
-  const cols = { pre1990: C.grey2, "1990s": C.grey, "2000s": C.tealLight, "2010s": C.teal, "2020s": C.tealDark };
-  const series = Object.keys(names).map(k => ({ k, pts: d3.range(0, Math.min(30, mx[k]) + 1).map(t => ({ t, v: (Math.exp(co[k] + co.ysm * t + co.ysm2 * t * t) - 1) * 100 })) }));
-  const x = d3.scaleLinear().domain([0, 30]).range([0, cw]), y = d3.scaleLinear().domain([-26, 4]).range([ch, 0]);
-  axes(g, x, y, cw, ch, { yf: d => d + "%" });
-  title(g, "Predicted wage gap to natives by years since migration");
-  g.append("line").attr("x1", 0).attr("x2", cw).attr("y1", y(0)).attr("y2", y(0)).attr("stroke", C.axis);
-  g.append("text").attr("x", cw / 2).attr("y", ch + 36).attr("text-anchor", "middle").text("years since migration");
-  const line = d3.line().x(d => x(d.t)).y(d => y(d.v)).curve(d3.curveMonotoneX);
-  const paths = g.selectAll(".c").data(series).join("path").attr("class", "c").attr("fill", "none").attr("stroke", d => cols[d.k]).attr("stroke-width", 2.4).attr("d", d => line(d.pts));
-  hover(paths, d => `<b>Arrived ${names[d.k]}</b><br>entry gap ${d.pts[0].v.toFixed(1)}%<br>after ${d.pts[d.pts.length - 1].t} years ${d.pts[d.pts.length - 1].v.toFixed(1)}%`);
-  const labels = g.selectAll(".l").data(series).join("text").attr("class", "label").attr("x", d => x(d.pts[d.pts.length - 1].t) + 8).attr("y", d => y(d.pts[d.pts.length - 1].v) + 4 + (d.k === "1990s" ? -7 : d.k === "pre1990" ? 8 : 0)).text(d => names[d.k]).style("opacity", 0);
-  state.charts.cohort = {
-    step(i) {
-      drawPath(paths, 1400);
-      labels.transition().delay(1200).duration(400).style("opacity", 1);
-      paths.transition("fade").delay(200).duration(600).attr("stroke-opacity", d => i === 1 ? (["2000s", "2010s", "2020s"].includes(d.k) ? 1 : 0.35) : 1);
-      caption("#c-cohort", "From the cohort specification with English, occupation, PUMA and year fixed effects. Curves stop at each cohort's longest observed duration.");
-    }
-  };
-}
-
-// ---------- chapter 4: linked map and scatter ----------
-function initMap() {
-  const { svg, w, h } = svgBox("#g-map");
-  if (!state.pumas) { svg.append("text").attr("x", 20).attr("y", 40).attr("class", "title").text("Upload data/pumas.geojson for the map"); state.charts.map = { step() {} }; return; }
-  const chart = CH.linkedMap(svg, state.pumas, { width: w, height: h, stacked: true, mobility: state.data.mobility ? state.data.mobility.flows : null });
-  state.charts.map = {
-    step(i) {
-      chart.step(i === 0 ? 0 : 2);
-      caption("#c-map", i === 0 ? "Foreign-born percentage of residents by PUMA. Dots are the same 48 PUMAs against foreign-born median wage, sized by limited English among the foreign-born. Hover or brush to link the two."
-        : "Where the foreign-born residents who left the city for a suburb in the past year went, 2022–2024. Circle size is the annual count arriving in each PUMA.");
-    }
-  };
-}
-
 // ---------- chapter 4b: county roses ----------
 function initCounty() {
-  const { svg, w, h } = svgBox("#g-county");
+  const { svg, w, h } = svgBox("#s-county");
   if (!state.data.counties) { state.charts.county = { step() {} }; return; }
   const chart = CH.countyRose(svg, state.data.counties, { width: w, height: h });
   state.charts.county = {
@@ -243,42 +140,6 @@ function initSlopes() {
   };
 }
 
-// ---------- chapter 6: enclave lines morph ----------
-function initEnclave() {
-  const { svg, w, h } = svgBox("#g-enclave");
-  const m = { t: 40, r: 40, b: 44, l: 60 }, cw = w - m.l - m.r, ch = h - m.t - m.b;
-  const g = svg.append("g").attr("transform", `translate(${m.l},${m.t})`);
-  const E = state.data.results.enclave;
-  const x = d3.scaleLinear().domain([-1.5, 2.5]).range([0, cw]), y = d3.scaleLinear().domain([-0.5, 0.15]).range([ch, 0]);
-  axes(g, x, y, cw, ch, { yf: d3.format("+.1f") });
-  const ttl = title(g, "");
-  g.append("text").attr("x", cw / 2).attr("y", ch + 36).attr("text-anchor", "middle").text("PUMA foreign-born percentage, standardized");
-  g.append("line").attr("x1", 0).attr("x2", cw).attr("y1", y(0)).attr("y2", y(0)).attr("stroke", C.axis);
-  const pts = k => d3.range(-1.5, 2.51, 0.1).map(d => ({ d, prof: k.density * d, lim: k.limited + (k.density + k.inter) * d }));
-  const line = key => d3.line().x(p => x(p.d)).y(p => y(p[key])).curve(d3.curveLinear);
-  const prof = g.append("path").attr("fill", "none").attr("stroke", C.teal).attr("stroke-width", 2.8);
-  const lim = g.append("path").attr("fill", "none").attr("stroke", C.orange).attr("stroke-width", 2.8);
-  const gap = g.append("line").attr("x1", x(0)).attr("x2", x(0)).attr("stroke", C.ink).attr("stroke-dasharray", "3 3");
-  const gapT = g.append("text").attr("class", "label").attr("x", x(0) + 8);
-  const lp = g.append("text").attr("class", "label").attr("x", x(-1.5)).attr("fill", C.tealDark).text("Proficient English");
-  const ll = g.append("text").attr("class", "label").attr("x", x(-1.5)).attr("fill", C.orange).text("Limited English");
-  function render(k, t) {
-    const p = pts(k);
-    prof.transition().duration(T).ease(ease).attr("d", line("prof")(p));
-    lim.transition().duration(T).ease(ease).attr("d", line("lim")(p));
-    gap.transition().duration(T).attr("y1", y(0)).attr("y2", y(k.limited));
-    gapT.transition().duration(T).attr("y", y(k.limited / 2) + 4).text(`differential at mean density ${Math.round((1 - Math.exp(k.limited)) * 100)}%`);
-    lp.transition().duration(T).attr("y", y(p[0].prof) - 10); ll.transition().duration(T).attr("y", y(p[0].lim) - 10);
-    ttl.text(t);
-  }
-  state.charts.enclave = {
-    step(i) {
-      if (i === 0) { render(E.A, "Fitted log wage by area density, no occupation controls"); caption("#c-enclave", "Two-level model. Log wage relative to a proficient worker at mean density."); }
-      else { render(E.B, "Fitted log wage by area density, within occupations"); caption("#c-enclave", "Same specification with four-digit occupation fixed effects, standard errors clustered on PUMA."); }
-    }
-  };
-}
-
 // ---------- chapter 7: own-language density ----------
 function initOwnlang() {
   const { svg, w, h } = svgBox("#g-ownlang");
@@ -299,20 +160,6 @@ function initOwnlang() {
       if (i === 0) { draw(rowsFor("Philadelphia", "Philadelphia, "), true); caption("#c-ownlang", `Exploratory. ${fmtN(O.Philadelphia.n)} workers with a non-English home language. One SD of own-language density is ${O.Philadelphia.sd_pp} percentage points.`); }
       else if (i === 1) { draw(rowsFor("Philadelphia", "Philadelphia, ")); caption("#c-ownlang", `Interaction ${O.Philadelphia.inter} (SE ${O.Philadelphia.inter_se}). Generic density is held constant in the same model.`); }
       else { draw(rowsFor("Philadelphia", "Philadelphia, ").concat(rowsFor("New York", "New York, "))); caption("#c-ownlang", `New York: ${fmtN(O["New York"].n)} workers, one SD is ${O["New York"].sd_pp} points, interaction ${O["New York"].inter} (SE ${O["New York"].inter_se}).`); }
-    }
-  };
-}
-
-// ---------- chapter 8: one year of moves ----------
-function initMoves() {
-  const { svg, w, h } = svgBox("#g-moves");
-  const chart = CH.moveFlow(svg, state.data.moveRates, { width: w, height: h });
-  state.charts.moves = {
-    step(i) {
-      chart.step(i);
-      caption("#c-moves", i === 0 ? "Where foreign-born adults aged 25 to 64 lived a year earlier and where they live now, 2022–2024. Weighted percentages of the group."
-        : i === 1 ? "The same year with the 85.7 percent who did not move removed. Ribbon color is the movers' median hourly wage where the paper reports it."
-        : "Native-born adults for comparison. City-to-suburb and suburb-to-city rates are close to the foreign-born rates.");
     }
   };
 }
@@ -363,70 +210,17 @@ function initPanel() {
   };
 }
 
-// ---------- chapter 7b: every interaction term ----------
-function initCompare() {
-  const { svg, w, h } = svgBox("#g-compare");
-  const chart = CH.interactions(svg, CH.INTERACTIONS(state.data.interactionsRegion), { width: w, height: h });
-  state.charts.compare = {
-    step(i) {
-      chart.step(i);
-      caption("#c-compare", i === 0 ? "Every limited-English × density interaction reported in the paper, sorted by |t|. Bars are 95 percent intervals. Hover a point for the estimate, the standard error and the sample."
-        : "The two New York own-language terms are the only ones beyond the Bonferroni line for this many tests.");
-    }
-  };
-}
-
-// ---------- chapter 6b: occupation matrix ----------
-function initOcc() {
-  const { svg, w, h } = svgBox("#g-occ");
-  if (!state.data.occupations) { state.charts.occ = { step() {} }; return; }
-  const chart = CH.occMatrix(svg, state.data.occupations, { width: w, height: h });
-  state.charts.occ = {
-    step(i) {
-      chart.step(i);
-      caption("#c-occ", i === 0 ? "Percentage of each group in twelve occupation groups, 2022–2024 wage and salary workers aged 25 to 64. Color is the group's median hourly wage in that occupation. The right column divides the limited-English median by the proficient median in the same occupation."
-        : "Sorted by the native-born wage. The occupations at the top hold most proficient immigrants and few limited-English workers.");
-    }
-  };
-}
-
-// ---------- chapter 10: cell heatmap ----------
-function initGrid() {
-  const { svg, w, h } = svgBox("#g-grid");
-  const m = { t: 50, r: 40, b: 30, l: 210 }, cw = w - m.l - m.r, ch = h - m.t - m.b;
-  const g = svg.append("g").attr("transform", `translate(${m.l},${m.t})`);
-  const cells = state.data.results.cells.map(d => ({ ...d, suburb_prop: +d.suburb_prop, median_hourly: +d.median_hourly }));
-  const regions = ["Asia", "Latin America", "Europe", "Africa"], cohorts = ["pre1990", "1990s", "2000s", "2010s"], windows = ["2012-2016", "2017-2021", "2022-2024"];
-  const cn = { pre1990: "before 1990", "1990s": "1990s", "2000s": "2000s", "2010s": "2010s" };
-  const rows = []; regions.forEach(r => cohorts.forEach(c => rows.push(`${r} · ${cn[c]}`)));
-  const rowKey = d => `${d.region} · ${cn[d.cohort]}`;
-  const y = d3.scaleBand().domain(rows).range([0, Math.min(ch, rows.length * 34)]).padding(0.1);
-  const x = d3.scaleBand().domain(windows).range([0, Math.min(cw, 420)]).padding(0.08);
-  const ttl = g.append("text").attr("class", "title").attr("y", -30);
-  windows.forEach(wn => g.append("text").attr("class", "label").attr("x", x(wn) + x.bandwidth() / 2).attr("y", -10).attr("text-anchor", "middle").text(wn.replace("-", "–")));
-  rows.forEach((r, i) => g.append("text").attr("x", -12).attr("y", y(r) + y.bandwidth() / 2 + 4).attr("text-anchor", "end").attr("fill", C.region[r.split(" · ")[0]]).text(r));
-  regions.slice(1).forEach(r => { const yy = y(`${r} · before 1990`) - y.step() * y.padding() / 2; g.append("line").attr("x1", -200).attr("x2", x.range()[1]).attr("y1", yy).attr("y2", yy).attr("stroke", C.grid); });
-  const cell = g.selectAll(".hc").data(cells).join("g").attr("class", "hc").attr("transform", d => `translate(${x(d.window)},${y(rowKey(d))})`);
-  const rect = cell.append("rect").attr("width", x.bandwidth()).attr("height", y.bandwidth()).attr("rx", 2).attr("fill", "#eee").attr("stroke", "#fff");
-  const txt = cell.append("text").attr("x", x.bandwidth() / 2).attr("y", y.bandwidth() / 2 + 4).attr("text-anchor", "middle").attr("class", "label");
-  hover(cell, d => `<b>${d.region}, arrived ${cn[d.cohort]}, ${d.window.replace("-", "–")}</b><br>median wage ${fmt$(d.median_hourly)} (2024 dollars)<br>${d.suburb_prop.toFixed(1)}% living outside the city<br>${(+d.limited_eng_prop).toFixed(0)}% limited English · n = ${fmtN(+d.n_unweighted)}`);
-  const lg = g.append("g").attr("transform", `translate(${x.range()[1] + 30},0)`);
-  function paint(key, interp, fmt, t) {
-    ttl.text(t);
-    const ext = d3.extent(cells, d => d[key]); const sc = d3.scaleSequential(interp).domain(ext);
-    rect.transition().duration(T).attr("fill", d => sc(d[key]));
-    txt.transition().duration(T).attr("fill", d => (d[key] - ext[0]) / (ext[1] - ext[0]) > 0.6 ? "#fff" : C.ink).text(d => fmt(d[key]));
-    lg.selectAll("*").remove();
-    const ls = d3.scaleLinear().domain(ext).range([120, 0]);
-    d3.range(0, 121, 4).forEach(v => lg.append("rect").attr("x", 0).attr("y", v).attr("width", 10).attr("height", 4).attr("fill", sc(ls.invert(v))));
-    lg.append("text").attr("x", 16).attr("y", 8).text(fmt(ext[1])); lg.append("text").attr("x", 16).attr("y", 122).text(fmt(ext[0]));
-  }
-  state.charts.grid = {
-    step(i) {
-      if (i === 0) { paint("median_hourly", d3.interpolate("#f6efd9", "#7a5a10"), d => "$" + d.toFixed(0), "Real median hourly wage by cohort, region and window"); caption("#c-grid", "Cells are arrival cohort by region of birth. The 2010s cohort is not observed in 2012–2016. Wages in 2024 dollars."); }
-      else { paint("suburb_prop", d3.interpolate("#dff4f4", "#0a4f55"), d => d.toFixed(0) + "%", "Percent living outside Philadelphia County by cohort, region and window"); caption("#c-grid", "Weighted percentages of foreign-born adults aged 25 to 64."); }
-    }
-  };
+// ---------- chapters whose graphic is the interactive panel from explore.js ----------
+function setCtl(id, value, ev = "change") { const el = document.getElementById(id); if (!el) return; if (el.type === "checkbox") el.checked = !!value; else el.value = value; el.dispatchEvent(new Event(ev)); }
+function initInteractive() {
+  state.charts.globe = { step(i) { caption("#c-globe", i === 0 ? "Residents of the metropolitan area born outside the United States by country of birth, 2022–2024, all ages. Line width and color are the count. Hover a country, drag to turn the globe." : i === 1 ? "Historical and combined ACS codes are mapped to a present-day country. Codes without a boundary are counted in the total but not drawn." : "The foreign-born count is for the city of Philadelphia, from one-year ACS estimates."); } };
+  state.charts.cohort = { step(i) { setCtl("co-t", i === 0 ? 10 : 20, "input"); caption("#c-cohort", "Predicted wage gap to comparable natives by years since migration, from the cohort specification with English, occupation, PUMA and year fixed effects. Move the slider or switch cohorts off."); } };
+  state.charts.map = { step(i) { setCtl("area-var", "puma_fb_prop"); setCtl("area-flows", i === 0 ? "none" : "city_to_suburb"); caption("#c-map", i === 0 ? "Foreign-born percentage of residents by PUMA, with the same 48 PUMAs as dots against foreign-born median wage. Hover either side, or drag a box across the scatter." : "Where foreign-born residents who left the city for a suburb in the past year arrived, 2022–2024. Circle size is the annual count."); } };
+  state.charts.enclave = { step(i) { setCtl("calc-measure", i === 0 ? "generic" : "occ"); caption("#c-enclave", i === 0 ? "Fitted log wage by area immigrant density from the two-level model, no occupation controls. Move the slider to read both groups at any density." : "The same lines with occupation fixed effects. The distance between them is the within-occupation differential."); } };
+  state.charts.occ = { step(i) { setCtl("occ-sort", i === 0 ? "Limited English" : "wage"); caption("#c-occ", i === 0 ? "Percentage of each group in twelve occupation groups, 2022–2024, sorted by the limited-English percentage. Color is the group's median hourly wage there. The right column divides the limited-English median by the proficient median." : "Sorted by the native-born median wage. Descriptive statistics for the model sample."); } };
+  state.charts.compare = { step(i) { setCtl("inter-sort", "t"); setCtl("inter-bonf", i === 1); caption("#c-compare", i === 0 ? "Every limited-English × density interaction in the paper, sorted by |t|, with 95 percent intervals. Hover a point for the estimate, the standard error and the sample." : "Marks with a black rim clear the Bonferroni line for seventeen tests, |t| above 2.92."); } };
+  state.charts.moves = { step(i) { setCtl("flow-window", "2022-2024"); setCtl("flow-group", i === 2 ? "nb" : "fb"); setCtl("flow-movers", i > 0); caption("#c-moves", i === 0 ? "Above, where foreign-born adults aged 25 to 64 lived a year earlier and where they live now, 2022–2024. Below, the relative risk of each move per unit of the chosen covariate, with replicate-weight intervals." : i === 1 ? "The same year with the 85.7 percent who did not move removed. Ribbon color is the movers' median hourly wage where the paper reports it." : "Native-born adults for comparison."); } };
+  state.charts.grid = { step(i) { setCtl("cell-metric", i === 0 ? "median_hourly" : "suburb_prop"); caption("#c-grid", i === 0 ? "Forty-four cells of foreign-born adults aged 25 to 64, arrival cohort by region of birth, across the three windows. Real median hourly wage in 2024 dollars. Click a row for its three windows." : "Percentage living outside Philadelphia County. Filter regions with the buttons."); } };
 }
 
 // ---------- boot ----------
@@ -443,7 +237,7 @@ async function boot() {
   try { const mr = await d3.csv("data/move_rates.csv"); state.data.moveRates = mr.map(d => ({ ...d, fb: d.fb === "TRUE" || d.fb === "true", n: +d.n, pct: +d.pct })); }
   catch (e) { state.data.moveRates = state.data.mobility ? state.data.mobility.move_rates.map(d => ({ ...d, fb: true })) : []; }
   try { const ir = await d3.csv("data/interactions_region.csv"); state.data.interactionsRegion = ir.filter(d => d.Estimate).map(d => ({ region: d.sample, est: d.Estimate, se: d["Std. Error"] })); } catch (e) { state.data.interactionsRegion = []; }
-  const inits = { globe: initGlobe, wage: initWage, cohort: initCohort, map: initMap, county: initCounty, slopes: initSlopes, enclave: initEnclave, occ: initOcc, ownlang: initOwnlang, compare: initCompare, moves: initMoves, panel: initPanel, grid: initGrid };
+  const inits = { wage: initWage, county: initCounty, slopes: initSlopes, ownlang: initOwnlang, panel: initPanel, interactive: initInteractive };
   function initAll() { Object.values(inits).forEach(f => f()); }
   initAll();
   const scroller = scrollama();

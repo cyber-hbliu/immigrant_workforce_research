@@ -14,8 +14,8 @@
   --grey: #a1a1a1;
   --grey-2: #d4d4d4;
   --brown: #eddca5;
-  --sans: "Inter", system-ui, sans-serif;
-  --mono: "IBM Plex Mono", ui-monospace, monospace;
+  --sans: "Open Sans", system-ui, sans-serif;
+  --mono: "Open Sans", system-ui, sans-serif;
 }
 
 * { box-sizing: border-box; }
@@ -50,6 +50,8 @@ body { padding-left: 84px; }
 .hero-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px; margin: 10px 0 26px; }
 .hero-grid p { font-size: 15.5px; color: var(--ink); }
 .view-head .byline, .byline { font-family: var(--mono); font-size: 13px; color: var(--muted); margin: 0; }
+.byline a { color: var(--teal-dark); text-decoration: none; font-weight: 600; }
+.byline a:hover { text-decoration: underline; }
 .scroll-cue { position: absolute; bottom: 28px; left: 6vw; font-family: var(--mono); font-size: 12px; color: var(--muted); display: flex; align-items: center; gap: 10px; }
 .scroll-cue span { display: inline-block; width: 1px; height: 40px; background: var(--axis); animation: cue 1.6s ease-in-out infinite; }
 @keyframes cue { 0% { transform: scaleY(0); transform-origin: top; } 50% { transform: scaleY(1); transform-origin: top; } 51% { transform-origin: bottom; } 100% { transform: scaleY(0); transform-origin: bottom; } }
@@ -87,8 +89,9 @@ main.story { padding: 0; counter-reset: ch; }
 .step p:last-child { margin-bottom: 0; }
 
 /* chart text */
-svg text { font-family: var(--mono); font-size: 12px; fill: var(--ink-2); }
+svg text { font-family: var(--sans); font-size: 12px; font-weight: 400; fill: var(--ink-2); }
 svg .title { font-family: var(--sans); font-weight: 700; font-size: 15px; fill: var(--ink); }
+svg .label { font-weight: 600; }
 svg .axis path, svg .axis line { stroke: var(--axis); }
 svg .grid line { stroke: var(--grid); }
 svg .grid path { stroke: none; }
@@ -96,14 +99,10 @@ svg .label { fill: var(--ink); }
 svg .note { fill: var(--muted); }
 
 /* outro */
-.outro {
-  max-width: 760px;
-  margin: 8vh auto 14vh;
-  padding: 0 8vw;
-}
-.outro h2 { font-size: 30px; letter-spacing: -0.015em; margin: 0 0 16px; }
-.outro p { font-size: 18px; color: var(--ink); }
-.outro .meta { font-family: var(--mono); font-size: 13px; color: var(--muted); margin-top: 28px; }
+.outro { margin: 10vh 0 6vh; }
+
+.outro .lead { color: var(--ink); }
+.outro .meta { font-size: 13px; color: var(--muted); margin-top: 20px; }
 
 @media (max-width: 860px) {
   body { padding-left: 0; padding-bottom: 80px; } .rail { left: 50%; top: auto; bottom: 14px; transform: translateX(-50%); width: auto; flex-direction: row; gap: 6px; padding: 6px; background: rgba(255,255,255,0.92); border: 1px solid var(--grid); border-radius: 999px; box-shadow: 0 4px 18px rgba(0,0,0,0.08); } .rail a { width: 72px; padding: 6px 0; background: transparent; } .view-head > * { max-width: none; } .hero-grid { grid-template-columns: 1fr; }
@@ -261,3 +260,23 @@ table.data tr.sub td:first-child { padding-left: 24px; }
 .mm-pop .mm-chart .mini .axis path, .mm-pop .mm-chart .mini .axis line { stroke: var(--axis); }
 .mm-pop .mm-actions { margin-top: 12px; }
 .fw-node.on .fw-box { stroke-width: 7; }
+
+/* interactive panels embedded in the story graphics */
+.graphic .controls { margin: 0 0 6px; font-size: 12px; }
+.graphic .controls input[type=range] { width: 130px; }
+.graphic svg.half { flex: none; height: 44%; }
+.graphic .mini-detail { position: static; width: auto; padding: 8px 12px; margin: 6px 0 0; font-size: 12px; background: var(--bg-2); border-radius: 8px; }
+.graphic .mini-detail dl { display: flex; flex-wrap: wrap; gap: 2px 16px; grid-template-columns: none; }
+.graphic .mini-detail dt::after { content: " "; }
+.graphic .mini-detail dt, .graphic .mini-detail dd { display: inline; text-align: left; }
+.graphic .mini-detail p { display: inline; margin: 0 0 0 8px !important; }
+.graphic .mini-detail > div { display: inline-block; margin-right: 14px !important; }
+.graphic .mini-detail h3 { font-size: 12.5px; margin: 0 10px 0 0; display: inline; }
+.graphic .mini-detail .big { font-size: 16px; display: inline; margin: 0 8px 0 0; }
+.graphic .mini-detail dl { font-size: 11.5px; }
+.graphic .mini-detail:empty { display: none; }
+.appendix { padding: 6vh 6vw 12vh; }
+.appendix .view-head { padding: 0 0 20px; }
+.appendix .view-head h1 { font-size: clamp(26px, 2.6vw, 36px); }
+.framework { height: auto; min-height: 0; padding-bottom: 6vh; }
+#mindmap { flex: none; aspect-ratio: 2400 / 1450; max-height: 88vh; }
