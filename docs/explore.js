@@ -110,35 +110,60 @@ function cohorts() {
 // ---------- 4. cells ----------
 function cellsPanel() {
   const cells = R.results.cells.map(d => ({ ...d, suburb_prop: +d.suburb_prop, median_hourly: +d.median_hourly, limited_eng_prop: +d.limited_eng_prop, rent_burden: +d.rent_burden, n: +d.n_unweighted }));
-  const regions = ["Asia", "Latin America", "Europe", "Africa"], cohorts = ["pre1990", "1990s", "2000s", "2010s"], windows = ["2012-2016", "2017-2021", "2022-2024"];
+  // country of birth cells (cells_country.csv): window x country, respondents >= 50
+  const CR = { "Africa": "Africa", "Egypt": "Africa", "Ghana": "Africa", "Kenya": "Africa", "Liberia": "Africa", "Morocco": "Africa", "Nigeria": "Africa", "Sierra Leone": "Africa",
+    "Bangladesh": "Asia", "Cambodia": "Asia", "China": "Asia", "Hong Kong": "Asia", "India": "Asia", "Iran": "Asia", "Israel": "Asia", "Korea": "Asia", "Pakistan": "Asia", "Philippines": "Asia", "Taiwan": "Asia", "Thailand": "Asia", "Turkey": "Asia", "Vietnam": "Asia",
+    "Albania": "Europe", "Belarus": "Europe", "England": "Europe", "France": "Europe", "Germany": "Europe", "Greece": "Europe", "Ireland": "Europe", "Italy": "Europe", "Poland": "Europe", "Portugal": "Europe", "Romania": "Europe", "Russia": "Europe", "USSR": "Europe", "Ukraine": "Europe", "United Kingdom, Not Specified": "Europe",
+    "Brazil": "Latin America", "Colombia": "Latin America", "Cuba": "Latin America", "Dominican Republic": "Latin America", "Ecuador": "Latin America", "El Salvador": "Latin America", "Guatemala": "Latin America", "Guyana": "Latin America", "Haiti": "Latin America", "Honduras": "Latin America", "Jamaica": "Latin America", "Mexico": "Latin America", "Peru": "Latin America", "Trinidad and Tobago": "Latin America", "Venezuela": "Latin America",
+    "Canada": "Northern America" };
+  const CN = { "United Kingdom, Not Specified": "United Kingdom (unspecified)", "Africa": "Africa (unspecified)", "USSR": "USSR (unspecified)" };
+  const ccells = (R.cellsCountry || []).map(d => ({ country: d.country, label: CN[d.country] || d.country, region: CR[d.country] || "Other", window: d.window, n: +d.n, n_wt: +d.n_wt,
+    median_hourly: +d.median_hourly, limited_eng_prop: +d.limited_pct, suburb_prop: (1 - +d.city_prop) * 100 }));
+  const regions = ["Asia", "Latin America", "Europe", "Africa", "Northern America"], cohorts = ["pre1990", "1990s", "2000s", "2010s"], windows = ["2012-2016", "2017-2021", "2022-2024"];
   const cn = { pre1990: "before 1990", "1990s": "1990s", "2000s": "2000s", "2010s": "2010s" };
+  const col = r => C.region[r] || "#6b6b6b";
   const on = new Set(regions), rb = d3.select("#cell-regions");
-  regions.forEach(r => rb.append("button").attr("class", "on").style("border-color", C.region[r]).text(r).on("click", function () { on.has(r) ? on.delete(r) : on.add(r); d3.select(this).classed("on", on.has(r)); draw(); }));
-  const sel = d3.select("#cell-metric");
+  const rbtn = rb.selectAll("button").data(regions).join("button").attr("class", "on").style("border-color", d => col(d)).text(d => d).on("click", function (ev, r) { on.has(r) ? on.delete(r) : on.add(r); d3.select(this).classed("on", on.has(r)); draw(); });
+  const sel = d3.select("#cell-metric"), rowsSel = d3.select("#cell-rows");
   const fmts = { median_hourly: d => "$" + d.toFixed(0), suburb_prop: d => d.toFixed(0) + "%", limited_eng_prop: d => d.toFixed(0) + "%", rent_burden: d => d.toFixed(0) + "%" };
   const interp = { median_hourly: d3.interpolate("#f6efd9", "#7a5a10"), suburb_prop: d3.interpolate("#dff4f4", "#0a4f55"), limited_eng_prop: d3.interpolate("#fbe4cf", "#9a4d00"), rent_burden: d3.interpolate("#eeeeee", "#3d3d3d") };
   function draw() {
+    const byCountry = rowsSel.node().value === "country" && ccells.length;
+    // rent burden and Northern America exist only in the paper's region cells / country cells respectively
+    sel.select("option[value=rent_burden]").attr("disabled", byCountry ? true : null);
+    if (byCountry && sel.node().value === "rent_burden") sel.node().value = "median_hourly";
+    rbtn.style("display", d => d === "Northern America" && !byCountry ? "none" : null);
     const key = sel.node().value, fmt = fmts[key];
-    const rows = []; regions.filter(r => on.has(r)).forEach(r => cohorts.forEach(c => rows.push(`${r} · ${cn[c]}`)));
-    const rk = d => `${d.region} · ${cn[d.cohort]}`, data = cells.filter(d => on.has(d.region));
-    const { svg, w, h } = box("#s-cells"); const m = { t: 40, r: 80, b: 10, l: 210 }, cw = w - m.l - m.r;
+    let rows, rk, data;
+    if (byCountry) {
+      const size = d3.rollup(ccells, v => d3.sum(v, d => d.n_wt), d => d.label);
+      rows = regions.filter(r => on.has(r)).flatMap(r => [...new Set(ccells.filter(d => d.region === r).map(d => d.label))].sort((a, b) => size.get(b) - size.get(a)));
+      rk = d => d.label; data = ccells.filter(d => on.has(d.region));
+    } else {
+      rows = []; regions.filter(r => on.has(r) && r !== "Northern America").forEach(r => cohorts.forEach(c => rows.push(`${r} · ${cn[c]}`)));
+      rk = d => `${d.region} · ${cn[d.cohort]}`; data = cells.filter(d => on.has(d.region));
+    }
+    const regOf = r => byCountry ? (ccells.find(d => d.label === r) || {}).region : r.split(" · ")[0];
+    const { svg, w, h } = box("#s-cells"); const m = { t: 40, r: 80, b: 10, l: byCountry ? 190 : 210 }, cw = w - m.l - m.r;
     const g = svg.append("g").attr("transform", `translate(${m.l},${m.t})`);
-    const y = d3.scaleBand().domain(rows).range([0, Math.min(h - m.t - m.b, rows.length * 26)]).padding(0.1), x = d3.scaleBand().domain(windows).range([0, Math.min(cw, 420)]).padding(0.08);
+    const rowH = Math.max(13, Math.min(26, (h - m.t - m.b) / Math.max(rows.length, 1)));
+    const y = d3.scaleBand().domain(rows).range([0, rows.length * rowH]).padding(0.1), x = d3.scaleBand().domain(windows).range([0, Math.min(cw, 420)]).padding(0.08);
+    const fs = rowH < 18 ? Math.max(9.5, rowH - 3) : null;
     windows.forEach(wn => g.append("text").attr("class", "label").attr("x", x(wn) + x.bandwidth() / 2).attr("y", -10).attr("text-anchor", "middle").text(wn.replace("-", "–")));
-    rows.forEach(r => g.append("text").attr("x", -12).attr("y", y(r) + y.bandwidth() / 2 + 4).attr("text-anchor", "end").attr("fill", C.region[r.split(" · ")[0]]).style("cursor", "pointer").text(r)
+    rows.forEach(r => g.append("text").attr("x", -12).attr("y", y(r) + y.bandwidth() / 2 + (fs ? fs * 0.35 : 4)).attr("text-anchor", "end").attr("fill", col(regOf(r))).style("cursor", "pointer").style("font-size", fs ? fs + "px" : null).text(r)
       .on("click", () => show(r)));
     const ext = d3.extent(data, d => d[key]), sc = d3.scaleSequential(interp[key]).domain(ext);
     const cell = g.selectAll(".hc").data(data).join("g").attr("transform", d => `translate(${x(d.window)},${y(rk(d))})`).style("cursor", "pointer");
     cell.append("rect").attr("width", x.bandwidth()).attr("height", y.bandwidth()).attr("rx", 2).attr("fill", d => sc(d[key])).attr("stroke", "#fff");
-    cell.append("text").attr("x", x.bandwidth() / 2).attr("y", y.bandwidth() / 2 + 4).attr("text-anchor", "middle").attr("class", "label").attr("fill", d => (d[key] - ext[0]) / (ext[1] - ext[0]) > 0.6 ? "#fff" : C.ink).text(d => fmt(d[key]));
-    hover(cell, d => `<b>${rk(d)}, ${d.window.replace("-", "–")}</b><br>${fmt$(d.median_hourly)} median wage · ${d.suburb_prop.toFixed(0)}% suburban · ${d.limited_eng_prop.toFixed(0)}% limited English<br>n = ${fmtN(d.n)}`);
+    cell.append("text").attr("x", x.bandwidth() / 2).attr("y", y.bandwidth() / 2 + (fs ? fs * 0.35 : 4)).attr("text-anchor", "middle").attr("class", "label").style("font-size", fs ? fs + "px" : null).attr("fill", d => (d[key] - ext[0]) / (ext[1] - ext[0]) > 0.6 ? "#fff" : C.ink).text(d => fmt(d[key]));
+    hover(cell, d => `<b>${rk(d)}, ${d.window.replace("-", "–")}</b><br>${fmt$(d.median_hourly)} median wage · ${d.suburb_prop.toFixed(0)}% outside the city · ${d.limited_eng_prop.toFixed(0)}% limited English<br>n = ${fmtN(d.n)}`);
     cell.on("click", (ev, d) => show(rk(d)));
     function show(r) {
-      const v = cells.filter(d => rk(d) === r).sort((a, b) => a.window.localeCompare(b.window));
-      d3.select("#d-cells").html(`<h3>${r}</h3>` + v.map(d => `<div style="margin:6px 0 10px"><div style="font-family:var(--mono);font-size:12px;color:var(--muted)">${d.window.replace("-", "–")} · n = ${fmtN(d.n)}</div><dl><dt>median wage</dt><dd>${fmt$(d.median_hourly)}</dd><dt>outside the city</dt><dd>${d.suburb_prop.toFixed(1)}%</dd><dt>limited English</dt><dd>${d.limited_eng_prop.toFixed(1)}%</dd><dt>rent burden</dt><dd>${d.rent_burden.toFixed(1)}%</dd></dl></div>`).join(""));
+      const v = data.filter(d => rk(d) === r).sort((a, b) => a.window.localeCompare(b.window));
+      d3.select("#d-cells").html(`<h3>${r}</h3>` + v.map(d => `<div style="margin:6px 0 10px"><div style="font-family:var(--mono);font-size:12px;color:var(--muted)">${d.window.replace("-", "–")} · n = ${fmtN(d.n)}</div><dl><dt>median wage</dt><dd>${fmt$(d.median_hourly)}</dd><dt>outside the city</dt><dd>${d.suburb_prop.toFixed(1)}%</dd><dt>limited English</dt><dd>${d.limited_eng_prop.toFixed(1)}%</dd>${d.rent_burden != null ? `<dt>rent burden</dt><dd>${d.rent_burden.toFixed(1)}%</dd>` : ""}</dl></div>`).join(""));
     }
   }
-  sel.on("change", draw); draw(); window.addEventListener("resize", draw);
+  sel.on("change", draw); rowsSel.on("change", draw); draw(); window.addEventListener("resize", draw);
 }
 
 // ---------- 5. coefficient table ----------
@@ -326,6 +351,7 @@ async function boot() {
   try { const wd = await d3.json("data/countries-110m.json"); R.countries = topojson.feature(wd, wd.objects.countries); } catch (e) { R.countries = null; }
   try { R.occupations = await d3.csv("data/occupations.csv"); } catch (e) { R.occupations = null; }
   try { R.counties = await d3.csv("data/county_profiles.csv"); } catch (e) { R.counties = null; }
+  try { R.cellsCountry = await d3.csv("data/cells_country.csv"); } catch (e) { R.cellsCountry = null; }
   try { const mr = await d3.csv("data/move_rates.csv"); R.moveRates = mr.map(d => ({ ...d, fb: d.fb === "TRUE" || d.fb === "true", n: +d.n, pct: +d.pct })); }
   catch (e) { R.moveRates = R.mobility ? R.mobility.move_rates.map(d => ({ ...d, fb: true })) : []; }
   try { const ir = await d3.csv("data/interactions_region.csv"); R.interactionsRegion = ir.filter(d => d.Estimate).map(d => ({ region: d.sample, est: d.Estimate, se: d["Std. Error"] })); } catch (e) { R.interactionsRegion = []; }

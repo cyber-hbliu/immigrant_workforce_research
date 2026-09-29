@@ -353,7 +353,7 @@ window.CH = (function () {
       wlegend.append("text").attr("x", 0).attr("y", 22).text(fmtN(Math.round(sc.domain()[0]))); wlegend.append("text").attr("x", 140).attr("y", 22).attr("text-anchor", "end").text(fmtN(Math.round(sc.domain()[1])));
       wlegend.append("text").attr("x", 0).attr("y", -8).attr("class", "note").text("residents born in the country, log scale");
       // particles along the visible arcs
-      animate(items.map((d, i) => ({ el: arcs.nodes()[i], n: d.pop, per: Math.max(600, items[0].pop / 40) })), K.tealDark, gWDots);
+      stopAnim();
       // drag to rotate, slow turn until touched
       let r0, p0;
       svg.call(d3.drag().on("start", ev => { if (!worldOn) return; if (rot) rot.stop(); r0 = wproj.rotate(); p0 = [ev.x, ev.y]; })

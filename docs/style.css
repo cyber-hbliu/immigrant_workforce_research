@@ -278,4 +278,4 @@ table.data tr.sub td:first-child { padding-left: 24px; }
 .appendix .view-head h1 { font-size: clamp(26px, 2.6vw, 36px); }
 .framework { height: auto; min-height: 0; padding-bottom: 6vh; }
 #mindmap { flex: none; aspect-ratio: 2400 / 1450; max-height: 88vh; }
-.graphic svg.off { display: none; }
+.graphic svg.off { position: absolute; visibility: hidden; pointer-events: none; }

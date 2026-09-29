@@ -240,6 +240,10 @@
 
 <section class="chapter" id="ch-grid" data-chapter="grid">
   <div class="graphic"><div class="controls">
+      <label>Rows <select id="cell-rows">
+        <option value="region">arrival cohort by region of birth</option>
+        <option value="country">country of birth</option>
+      </select></label>
       <label>Metric <select id="cell-metric">
         <option value="median_hourly">median hourly wage, 2024 dollars</option>
         <option value="suburb_prop">percent living outside the city</option>
@@ -254,6 +258,9 @@
     </div>
     <div class="step" data-step="grid-1">
       <p>Switch the color to the percentage living outside the city and the grid goes flat. Most cells sit between 59 and 86 percent in every window and drift up by a few points. The exceptions are in the last row block, the 2010s arrivals, and only for Latin America does the difference from the cohort before survive a duration-matched comparison.</p>
+    </div>
+    <div class="step" data-step="grid-2"><h2>The same windows by country of birth</h2>
+      <p>The paper's cells group arrivals by region of birth and arrival cohort. Pooling the cohorts instead gives 53 countries of birth with at least 50 respondents in a window, from the same sample of foreign-born workers aged 25 to 64. Among Asian-born workers the median hourly wage ranges from 19 to 26 dollars for Bangladesh to 44 to 53 dollars for India and Taiwan. Among Latin American-born workers it runs from 15 to 20 dollars for Mexico, Guatemala and El Salvador, where 38 to 62 percent report limited English, to 23 to 30 dollars for Jamaica and Trinidad and Tobago, where almost none do. Rows are ordered by weighted population within each region.</p>
     </div>
   </div>
 </section>
