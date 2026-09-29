@@ -1,4 +1,4 @@
-# Immigrant wages are lower in immigrant-dense areas in metropolitan Philadelphia，and the limited-English differential is mostly occupational.
+# Immigrant wages are lower in immigrant-dense areas in metropolitan Philadelphia and the limited-English differential is mostly occupational.
 
 Live site: http://phillyimmigrant.usllab.org/
 Author: Hebe Liu, [Urban Spatial Lab](https://usllab.org/)
