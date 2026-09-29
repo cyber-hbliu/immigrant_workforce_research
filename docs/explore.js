@@ -21,15 +21,15 @@ const R = {};
 function areas() {
   const G = R.pumas;
   function detail(p) {
-    if (!p) { d3.select("#d-area").html(`<h3>Hover or click an area</h3><p style="color:var(--muted)">Profiles appear here. Drag a box across the scatter to select several.</p>`); return; }
+    if (!p) { d3.select("#d-area").html(`<h3>Hover or click an area</h3><p style="color:var(--muted)">The county names are drawn on the map; each PUMA holds about 100,000 people.</p>`); return; }
     d3.select("#d-area").html(`<h3>${p.name.replace(" PUMA", "")}</h3><div class="big">${(+p.puma_fb_prop).toFixed(1)}%</div><p style="margin:0 0 8px;color:var(--muted)">foreign-born</p>
-      <dl><dt>limited English among foreign-born</dt><dd>${(+p.fb_limited_prop).toFixed(1)}%</dd><dt>foreign-born median wage</dt><dd>${fmt$(+p.fb_median_wage)}</dd><dt>location</dt><dd>${p.city ? "Philadelphia County" : "suburban county"}</dd></dl>`);
+      <dl><dt>limited English among foreign-born</dt><dd>${(+p.fb_limited_prop).toFixed(1)}%</dd><dt>foreign-born median wage</dt><dd>${fmt$(+p.fb_median_wage)}</dd><dt>location</dt><dd>${p.county ? p.county + (p.county.includes("&") ? " counties" : " County") : (p.city ? "Philadelphia County" : "suburban county")}</dd></dl>`);
   }
   let chart;
   function draw() {
     const { svg, w, h } = box("#s-area");
     if (!G) { svg.append("text").attr("x", 20).attr("y", 40).attr("class", "title").text("Upload data/pumas.geojson for the map"); return; }
-    chart = CH.linkedMap(svg, G, { width: w, height: h, mode: "map", mobility: R.mobility ? R.mobility.flows : null, onSelect: detail });
+    chart = CH.linkedMap(svg, G, { width: w, height: h, mode: "map", counties: R.countyShapes, mobility: R.mobility ? R.mobility.flows : null, onSelect: detail });
     chart.color(d3.select("#area-var").node().value); chart.trend(true);
     chart.showFlows(d3.select("#area-flows").node().value !== "none", d3.select("#area-flows").node().value);
   }
@@ -40,37 +40,24 @@ function areas() {
 
 // ---------- 2. differential calculator ----------
 function calc() {
-  const E = R.results.enclave, O = R.results.ownlang;
-  const specs = {
-    generic: { prof: E.A.density, lim: E.A.density + E.A.inter, gap: E.A.limited, sd: 5.4, name: "generic density, no occupation controls" },
-    occ: { prof: E.B.density, lim: E.B.density + E.B.inter, gap: E.B.limited, sd: 5.4, name: "generic density, within occupations" },
-    "own-phl": { prof: O.Philadelphia.prof, lim: O.Philadelphia.lim, gap: E.A.limited, sd: O.Philadelphia.sd_pp, name: "own-language density, Philadelphia" },
-    "own-nyc": { prof: O["New York"].prof, lim: O["New York"].lim, gap: -0.2119, sd: O["New York"].sd_pp, name: "own-language density, New York" }
-  };
-  const sel = d3.select("#calc-measure"), sl = d3.select("#calc-d");
-  function draw() {
-    const S = specs[sel.node().value], d0 = +sl.node().value; d3.select("#calc-dv").text(`${d0 >= 0 ? "+" : ""}${d0.toFixed(1)} SD`);
-    const { svg, w, h } = box("#s-calc"); const m = { t: 30, r: 30, b: 40, l: 60 }, cw = w - m.l - m.r, ch = h - m.t - m.b;
-    const g = svg.append("g").attr("transform", `translate(${m.l},${m.t})`);
-    const x = d3.scaleLinear().domain([-1.5, 2.5]).range([0, cw]), y = d3.scaleLinear().domain([-0.5, 0.15]).range([ch, 0]);
-    axes(g, x, y, cw, ch, { yf: d3.format("+.1f") });
-    g.append("text").attr("x", cw / 2).attr("y", ch + 34).attr("text-anchor", "middle").text(`density, standard deviations from the mean (1 SD = ${S.sd} points)`);
-    const pts = d3.range(-1.5, 2.51, 0.1), lp = d3.line().x(d => x(d)).y(d => y(S.prof * d)), ll = d3.line().x(d => x(d)).y(d => y(S.gap + S.lim * d));
-    g.append("line").attr("x1", 0).attr("x2", cw).attr("y1", y(0)).attr("y2", y(0)).attr("stroke", C.axis);
-    g.append("path").datum(pts).attr("d", lp).attr("fill", "none").attr("stroke", C.teal).attr("stroke-width", 2.6);
-    g.append("path").datum(pts).attr("d", ll).attr("fill", "none").attr("stroke", C.orange).attr("stroke-width", 2.6);
-    const yp = S.prof * d0, yl = S.gap + S.lim * d0;
-    g.append("line").attr("x1", x(d0)).attr("x2", x(d0)).attr("y1", y(yp)).attr("y2", y(yl)).attr("stroke", C.ink).attr("stroke-dasharray", "3 3");
-    g.append("circle").attr("cx", x(d0)).attr("cy", y(yp)).attr("r", 6).attr("fill", C.teal).attr("stroke", "#fff");
-    g.append("circle").attr("cx", x(d0)).attr("cy", y(yl)).attr("r", 6).attr("fill", C.orange).attr("stroke", "#fff");
-    g.append("text").attr("class", "label").attr("x", x(-1.5)).attr("y", y(S.prof * -1.5) - 10).attr("fill", C.tealDark).text("Proficient English");
-    g.append("text").attr("class", "label").attr("x", x(-1.5)).attr("y", y(S.gap + S.lim * -1.5) - 10).attr("fill", C.orange).text("Limited English");
-    const diff = yl - yp;
-    d3.select("#d-calc").html(`<h3>${S.name}</h3><div class="big">${((1 - Math.exp(diff)) * 100).toFixed(0)}%</div>
-      <p style="margin:0 0 8px;color:var(--muted)">limited-English differential at ${d0 >= 0 ? "+" : ""}${d0.toFixed(1)} SD of density</p>
-      <dl><dt>proficient, log wage</dt><dd>${yp.toFixed(3)}</dd><dt>limited English, log wage</dt><dd>${yl.toFixed(3)}</dd><dt>proficient slope per SD</dt><dd>${S.prof.toFixed(3)}</dd><dt>limited-English slope per SD</dt><dd>${S.lim.toFixed(3)}</dd><dt>interaction</dt><dd>${(S.lim - S.prof).toFixed(3)}</dd></dl>`);
+  const CG = R.results.coef_grid, E = R.results.enclave;
+  const v = (city, i) => CG[city][i][0];
+  // coef_grid rows: 0 limited, 1 density, 2 interaction, 4 limited within occ, 5 density within occ, 6 interaction within occ (Tables 2 and 3)
+  const panels = [
+    { title: "Philadelphia, all occupations", note: `limited-English coefficient ${d3.format("+.3f")(E.A.limited)} · interaction ${d3.format("+.3f")(E.A.inter)}`, gap: E.A.limited, prof: E.A.density, lim: E.A.density + E.A.inter },
+    { title: "Philadelphia, within occupation", note: `limited-English coefficient ${d3.format("+.3f")(E.B.limited)} · interaction ${d3.format("+.3f")(E.B.inter)}`, gap: E.B.limited, prof: E.B.density, lim: E.B.density + E.B.inter },
+    { title: "New York, all occupations", note: `limited-English coefficient ${d3.format("+.3f")(v("New York", 0))} · interaction ${d3.format("+.3f")(v("New York", 2))}`, gap: v("New York", 0), prof: v("New York", 1), lim: v("New York", 1) + v("New York", 2) },
+    { title: "New York, within occupation", note: `limited-English coefficient ${d3.format("+.3f")(v("New York", 4))} · interaction ${d3.format("+.3f")(v("New York", 6))}`, gap: v("New York", 4), prof: v("New York", 5), lim: v("New York", 5) + v("New York", 6) }
+  ];
+  const sl = d3.select("#calc-d");
+  let chart;
+  function detail() {
+    const d0 = +sl.node().value; d3.select("#calc-dv").text(`${d0 >= 0 ? "+" : ""}${d0.toFixed(1)} SD`);
+    const P = chart.panels;
+    d3.select("#d-calc").html(`<h3>Limited-English gap at ${d0 >= 0 ? "+" : ""}${d0.toFixed(1)} SD</h3><div>Philadelphia <b>${P[0].gap.toFixed(0)}%</b>, within occupation <b>${P[1].gap.toFixed(0)}%</b></div><div>New York <b>${P[2].gap.toFixed(0)}%</b>, within occupation <b>${P[3].gap.toFixed(0)}%</b></div>`);
   }
-  sel.on("change", draw); sl.on("input", draw); draw(); window.addEventListener("resize", draw);
+  function draw() { const { svg, w, h } = box("#s-calc"); chart = CH.occPanels(svg, { width: w, height: h, panels, d: +sl.node().value }); window.occPanelsChart = chart; detail(); }
+  sl.on("input", () => { chart.set(+sl.node().value); detail(); }); draw(); window.addEventListener("resize", draw);
 }
 
 // ---------- 3. cohorts ----------
@@ -109,61 +96,67 @@ function cohorts() {
 
 // ---------- 4. cells ----------
 function cellsPanel() {
-  const cells = R.results.cells.map(d => ({ ...d, suburb_prop: +d.suburb_prop, median_hourly: +d.median_hourly, limited_eng_prop: +d.limited_eng_prop, rent_burden: +d.rent_burden, n: +d.n_unweighted }));
-  // country of birth cells (cells_country.csv): window x country, respondents >= 50
+  // country of birth cells (data/cells_country.csv): window x country, at least 50 respondents in the window
   const CR = { "Africa": "Africa", "Egypt": "Africa", "Ghana": "Africa", "Kenya": "Africa", "Liberia": "Africa", "Morocco": "Africa", "Nigeria": "Africa", "Sierra Leone": "Africa",
     "Bangladesh": "Asia", "Cambodia": "Asia", "China": "Asia", "Hong Kong": "Asia", "India": "Asia", "Iran": "Asia", "Israel": "Asia", "Korea": "Asia", "Pakistan": "Asia", "Philippines": "Asia", "Taiwan": "Asia", "Thailand": "Asia", "Turkey": "Asia", "Vietnam": "Asia",
     "Albania": "Europe", "Belarus": "Europe", "England": "Europe", "France": "Europe", "Germany": "Europe", "Greece": "Europe", "Ireland": "Europe", "Italy": "Europe", "Poland": "Europe", "Portugal": "Europe", "Romania": "Europe", "Russia": "Europe", "USSR": "Europe", "Ukraine": "Europe", "United Kingdom, Not Specified": "Europe",
     "Brazil": "Latin America", "Colombia": "Latin America", "Cuba": "Latin America", "Dominican Republic": "Latin America", "Ecuador": "Latin America", "El Salvador": "Latin America", "Guatemala": "Latin America", "Guyana": "Latin America", "Haiti": "Latin America", "Honduras": "Latin America", "Jamaica": "Latin America", "Mexico": "Latin America", "Peru": "Latin America", "Trinidad and Tobago": "Latin America", "Venezuela": "Latin America",
     "Canada": "Northern America" };
-  const CN = { "United Kingdom, Not Specified": "United Kingdom (unspecified)", "Africa": "Africa (unspecified)", "USSR": "USSR (unspecified)" };
-  const ccells = (R.cellsCountry || []).map(d => ({ country: d.country, label: CN[d.country] || d.country, region: CR[d.country] || "Other", window: d.window, n: +d.n, n_wt: +d.n_wt,
+  const CN = { "United Kingdom, Not Specified": "UK (unspecified)", "Africa": "Africa (unspec.)", "USSR": "USSR (unspec.)", "Dominican Republic": "Dominican Rep.", "Trinidad and Tobago": "Trinidad & Tobago", "Sierra Leone": "Sierra Leone" };
+  const cells = (R.cellsCountry || []).map(d => ({ country: d.country, label: CN[d.country] || d.country, region: CR[d.country] || "Other", window: d.window, n: +d.n, n_wt: +d.n_wt,
     median_hourly: +d.median_hourly, limited_eng_prop: +d.limited_pct, suburb_prop: (1 - +d.city_prop) * 100 }));
-  const regions = ["Asia", "Latin America", "Europe", "Africa", "Northern America"], cohorts = ["pre1990", "1990s", "2000s", "2010s"], windows = ["2012-2016", "2017-2021", "2022-2024"];
-  const cn = { pre1990: "before 1990", "1990s": "1990s", "2000s": "2000s", "2010s": "2010s" };
+  if (!cells.length) return;
+  const regions = ["Asia", "Latin America", "Europe", "Africa", "Northern America"], windows = ["2012-2016", "2017-2021", "2022-2024"];
   const col = r => C.region[r] || "#6b6b6b";
   const on = new Set(regions), rb = d3.select("#cell-regions");
-  const rbtn = rb.selectAll("button").data(regions).join("button").attr("class", "on").style("border-color", d => col(d)).text(d => d).on("click", function (ev, r) { on.has(r) ? on.delete(r) : on.add(r); d3.select(this).classed("on", on.has(r)); draw(); });
-  const sel = d3.select("#cell-metric"), rowsSel = d3.select("#cell-rows");
-  const fmts = { median_hourly: d => "$" + d.toFixed(0), suburb_prop: d => d.toFixed(0) + "%", limited_eng_prop: d => d.toFixed(0) + "%", rent_burden: d => d.toFixed(0) + "%" };
-  const interp = { median_hourly: d3.interpolate("#f6efd9", "#7a5a10"), suburb_prop: d3.interpolate("#dff4f4", "#0a4f55"), limited_eng_prop: d3.interpolate("#fbe4cf", "#9a4d00"), rent_burden: d3.interpolate("#eeeeee", "#3d3d3d") };
+  rb.selectAll("button").data(regions).join("button").attr("class", "on").style("border-color", d => col(d)).text(d => d).on("click", function (ev, r) { on.has(r) ? on.delete(r) : on.add(r); d3.select(this).classed("on", on.has(r)); draw(); });
+  const sel = d3.select("#cell-metric");
+  const fmts = { median_hourly: d => "$" + d.toFixed(0), suburb_prop: d => d.toFixed(0) + "%", limited_eng_prop: d => d.toFixed(0) + "%" };
+  const interp = { median_hourly: d3.interpolate("#f6efd9", "#7a5a10"), suburb_prop: d3.interpolate("#dff4f4", "#0a4f55"), limited_eng_prop: d3.interpolate("#fbe4cf", "#9a4d00") };
+  const size = d3.rollup(cells, v => d3.sum(v, d => d.n_wt), d => d.label);
   function draw() {
-    const byCountry = rowsSel.node().value === "country" && ccells.length;
-    // rent burden and Northern America exist only in the paper's region cells / country cells respectively
-    sel.select("option[value=rent_burden]").attr("disabled", byCountry ? true : null);
-    if (byCountry && sel.node().value === "rent_burden") sel.node().value = "median_hourly";
-    rbtn.style("display", d => d === "Northern America" && !byCountry ? "none" : null);
     const key = sel.node().value, fmt = fmts[key];
-    let rows, rk, data;
-    if (byCountry) {
-      const size = d3.rollup(ccells, v => d3.sum(v, d => d.n_wt), d => d.label);
-      rows = regions.filter(r => on.has(r)).flatMap(r => [...new Set(ccells.filter(d => d.region === r).map(d => d.label))].sort((a, b) => size.get(b) - size.get(a)));
-      rk = d => d.label; data = ccells.filter(d => on.has(d.region));
-    } else {
-      rows = []; regions.filter(r => on.has(r) && r !== "Northern America").forEach(r => cohorts.forEach(c => rows.push(`${r} · ${cn[c]}`)));
-      rk = d => `${d.region} · ${cn[d.cohort]}`; data = cells.filter(d => on.has(d.region));
-    }
-    const regOf = r => byCountry ? (ccells.find(d => d.label === r) || {}).region : r.split(" · ")[0];
-    const { svg, w, h } = box("#s-cells"); const m = { t: 40, r: 80, b: 10, l: byCountry ? 190 : 210 }, cw = w - m.l - m.r;
+    const bands = regions.filter(r => on.has(r)).map(r => ({ region: r, countries: [...new Set(cells.filter(d => d.region === r).map(d => d.label))].sort((a, b) => size.get(b) - size.get(a)) }));
+    const { svg, w, h } = box("#s-cells"); const m = { t: 8, r: 10, b: 4, l: 76 }, cw = w - m.l - m.r;
     const g = svg.append("g").attr("transform", `translate(${m.l},${m.t})`);
-    const rowH = Math.max(13, Math.min(26, (h - m.t - m.b) / Math.max(rows.length, 1)));
-    const y = d3.scaleBand().domain(rows).range([0, rows.length * rowH]).padding(0.1), x = d3.scaleBand().domain(windows).range([0, Math.min(cw, 420)]).padding(0.08);
-    const fs = rowH < 18 ? Math.max(9.5, rowH - 3) : null;
-    windows.forEach(wn => g.append("text").attr("class", "label").attr("x", x(wn) + x.bandwidth() / 2).attr("y", -10).attr("text-anchor", "middle").text(wn.replace("-", "–")));
-    rows.forEach(r => g.append("text").attr("x", -12).attr("y", y(r) + y.bandwidth() / 2 + (fs ? fs * 0.35 : 4)).attr("text-anchor", "end").attr("fill", col(regOf(r))).style("cursor", "pointer").style("font-size", fs ? fs + "px" : null).text(r)
-      .on("click", () => show(r)));
-    const ext = d3.extent(data, d => d[key]), sc = d3.scaleSequential(interp[key]).domain(ext);
-    const cell = g.selectAll(".hc").data(data).join("g").attr("transform", d => `translate(${x(d.window)},${y(rk(d))})`).style("cursor", "pointer");
-    cell.append("rect").attr("width", x.bandwidth()).attr("height", y.bandwidth()).attr("rx", 2).attr("fill", d => sc(d[key])).attr("stroke", "#fff");
-    cell.append("text").attr("x", x.bandwidth() / 2).attr("y", y.bandwidth() / 2 + (fs ? fs * 0.35 : 4)).attr("text-anchor", "middle").attr("class", "label").style("font-size", fs ? fs + "px" : null).attr("fill", d => (d[key] - ext[0]) / (ext[1] - ext[0]) > 0.6 ? "#fff" : C.ink).text(d => fmt(d[key]));
-    hover(cell, d => `<b>${rk(d)}, ${d.window.replace("-", "–")}</b><br>${fmt$(d.median_hourly)} median wage · ${d.suburb_prop.toFixed(0)}% outside the city · ${d.limited_eng_prop.toFixed(0)}% limited English<br>n = ${fmtN(d.n)}`);
-    cell.on("click", (ev, d) => show(rk(d)));
-    function show(r) {
-      const v = data.filter(d => rk(d) === r).sort((a, b) => a.window.localeCompare(b.window));
-      d3.select("#d-cells").html(`<h3>${r}</h3>` + v.map(d => `<div style="margin:6px 0 10px"><div style="font-family:var(--mono);font-size:12px;color:var(--muted)">${d.window.replace("-", "–")} · n = ${fmtN(d.n)}</div><dl><dt>median wage</dt><dd>${fmt$(d.median_hourly)}</dd><dt>outside the city</dt><dd>${d.suburb_prop.toFixed(1)}%</dd><dt>limited English</dt><dd>${d.limited_eng_prop.toFixed(1)}%</dd>${d.rent_burden != null ? `<dt>rent burden</dt><dd>${d.rent_burden.toFixed(1)}%</dd>` : ""}</dl></div>`).join(""));
+    const labelH = 74, headH = 22, gapX = 70;
+    // pack bands into rows: largest square cell such that every row fits the width and the rows fit the height
+    let cs = 46, rowsOf = [];
+    for (; cs >= 14; cs -= 1) {
+      rowsOf = []; let cur = [], used = 0;
+      bands.forEach(b => { const need = b.countries.length * (cs + 2) + (cur.length ? gapX : 0); if (cur.length && used + need > cw) { rowsOf.push(cur); cur = []; used = 0; } cur.push(b); used += need; });
+      if (cur.length) rowsOf.push(cur);
+      if (rowsOf.every(r => r.length) && rowsOf.length * (headH + 3 * (cs + 2) + labelH) <= h - m.t - m.b && d3.max(bands, b => b.countries.length * (cs + 2)) <= cw) break;
+    }
+    const ext = d3.extent(cells.filter(d => on.has(d.region)), d => d[key]), sc = d3.scaleSequential(interp[key]).domain(ext);
+    const fs = cs >= 34 ? 11 : cs >= 26 ? 9.5 : 0;
+    let yy = 0;
+    const place = []; rowsOf.forEach(row => { let xx = 0; row.forEach(b => { place.push({ b, xx, yy }); xx += b.countries.length * (cs + 2) + gapX; }); yy += headH + 3 * (cs + 2) + labelH; });
+    place.forEach(({ b, xx, yy }) => {
+      const bg = g.append("g").attr("transform", `translate(${xx},${yy})`);
+      bg.append("text").attr("class", "label").attr("x", 0).attr("y", 14).style("font-weight", 700).attr("fill", col(b.region)).text(b.region + "-born");
+      const x = d3.scaleBand().domain(b.countries).range([0, b.countries.length * (cs + 2)]).paddingInner(2 / (cs + 2)), y = d3.scaleBand().domain(windows).range([headH, headH + 3 * (cs + 2)]).paddingInner(2 / (cs + 2));
+      windows.forEach(wn => bg.append("text").attr("class", "note").attr("x", -8).attr("y", y(wn) + y.bandwidth() / 2 + 4).attr("text-anchor", "end").attr("fill", "#595959").text(xx > 0 ? wn.slice(0, 4) : wn.replace("-", "–")));
+      const data = cells.filter(d => d.region === b.region);
+      const cell = bg.selectAll("g.hc").data(data).join("g").attr("class", "hc").attr("transform", d => `translate(${x(d.label)},${y(d.window)})`).style("cursor", "pointer");
+      cell.append("rect").attr("width", x.bandwidth()).attr("height", y.bandwidth()).attr("rx", 3).attr("fill", d => sc(d[key])).attr("stroke", "#fff");
+      if (fs) cell.append("text").attr("x", x.bandwidth() / 2).attr("y", y.bandwidth() / 2 + fs * 0.35).attr("text-anchor", "middle").attr("class", "label").style("font-size", fs + "px").attr("fill", d => (d[key] - ext[0]) / (ext[1] - ext[0]) > 0.6 ? "#fff" : C.ink).text(d => fmt(d[key]));
+      hover(cell, d => `<b>${d.country}, ${d.window.replace("-", "–")}</b><br>${fmt$(d.median_hourly)} median hourly wage, 2024 dollars · ${d.limited_eng_prop.toFixed(0)}% limited English · ${d.suburb_prop.toFixed(0)}% outside the city<br>n = ${fmtN(d.n)} respondents`);
+      cell.on("click", (ev, d) => show(d.label));
+      if (xx > 0) bg.selectAll("text.wn").data([0]).join("g"); 
+      bg.selectAll("text.cn").data(b.countries).join("text").attr("class", "note cn").attr("transform", d => `translate(${x(d) + x.bandwidth() / 2 + 3},${y.range()[1] + 6}) rotate(-52)`).attr("text-anchor", "end").attr("fill", C.ink).style("font-size", cs >= 30 ? "11px" : "10px").style("cursor", "pointer").text(d => d).on("click", (ev, d) => show(d));
+    });
+    // legend
+    const lg = g.append("g").attr("transform", `translate(${cw - 120},${Math.max(0, yy - labelH + 24)})`);
+    const ls = d3.scaleLinear().domain(ext).range([0, 110]);
+    d3.range(0, 111, 3).forEach(v => lg.append("rect").attr("x", v).attr("y", 0).attr("width", 3).attr("height", 8).attr("fill", sc(ls.invert(v))));
+    lg.append("text").attr("class", "note").attr("x", 0).attr("y", 20).text(fmt(ext[0])); lg.append("text").attr("class", "note").attr("x", 110).attr("y", 20).attr("text-anchor", "end").text(fmt(ext[1]));
+    function show(lab) {
+      const v = cells.filter(d => d.label === lab).sort((a, b) => a.window.localeCompare(b.window));
+      d3.select("#d-cells").html(`<h3>${v[0].country}</h3>` + v.map(d => `<div><span style="color:var(--muted)">${d.window.replace("-", "–")}, n = ${fmtN(d.n)}:</span> <b>${fmt$(d.median_hourly)}</b> median wage · <b>${d.limited_eng_prop.toFixed(0)}%</b> limited English · <b>${d.suburb_prop.toFixed(0)}%</b> outside the city</div>`).join(""));
     }
   }
-  sel.on("change", draw); rowsSel.on("change", draw); draw(); window.addEventListener("resize", draw);
+  sel.on("change", draw); draw(); window.addEventListener("resize", draw);
 }
 
 // ---------- 5. coefficient table ----------
@@ -177,15 +170,26 @@ function coefTable() {
     const diff = d.phl[0] - d.nyc[0], se = Math.sqrt(d.phl[1] ** 2 + d.nyc[1] ** 2);
     return `<td>${d.r}</td><td>${f(d.phl)}</td><td>${f(d.nyc)}</td><td>${diff > 0 ? "+" : ""}${diff.toFixed(3)} (${se.toFixed(3)}), ${Math.abs(diff / se).toFixed(1)} SE</td>`;
   });
-  // every interaction term
-  let ichart;
-  function drawI() {
-    const { svg, w, h } = box("#s-coef");
-    ichart = CH.interactions(svg, CH.INTERACTIONS(R.interactionsRegion), { width: w, height: h });
-    ichart.bonferroni(d3.select("#inter-bonf").node().checked); ichart.layout(d3.select("#inter-sort").node().value);
-  }
-  d3.select("#inter-sort").on("change", () => ichart.layout(d3.select("#inter-sort").node().value));
-  d3.select("#inter-bonf").on("change", () => ichart.bonferroni(d3.select("#inter-bonf").node().checked));
+  // chapter 10: Philadelphia against New York (Table 3 and Table 2)
+  const g = CG, r = i => ({ phl: g.Philadelphia[i], nyc: g["New York"][i] });
+  const blocks = [
+    { title: "Limited-English differential, log points", domain: [-0.32, 0.02], fmt: d3.format("+.2f"), rows: [
+      { label: "all occupations", ...r(0), note: "21% in Philadelphia, 20% in New York" },
+      { label: "within occupation", ...r(4), note: "9% and 10%: the same split" }] },
+    { title: "Wage change per SD of immigrant density, proficient workers", domain: [-0.13, 0.02], fmt: d3.format("+.2f"), rows: [
+      { label: "all occupations", ...r(1), note: "1 SD: 5.4 points here, 12.7 in New York" },
+      { label: "within occupation", ...r(5), note: "" }] },
+    { title: "Does the differential change with density? The interaction", domain: [-0.1, 0.12], fmt: d3.format("+.2f"), rows: [
+      { label: "generic density", ...r(2), note: "marginal or null in both, one SE apart" },
+      { label: "generic density, within occupation", ...r(6), note: "" },
+      { label: "co-ethnic density", ...r(3), note: "opposite signs, two SE apart" }] },
+    { title: "The same interaction on own-language density, exploratory", domain: [-0.1, 0.12], fmt: d3.format("+.2f"), rows: [
+      { label: "own-language density", ...r(7), note: "the two areas agree" },
+      { label: "own-language, within occupation", ...r(8), note: "New York's are 5 and 4 SE from zero" }] }
+  ];
+  let cchart;
+  function drawI() { const { svg, w, h } = box("#s-coef"); cchart = CH.cityCompare(svg, { width: w, height: h, blocks }); window.cityCompareChart = cchart; cchart.bonferroni(d3.select("#inter-bonf").node().checked); }
+  d3.select("#inter-bonf").on("change", () => cchart.bonferroni(d3.select("#inter-bonf").node().checked));
   drawI(); window.addEventListener("resize", drawI);
   d3.select("#coef-csv").on("click", () => {
     const csv = "coefficient,philadelphia,philadelphia_se,new_york,new_york_se\n" + rows.map(d => `"${d.r}",${d.phl[0]},${d.phl[1]},${d.nyc[0]},${d.nyc[1]}`).join("\n");
@@ -198,23 +202,33 @@ function moves() {
   const T4 = R.tables.find(t => t.number === "Table 4"), names = ["Moved within the city", "Moved within the suburbs", "City to suburb", "Suburb to city"];
   const parse = c => { const m = c.match(/([\d.]+) \(([\d.]+) to ([\d.]+)\)/); return m ? { rrr: +m[1], lo: +m[2], hi: +m[3] } : null; };
   const sel = d3.select("#mv-var");
+  const TXT = { 1: ["How the chance of each type of move changes with pay", "a worker whose hourly wage is 2.7 times higher (one unit of log wage), against staying put"],
+    2: ["How the chance of each type of move changes with English", "one step up the four-point English scale, against staying put"],
+    3: ["How the chance of each type of move changes with a graduate degree", "a worker with a graduate degree against one without, against staying put"],
+    4: ["How the chance of each type of move changes with marriage", "a married worker against an unmarried one, against staying put"] };
   function draw() {
-    const k = +sel.node().value, lab = T4.header[k], rr = T4.rows.slice(0, 4).map((r, i) => ({ move: names[i], ...parse(r[k]) }));
-    const { svg, w, h } = box("#s-moves"); const m = { t: 30, r: 150, b: 40, l: 190 }, cw = w - m.l - m.r, ch = Math.min(420, h - m.t - m.b);
+    const k = +sel.node().value, rr = T4.rows.slice(0, 4).map((r, i) => ({ move: names[i], ...parse(r[k]) }));
+    const { svg, w, h } = box("#s-moves"); if (!svg.node().getBoundingClientRect().width) return;
+    const m = { t: 56, r: 150, b: 50, l: 190 }, cw = w - m.l - m.r, ch = Math.min(300, h - m.t - m.b);
     const g = svg.append("g").attr("transform", `translate(${m.l},${m.t})`);
+    g.append("text").attr("class", "title").attr("x", -m.l + 10).attr("y", -38).text(TXT[k][0]);
+    g.append("text").attr("class", "note").attr("x", -m.l + 10).attr("y", -22).attr("fill", "#7f7f7f").text("relative risk of each move in a year for " + TXT[k][1]);
+    g.append("text").attr("class", "note").attr("x", -m.l + 10).attr("y", -8).attr("fill", "#7f7f7f").text("foreign-born workers who lived in the metro a year earlier · multinomial logit, Table 4 · replicate-weight intervals");
     const y = d3.scaleBand().domain(names).range([0, ch]).padding(0.5), x = d3.scaleLog().domain([0.3, 3]).range([0, cw]);
     g.append("g").attr("class", "grid").call(d3.axisLeft(y).tickSize(-cw).tickFormat(""));
-    g.append("g").attr("class", "axis").attr("transform", `translate(0,${ch})`).call(d3.axisBottom(x).tickValues([0.3, 0.5, 0.7, 1, 1.4, 2, 3]).tickFormat(d3.format(".1f")).tickSizeOuter(0));
+    g.append("g").attr("class", "axis").attr("transform", `translate(0,${ch})`).call(d3.axisBottom(x).tickValues([0.3, 0.5, 0.7, 1, 1.4, 2, 3]).tickFormat(d => d === 1 ? "same" : d + "×").tickSizeOuter(0));
     g.append("line").attr("x1", x(1)).attr("x2", x(1)).attr("y1", 0).attr("y2", ch).attr("stroke", C.ink);
     const r = g.selectAll("g.r").data(rr).join("g").attr("class", "r").attr("transform", d => `translate(0,${y(d.move) + y.bandwidth() / 2})`);
     r.append("text").attr("x", -12).attr("dy", 4).attr("text-anchor", "end").attr("class", "label").text(d => d.move);
     r.append("line").attr("x1", d => x(d.lo)).attr("x2", d => x(d.hi)).attr("stroke", d => d.lo > 1 || d.hi < 1 ? C.orange : C.grey).attr("stroke-width", 3).attr("stroke-linecap", "round");
     r.append("circle").attr("cx", d => x(d.rrr)).attr("r", 6).attr("fill", d => d.lo > 1 || d.hi < 1 ? C.orange : C.grey).attr("stroke", "#fff");
-    r.append("text").attr("class", "label").attr("x", d => x(d.hi) + 10).attr("dy", 4).text(d => `${d.rrr.toFixed(2)} (${d.lo.toFixed(2)} to ${d.hi.toFixed(2)})`);
-    hover(r, d => `<b>${d.move}</b><br>rrr ${d.rrr.toFixed(3)} per unit of ${lab.toLowerCase()}<br>95% interval ${d.lo.toFixed(2)} to ${d.hi.toFixed(2)}`);
-    g.append("text").attr("x", cw / 2).attr("y", ch + 36).attr("text-anchor", "middle").text(`relative risk ratio per unit of ${lab.toLowerCase()}, log scale. Orange when the interval excludes one`);
+    r.append("text").attr("class", "label").attr("x", d => x(d.hi) + 10).attr("dy", 4).text(d => `${d.rrr.toFixed(2)}× (${d.lo.toFixed(2)} to ${d.hi.toFixed(2)})`);
+    hover(r, d => `<b>${d.move}</b><br>${d.rrr.toFixed(2)} times as likely as staying, for ${TXT[k][1].split(", against")[0]}<br>95% interval ${d.lo.toFixed(2)} to ${d.hi.toFixed(2)}${d.lo > 1 || d.hi < 1 ? "" : " · includes 1, so not distinguishable from no change"}`);
+    g.append("text").attr("class", "note").attr("x", x(1) - 8).attr("y", ch + 36).attr("text-anchor", "end").attr("fill", "#7f7f7f").text("← less likely to make this move");
+    g.append("text").attr("class", "note").attr("x", x(1) + 8).attr("y", ch + 36).attr("fill", "#7f7f7f").text("more likely →");
+    g.append("text").attr("class", "note").attr("x", cw + 140).attr("y", ch + 36).attr("text-anchor", "end").attr("fill", "#7f7f7f").text("orange: interval excludes 1");
   }
-  sel.on("change", draw); draw(); window.addEventListener("resize", draw);
+  sel.on("change", draw); window.drawMoves = draw; draw(); window.addEventListener("resize", draw);
 }
 
 // ---------- 7. population ----------
@@ -300,7 +314,20 @@ function occPanel() {
 // ---------- move flow ----------
 function flowPanel() {
   let chart;
-  function draw() { const { svg, w, h } = box("#s-flow"); chart = CH.moveFlow(svg, R.moveRates, { width: w, height: h, window: d3.select("#flow-window").node().value, fb: d3.select("#flow-group").node().value === "fb", exclude: d3.select("#flow-movers").node().checked }); }
+  function draw() {
+    const win = d3.select("#flow-window").node().value, all = win === "all";
+    d3.select("#s-flow").classed("full", all); d3.select("#s-moves").classed("hidden", all); d3.select("#mv-controls").classed("hidden", all);
+    const { svg, w, h } = box("#s-flow");
+    if (all) {
+      svg.append("text").attr("class", "title").attr("x", 0).attr("y", 18).text("Foreign-born adults 25 to 64, one year of moves in each window, movers only");
+      svg.append("text").attr("class", "note").attr("x", 0).attr("y", 34).attr("fill", "#7f7f7f").text("percentages of all foreign-born adults in the group · the same ribbon layout in each window, so a flow can be followed down the page");
+      const wins = ["2012-2016", "2017-2021", "2022-2024"], ph = (h - 44) / 3;
+      wins.forEach((wn, i) => { const g = svg.append("g").attr("transform", `translate(0,${44 + i * ph})`); CH.moveFlow(g, R.moveRates, { width: w, height: ph, window: wn, fb: true, exclude: true, compact: true }); });
+      return;
+    }
+    chart = CH.moveFlow(svg, R.moveRates, { width: w, height: h, window: win, fb: d3.select("#flow-group").node().value === "fb", exclude: d3.select("#flow-movers").node().checked });
+    if (window.drawMoves) window.drawMoves();
+  }
   d3.selectAll("#flow-window, #flow-group, #flow-movers").on("change", draw); window.addEventListener("resize", draw);
   draw();
 }
@@ -352,6 +379,7 @@ async function boot() {
   try { R.occupations = await d3.csv("data/occupations.csv"); } catch (e) { R.occupations = null; }
   try { R.counties = await d3.csv("data/county_profiles.csv"); } catch (e) { R.counties = null; }
   try { R.cellsCountry = await d3.csv("data/cells_country.csv"); } catch (e) { R.cellsCountry = null; }
+  try { R.countyShapes = await d3.json("data/counties.geojson"); } catch (e) { R.countyShapes = null; }
   try { const mr = await d3.csv("data/move_rates.csv"); R.moveRates = mr.map(d => ({ ...d, fb: d.fb === "TRUE" || d.fb === "true", n: +d.n, pct: +d.pct })); }
   catch (e) { R.moveRates = R.mobility ? R.mobility.move_rates.map(d => ({ ...d, fb: true })) : []; }
   try { const ir = await d3.csv("data/interactions_region.csv"); R.interactionsRegion = ir.filter(d => d.Estimate).map(d => ({ region: d.sample, est: d.Estimate, se: d["Std. Error"] })); } catch (e) { R.interactionsRegion = []; }

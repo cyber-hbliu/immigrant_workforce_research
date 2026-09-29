@@ -29,6 +29,14 @@ window.CH = (function () {
     const mapTitle = gM.append("text").attr("class", "title").attr("x", 10).attr("y", 18);
     const shapes = gM.append("g").selectAll("path").data(feats).join("path").attr("d", path).attr("stroke", "#fff").attr("stroke-width", 0.8).attr("fill", "#eee").style("cursor", "pointer");
     gM.append("path").datum({ type: "FeatureCollection", features: feats.filter(f => f.properties.city) }).attr("d", path).attr("fill", "none").attr("stroke", K.ink).attr("stroke-width", 1.3).attr("pointer-events", "none");
+    // county outlines and names (data/counties.geojson, dissolved from the PUMAs)
+    if (opts.counties) {
+      const gC = gM.append("g").attr("pointer-events", "none");
+      gC.selectAll("path").data(opts.counties.features).join("path").attr("d", path).attr("fill", "none").attr("stroke", "#ffffff").attr("stroke-width", 2.2).attr("stroke-opacity", 0.9);
+      gC.selectAll("path.c2").data(opts.counties.features).join("path").attr("class", "c2").attr("d", path).attr("fill", "none").attr("stroke", K.ink2).attr("stroke-width", 0.9);
+      const lab = gC.selectAll("g.cl").data(opts.counties.features).join("g").attr("class", "cl").attr("transform", f => { const c = proj([f.properties.lon, f.properties.lat]); return `translate(${c[0]},${c[1]})`; });
+      lab.append("text").attr("class", "label").attr("text-anchor", "middle").attr("dy", 4).attr("stroke", "#fff").attr("stroke-width", 4).attr("stroke-linejoin", "round").attr("paint-order", "stroke").style("font-size", "12px").style("font-weight", 700).style("letter-spacing", "0.03em").text(f => f.properties.county.toUpperCase());
+    }
     const lg = gM.append("g").attr("transform", `translate(${mapW - 130},${mapH - 40})`);
     const flowsG = gM.append("g").attr("pointer-events", "none");
     // scatter
@@ -172,35 +180,36 @@ window.CH = (function () {
   function occMatrix(svg, rows, opts = {}) {
     svg.selectAll("*").remove();
     const w = opts.width, h = opts.height, groups = ["Native-born", "Proficient immigrants", "Limited English"];
-    const m = { t: 54, r: 30, b: 30, l: 250 }, cw = w - m.l - m.r, ch = h - m.t - m.b;
+    const m = { t: 76, r: 20, b: 44, l: Math.min(250, w * 0.3) }, cw = w - m.l - m.r, ch = h - m.t - m.b;
     const g = svg.append("g").attr("transform", `translate(${m.l},${m.t})`);
     rows.forEach(r => { r.pct = +r.pct; r.median_hourly = +r.median_hourly; r.n = +r.n; r.pop = +r.pop; });
     const occs = Array.from(new Set(rows.map(r => r.occ_group)));
     const get = (o, gname) => rows.find(r => r.occ_group === o && r.group === gname);
-    const y = d3.scaleBand().domain(occs).range([0, Math.min(ch, occs.length * 44)]).padding(0.15);
-    const colsEnd = Math.min(cw - 120, 560);
-    const x = d3.scalePoint().domain(groups).range([80, colsEnd - 70]);
-    const rS = d3.scaleSqrt().domain([0, d3.max(rows, r => r.pct)]).range([0, y.bandwidth() * 0.95]);
+    const y = d3.scaleBand().domain(occs).range([0, Math.min(ch, occs.length * 72)]).padding(0.12);
+    const colsEnd = cw - 150;
+    const x = d3.scalePoint().domain(groups).range([y.bandwidth() * 0.55, colsEnd - y.bandwidth() * 0.55]);
+    const rS = d3.scaleSqrt().domain([0, d3.max(rows, r => r.pct)]).range([0, y.bandwidth() * 0.7]);
     const wage = d3.scaleSequential(d3.interpolate("#f6efd9", "#7a5a10")).domain(d3.extent(rows, r => r.median_hourly));
-    const ttl = g.append("text").attr("class", "title").attr("y", -34).text("Where each group works, 2022–2024");
-    const sub = g.append("text").attr("class", "note").attr("y", -18).text("circle size is the percentage of the group in the occupation, color is the group's median hourly wage there");
-    const short = { "Native-born": "Native-born", "Proficient immigrants": "Proficient", "Limited English": "Limited English" };
-    groups.forEach(gn => g.append("text").attr("class", "label").attr("x", x(gn)).attr("y", -2).attr("text-anchor", "middle").text(short[gn]));
+    const ttl = g.append("text").attr("class", "title").attr("y", -56).text("Where each group works, 2022–2024");
+    const sub = g.append("text").attr("class", "note").attr("y", -40).text("circle size: percentage of the group in the occupation · color: the group's median hourly wage there");
+    const short = { "Native-born": "Native-born", "Proficient immigrants": "Proficient immigrants", "Limited English": "Limited English" };
+    groups.forEach(gn => g.append("text").attr("class", "label").attr("x", x(gn)).attr("y", -8).attr("text-anchor", "middle").style("font-weight", 700).text(short[gn]));
     const rowG = g.append("g").selectAll("g.row").data(occs, d => d).join("g").attr("class", "row");
     rowG.append("text").attr("x", -12).attr("y", y.bandwidth() / 2 + 4).attr("text-anchor", "end").attr("class", "label").text(d => d);
     rowG.append("line").attr("x1", 0).attr("x2", colsEnd + 40).attr("y1", y.bandwidth() / 2).attr("y2", y.bandwidth() / 2).attr("stroke", K.grid);
     const cells = rowG.selectAll("g.cell").data(o => groups.map(gn => get(o, gn)).filter(Boolean)).join("g").attr("class", "cell").attr("transform", d => `translate(${x(d.group)},${y.bandwidth() / 2})`);
     cells.append("circle").attr("r", 0).attr("fill", d => wage(d.median_hourly)).attr("stroke", "#fff").attr("stroke-width", 1).transition().duration(T).attr("r", d => rS(d.pct));
-    cells.append("text").attr("dy", 4).attr("text-anchor", "middle").attr("class", "label").attr("fill", d => d.median_hourly > 32 ? "#fff" : K.ink).style("font-size", "11px").text(d => d.pct >= 3 ? d.pct.toFixed(0) + "%" : "");
+    cells.append("text").attr("dy", 4).attr("text-anchor", "middle").attr("class", "label").attr("fill", d => d.median_hourly > 32 ? "#fff" : K.ink).style("font-size", "12px").text(d => d.pct >= 3 ? d.pct.toFixed(0) + "%" : "");
+    cells.filter(d => d.pct < 3).append("text").attr("x", d => rS(d.pct) + 4).attr("dy", 4).attr("class", "note").attr("fill", K.muted).text(d => d.pct.toFixed(1) + "%");
     // ratio column: limited-English wage as a percentage of the proficient wage in the same occupation
-    const ratioX = colsEnd + 40;
-    g.append("text").attr("class", "label").attr("x", ratioX).attr("y", -14).attr("text-anchor", "middle").text("limited ÷");
-    g.append("text").attr("class", "label").attr("x", ratioX).attr("y", -1).attr("text-anchor", "middle").text("proficient wage");
+    const ratioX = colsEnd + 110;
+    g.append("text").attr("class", "label").attr("x", ratioX).attr("y", -22).attr("text-anchor", "middle").style("font-weight", 700).text("limited-English wage");
+    g.append("text").attr("class", "label").attr("x", ratioX).attr("y", -8).attr("text-anchor", "middle").style("font-weight", 700).text("÷ proficient wage");
     const rt = rowG.append("text").attr("class", "label").attr("x", ratioX).attr("y", y.bandwidth() / 2 + 4).attr("text-anchor", "middle").style("font-family", "var(--mono)")
       .text(o => { const a = get(o, "Limited English"), b = get(o, "Proficient immigrants"); return a && b ? (100 * a.median_hourly / b.median_hourly).toFixed(0) + "%" : ""; });
     hover(cells, d => `<b>${d.group} · ${d.occ_group}</b><br>${d.pct.toFixed(1)}% of the group · median wage ${d3.format("$.2f")(d.median_hourly)}<br>n = ${fmtN(d.n)} respondents, ${fmtN(d.pop)} weighted`);
     // legend
-    const lg = g.append("g").attr("transform", `translate(0,${y.range()[1] + 16})`);
+    const lg = g.append("g").attr("transform", `translate(0,${y.range()[1] + 14})`);
     const ls = d3.scaleLinear().domain(wage.domain()).range([0, 110]);
     d3.range(0, 111, 3).forEach(v => lg.append("rect").attr("x", v).attr("y", 0).attr("width", 3).attr("height", 8).attr("fill", wage(ls.invert(v))));
     lg.append("text").attr("x", 0).attr("y", 22).text(fmt$(wage.domain()[0])); lg.append("text").attr("x", 110).attr("y", 22).attr("text-anchor", "end").text(fmt$(wage.domain()[1]));
@@ -222,10 +231,10 @@ window.CH = (function () {
   const WAGE = { city_to_suburb: 33, suburb_to_city: 20, from_abroad: null }; // movers' median hourly wage where the paper reports it
   function moveFlow(svg, rates, opts = {}) {
     svg.selectAll("*").remove();
-    const w = opts.width, h = opts.height, m = { t: 44, r: 150, b: 20, l: 170 }, cw = w - m.l - m.r, ch = h - m.t - m.b;
+    const w = opts.width, h = opts.height, m = { t: opts.compact ? 30 : 44, r: 150, b: 22, l: 170 }, cw = w - m.l - m.r, ch = h - m.t - m.b;
     const g = svg.append("g").attr("transform", `translate(${m.l},${m.t})`);
-    const ttl = g.append("text").attr("class", "title").attr("y", -22);
-    const note = g.append("text").attr("class", "note").attr("y", -6);
+    const ttl = g.append("text").attr("class", "title").attr("y", -18);
+    const note = g.append("text").attr("class", "note").attr("y", -5);
     const body = g.append("g");
     let cur = { window: opts.window || "2022-2024", fb: opts.fb !== false, exclude: !!opts.exclude };
     function draw() {
@@ -246,7 +255,7 @@ window.CH = (function () {
       const stack = (keys, f) => { let y0 = 0; return Object.fromEntries(keys.map(k => { const sel = rows.filter(r => f(r) === k), v = d3.sum(sel, r => +r.n), pct = d3.sum(sel, r => +r.pct); const o = [k, { y0, y1: y0 + yS(v), v, pct, cursor: y0 }]; y0 += yS(v) + gap; return o; })); };
       const L = stack(left, r => ORIGIN[r.move_type]), Rr = stack(right, dest);
       const ribbons = rows.map(r => { const a = L[ORIGIN[r.move_type]], b = Rr[dest(r)], hgt = yS(+r.n); const o = { r, ay0: a.cursor, ay1: a.cursor + hgt, by0: b.cursor, by1: b.cursor + hgt }; a.cursor += hgt; b.cursor += hgt; return o; });
-      const wg = d => d.r.wage || WAGE[d.r.move_type];
+      const wg = d => d.r.wage || (cur.window === "2022-2024" && cur.fb ? WAGE[d.r.move_type] : null);
       const col = d => d.r.move_type === "stayed" ? K.grey2 : wg(d) ? (wg(d) > 25 ? K.tealDark : K.orange) : K.grey;
       const area = d => `M0,${d.ay0} C${cw / 2},${d.ay0} ${cw / 2},${d.by0} ${cw},${d.by0} L${cw},${d.by1} C${cw / 2},${d.by1} ${cw / 2},${d.ay1} 0,${d.ay1} Z`;
       const rb = body.append("g").selectAll("path").data(ribbons).join("path").attr("d", area).attr("fill", col).attr("fill-opacity", 0.55).attr("stroke", "#fff").attr("stroke-width", 0.5).style("cursor", "pointer");
@@ -254,10 +263,10 @@ window.CH = (function () {
       hover(rb, d => `<b>${MOVE[d.r.move_type]}</b><br>${(+d.r.pct).toFixed(1)}% of ${cur.fb ? "foreign-born" : "native-born"} adults 25 to 64, ${fmtN(Math.round(+d.r.n))} a year<br>${wg(d) ? "movers' median hourly wage " + fmt$(wg(d)) : "median wage not reported in the paper"}`);
       const node = (obj, xx, anchor, dx) => Object.entries(obj).forEach(([k, v]) => { body.append("rect").attr("x", xx - (anchor === "end" ? 6 : 0)).attr("y", v.y0).attr("width", 6).attr("height", Math.max(1, v.y1 - v.y0)).attr("fill", K.ink); body.append("text").attr("class", "label").attr("x", xx + dx).attr("y", (v.y0 + v.y1) / 2 + 4).attr("text-anchor", anchor).text(`${k} ${v.pct.toFixed(1)}%`); });
       node(L, 0, "end", -12); node(Rr, cw, "start", 12);
-      body.append("text").attr("class", "label").attr("x", -12).attr("y", -6).attr("text-anchor", "end").text("a year earlier");
-      body.append("text").attr("class", "label").attr("x", cw + 12).attr("y", -6).text("now");
-      ttl.text(`${cur.fb ? "Foreign-born" : "Native-born"} adults 25 to 64, one year of moves, ${cur.window.replace("-", "–")}${cur.exclude ? ", movers only" : ""}`);
-      note.text(cur.exclude ? "percentages of all adults in the group · teal: movers' median wage above 25 dollars · orange: below · grey: not reported" : "percentages of all adults in the group");
+      body.append("text").attr("class", "note").attr("x", -12).attr("y", ch + 14).attr("text-anchor", "end").attr("fill", K.muted).text("a year earlier");
+      body.append("text").attr("class", "note").attr("x", cw + 12).attr("y", ch + 14).attr("fill", K.muted).text("now");
+      ttl.text(opts.compact ? `${cur.window.replace("-", "–")}` : `${cur.fb ? "Foreign-born" : "Native-born"} adults 25 to 64, one year of moves, ${cur.window.replace("-", "–")}${cur.exclude ? ", movers only" : ""}`);
+      note.text(opts.compact ? "" : cur.exclude && cur.window === "2022-2024" && cur.fb ? "percentages of all adults in the group · teal: movers' median wage above 25 dollars · orange: below · grey: not reported in the paper" : "percentages of all adults in the group");
     }
     draw();
     return { set(o) { Object.assign(cur, o); draw(); }, step(i) { if (i === 0) { cur = { window: "2022-2024", fb: true, exclude: false }; } else if (i === 1) { cur = { window: "2022-2024", fb: true, exclude: true }; } else { cur = { window: "2022-2024", fb: false, exclude: true }; } draw(); } };

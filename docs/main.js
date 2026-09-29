@@ -115,57 +115,31 @@ function intervalChart(g, rows, cw, ch, opts) {
   return r;
 }
 
-// ---------- chapter 5: density slopes by group ----------
+// ---------- chapter 6: the density gradient ----------
 function initSlopes() {
-  if (state.pumas) { const sb = svgBox("#s-scatter"); const sc = CH.linkedMap(sb.svg, state.pumas, { width: sb.w, height: sb.h, mode: "scatter" }); sc.trend(true); }
   const showScatter = on => { d3.select("#s-scatter").classed("off", !on); d3.select("#g-slopes").classed("off", on); };
   showScatter(true);
-  const { svg, w, h } = svgBox("#g-slopes");
-  const m = { t: 44, r: 110, b: 40, l: 210 }, cw = w - m.l - m.r, ch = h - m.t - m.b;
-  const g = svg.append("g").attr("transform", `translate(${m.l},${m.t})`);
-  const S = state.data.results.slopes;
-  const ttl = g.append("text").attr("class", "title").attr("y", -16).text("Change in log wage per SD of area immigrant density");
-  const body = g.append("g");
-  const lf = d => `${(d.v * 100).toFixed(1)}% (SE ${(d.se * 100).toFixed(1)})`;
-  function draw(rows, hl) {
-    body.selectAll("*").remove();
-    const r = intervalChart(body, rows, cw, Math.min(ch, rows.length * 90), { domain: [-0.14, 0.04], xf: d => (d * 100).toFixed(0) + "%", lf });
-    if (hl) r.style("opacity", d => hl.includes(d.g) ? 1 : 0.35);
-  }
-  const base = [{ g: "Proficient immigrants", ...S.generic[0], c: C.teal }, { g: "Limited-English immigrants", ...S.generic[1], c: C.orange }];
-  const full = base.concat([{ g: "Native-born workers", ...S.generic[2], c: C.grey }, { g: "Proficient immigrants, with native wage control", ...S.with_native_wage[0], c: C.tealDark }]);
-  state.charts.slopes = {
-    step(i) {
-      showScatter(i === 0);
-      if (i === 1) draw(base, ["Proficient immigrants"]);
-      else if (i === 2) draw(base);
-      else if (i === 3) draw(full);
-    }
-  };
+  const sb = svgBox("#s-scatter");
+  if (state.pumas) { const sc = CH.linkedMap(sb.svg, state.pumas, { width: sb.w, height: sb.h, mode: "scatter" }); sc.trend(true); }
+  // the hidden svg shares the visible one's box
+  const svg = d3.select("#g-slopes"), w = sb.w, h = sb.h; svg.selectAll("*").remove(); svg.attr("viewBox", `0 0 ${w} ${h}`);
+  const Rz = state.data.results;
+  const chart = CH.gradient(svg, { width: w, height: h, S: Rz.slopes, limited: Rz.enclave.A.limited, inter: Rz.slopes.interaction, sd: 5.4, mean: 12 });
+  state.charts.slopes = { step(i) { showScatter(i === 0); chart.step(i); } };
 }
 
-// ---------- chapter 7: own-language density ----------
+// ---------- chapter 9: own-language density ----------
 function initOwnlang() {
   const { svg, w, h } = svgBox("#g-ownlang");
-  const m = { t: 44, r: 120, b: 40, l: 230 }, cw = w - m.l - m.r, ch = h - m.t - m.b;
-  const g = svg.append("g").attr("transform", `translate(${m.l},${m.t})`);
-  const O = state.data.results.ownlang;
-  g.append("text").attr("class", "title").attr("y", -16).text("Change in log wage per SD of own-language density");
-  const body = g.append("g");
-  const lf = d => `${(d.v * 100).toFixed(1)}% (SE ${(d.se * 100).toFixed(1)})`;
-  const rowsFor = (city, tag) => [{ g: `${tag}proficient`, v: O[city].prof, se: O[city].prof_se, c: C.teal }, { g: `${tag}limited English`, v: O[city].lim, se: O[city].lim_se, c: C.orange }];
-  function draw(rows, dim) {
-    body.selectAll("*").remove();
-    const r = intervalChart(body, rows, cw, Math.min(ch, rows.length * 80), { domain: [-0.1, 0.04], xf: d => (d * 100).toFixed(0) + "%", lf });
-    if (dim) r.style("opacity", 0.25);
-  }
-  state.charts.ownlang = {
-    step(i) {
-      if (i === 0) { draw(rowsFor("Philadelphia", "Philadelphia, "), true); caption("#c-ownlang", `Exploratory. ${fmtN(O.Philadelphia.n)} workers with a non-English home language. One SD of own-language density is ${O.Philadelphia.sd_pp} percentage points.`); }
-      else if (i === 1) { draw(rowsFor("Philadelphia", "Philadelphia, ")); caption("#c-ownlang", `Interaction ${O.Philadelphia.inter} (SE ${O.Philadelphia.inter_se}). Generic density is held constant in the same model.`); }
-      else { draw(rowsFor("Philadelphia", "Philadelphia, ").concat(rowsFor("New York", "New York, "))); caption("#c-ownlang", `New York: ${fmtN(O["New York"].n)} workers, one SD is ${O["New York"].sd_pp} points, interaction ${O["New York"].inter} (SE ${O["New York"].inter_se}).`); }
-    }
-  };
+  const O = JSON.parse(JSON.stringify(state.data.results.ownlang));
+  // within-occupation interactions, Table 3 (0.021, SE 0.013 Philadelphia; 0.028, SE 0.007 New York)
+  O.Philadelphia.inter_occ = 0.021; O.Philadelphia.inter_occ_se = 0.013; O["New York"].inter_occ = 0.028; O["New York"].inter_occ_se = 0.007;
+  // the five highest own-language (Spanish) values, section 4.5
+  const top = [{ id: "PA03225", label: "North Philadelphia", value: 41 }, { id: "NJ02101", label: "Camden and Gloucester City, NJ", value: 38 }, { id: "PA03222", label: "Central and Lower Northeast", value: 22 }, { id: "NJ02501", label: "Salem and Cumberland (Bridgeton), NJ", value: 18 }, { id: "PA03223", label: "North Delaware", value: 17 }];
+  // direct check of the selection account, section 5.2
+  const sel = [{ g: "leavers vs stayers", v: -6, se: 18 }, { g: "same, within occupation", v: -13.3, se: 11.6 }];
+  const chart = CH.ownLang(svg, { width: w, height: h, pumas: state.pumas, O, top, sel });
+  state.charts.ownlang = { step: i => chart.step(i) };
 }
 
 // ---------- chapter 9: pseudo-panel and duration-matched ----------
@@ -220,11 +194,11 @@ function initInteractive() {
   state.charts.globe = { step(i) { caption("#c-globe", i === 0 ? "Residents of the metropolitan area born outside the United States by country of birth, 2022–2024, all ages. Line width and color are the count. Hover a country, drag to turn the globe." : i === 1 ? "Historical and combined ACS codes are mapped to a present-day country. Codes without a boundary are counted in the total but not drawn." : "The foreign-born count is for the city of Philadelphia, from one-year ACS estimates."); } };
   state.charts.cohort = { step(i) { setCtl("co-t", i === 0 ? 10 : 20, "input"); caption("#c-cohort", "Predicted wage gap to comparable natives by years since migration, from the cohort specification with English, occupation, PUMA and year fixed effects. Move the slider or switch cohorts off."); } };
   state.charts.map = { step(i) { setCtl("area-var", "puma_fb_prop"); setCtl("area-flows", i === 0 ? "none" : "city_to_suburb"); caption("#c-map", i === 0 ? "Foreign-born percentage of residents by PUMA, with the same 48 PUMAs as dots against foreign-born median wage. Hover either side, or drag a box across the scatter." : "Where foreign-born residents who left the city for a suburb in the past year arrived, 2022–2024. Circle size is the annual count."); } };
-  state.charts.enclave = { step(i) { setCtl("calc-measure", i === 0 ? "generic" : "occ"); caption("#c-enclave", i === 0 ? "Fitted log wage by area immigrant density from the two-level model, no occupation controls. Move the slider to read both groups at any density." : "The same lines with occupation fixed effects. The distance between them is the within-occupation differential."); } };
+  state.charts.enclave = { step(i) { if (window.occPanelsChart) window.occPanelsChart.step(i); caption("#c-enclave", i === 0 ? "Fitted log wage by area immigrant density from the two-level model, no occupation controls. Move the slider to read both groups at any density." : "The same lines with occupation fixed effects. The distance between them is the within-occupation differential."); } };
   state.charts.occ = { step(i) { setCtl("occ-sort", i === 0 ? "Limited English" : "wage"); caption("#c-occ", i === 0 ? "Percentage of each group in twelve occupation groups, 2022–2024, sorted by the limited-English percentage. Color is the group's median hourly wage there. The right column divides the limited-English median by the proficient median." : "Sorted by the native-born median wage. Descriptive statistics for the model sample."); } };
-  state.charts.compare = { step(i) { setCtl("inter-sort", "t"); setCtl("inter-bonf", i === 1); caption("#c-compare", i === 0 ? "Every limited-English × density interaction in the paper, sorted by |t|, with 95 percent intervals. Hover a point for the estimate, the standard error and the sample." : "Marks with a black rim clear the Bonferroni line for seventeen tests, |t| above 2.92."); } };
-  state.charts.moves = { step(i) { setCtl("flow-window", "2022-2024"); setCtl("flow-group", i === 2 ? "nb" : "fb"); setCtl("flow-movers", i > 0); caption("#c-moves", i === 0 ? "Above, where foreign-born adults aged 25 to 64 lived a year earlier and where they live now, 2022–2024. Below, the relative risk of each move per unit of the chosen covariate, with replicate-weight intervals." : i === 1 ? "The same year with the 85.7 percent who did not move removed. Ribbon color is the movers' median hourly wage where the paper reports it." : "Native-born adults for comparison."); } };
-  state.charts.grid = { step(i) { setCtl("cell-rows", i === 2 ? "country" : "region"); setCtl("cell-metric", i === 1 ? "suburb_prop" : "median_hourly"); caption("#c-grid", i === 0 ? "Forty-four cells of foreign-born adults aged 25 to 64, arrival cohort by region of birth, across the three windows. Real median hourly wage in 2024 dollars. Click a row for its three windows." : "Percentage living outside Philadelphia County. Filter regions with the buttons."); } };
+  state.charts.compare = { step(i) { if (window.cityCompareChart) window.cityCompareChart.step(i); setCtl("inter-bonf", i === 2); caption("#c-compare", i === 0 ? "Every limited-English × density interaction in the paper, sorted by |t|, with 95 percent intervals. Hover a point for the estimate, the standard error and the sample." : "Marks with a black rim clear the Bonferroni line for seventeen tests, |t| above 2.92."); } };
+  state.charts.moves = { step(i) { setCtl("flow-group", i === 3 ? "nb" : "fb"); setCtl("flow-movers", i !== 2); setCtl("flow-window", i === 0 ? "all" : "2022-2024"); } };
+  state.charts.grid = { step(i) { setCtl("cell-metric", i === 0 ? "median_hourly" : i === 1 ? "limited_eng_prop" : "suburb_prop"); } };
 }
 
 // ---------- boot ----------

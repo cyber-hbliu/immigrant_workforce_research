@@ -119,25 +119,19 @@
       <p>Foreign-born median wages are highest in western Delaware County, 59 dollars an hour, and northern Chester County, 54 dollars, and no other PUMA exceeds 44. The wage map is close to the inverse of the density map. Each dot is one of the 48 PUMAs, sized by limited English among its foreign-born, and the correlation between foreign-born percentage and foreign-born median wage is −0.37. Hover a dot or drag a box across the chart.</p>
     </div>
     <div class="step" data-step="slopes-1">
-      <p>A two-level model nests 7,355 foreign-born workers in the 48 PUMAs. For immigrants who speak English well, hourly pay is about 8 percent lower per standard deviation of area immigrant density, a step of 5.4 percentage points.</p>
+      <p>A two-level model nests 7,355 foreign-born workers in the 48 PUMAs, with a random intercept and a random limited-English slope for each PUMA. For immigrants who speak English well, hourly pay is about 8 percent lower per standard deviation of area immigrant density, a step of 5.4 percentage points, with a standard error of 1.8. The band is the interval of that slope. Move the mouse across the chart to read the fitted wage at any density.</p>
     </div>
     <div class="step" data-step="slopes-2">
-      <p>For immigrants with limited English the slope is about 3 percent and not distinguishable from zero. The difference between the two slopes is the interaction the protective and isolation views argue about. It is 0.049 with a standard error of 0.029, and it points the same way in 2017–2021.</p>
+      <p>Limited English lowers the log wage by 0.234 at mean density, a differential of 21 percent. For immigrants with limited English the density slope is about 3 percent and not distinguishable from zero. The difference between the two slopes is the interaction the protective and isolation views argue about. It is 0.049 with a standard error of 0.029 (p = 0.09), so the gap narrows from 25 percent one standard deviation below the mean to 13 percent two above it, but the interval does not exclude zero. The 2017–2021 window, dashed, gives 0.050 with a standard error of 0.028. The interval rules out a large isolating effect and does not rule out a narrowing of up to about 10 percent per standard deviation.</p>
     </div>
     <div class="step" data-step="slopes-3">
-      <p>Is this just cheap housing? Native-born workers in the same PUMAs show a slope of 2 percent. Adding the area's native median wage as a control leaves the immigrant gradient at 6 percent. About a quarter of the gradient is shared with natives. The rest is specific to immigrants.</p>
+      <p>Is this just cheap housing? Cheaper areas hold both more immigrants and lower-wage workers of every origin. The same model on the 47,893 native-born workers in the same 48 PUMAs gives a gradient of 2.0 percent per standard deviation, with a standard error of 1.1. Adding the PUMA's native median wage as a control leaves the immigrant gradient at 6.4 percent and moves the interaction to 0.059 (p = 0.05). About a quarter of the gradient is shared with natives or absorbed by the area's wage level. The rest is specific to the foreign-born.</p>
     </div>
   </div>
 </section>
 
 <section class="chapter" id="ch-enclave" data-chapter="enclave">
   <div class="graphic"><div class="controls">
-      <label>Measure <select id="calc-measure">
-        <option value="generic">generic immigrant density, Philadelphia</option>
-        <option value="occ">generic density, within occupations</option>
-        <option value="own-phl">own-language density, Philadelphia (exploratory)</option>
-        <option value="own-nyc">own-language density, New York (exploratory)</option>
-      </select></label>
       <label>Density <input type="range" id="calc-d" min="-1.5" max="2.5" step="0.1" value="0"> <span id="calc-dv">0.0 SD</span></label>
     </div><svg id="s-calc"></svg><div class="detail mini-detail" id="d-calc"></div></div>
   <div class="steps">
@@ -145,7 +139,10 @@
       <p>The vertical distance between the lines is the limited-English differential at mean density, 21 percent. Both lines fall with density, the proficient line faster.</p>
     </div>
     <div class="step" data-step="enclave-1">
-      <p>Compare workers in the same occupation and the differential falls to 9 percent. Holding occupation constant removes about 60 percent of the differential, 40 percent of the density gradient, and all of the interaction. Most of what limited English costs is the occupation it sorts a worker into.</p>
+      <p>Compare workers in the same occupation and the differential falls to 9 percent. Holding occupation constant removes about 60 percent of the differential, 40 percent of the density gradient, and all of the interaction. A limited-English worker earns 9 percent less than a proficient worker in the same occupation and the same area, and 21 percent less overall, because limited English is associated with sorting into lower-wage occupations. Drag the slider to read both gaps at any density.</p>
+    </div>
+    <div class="step" data-step="enclave-2">
+      <p>The same two panels for the New York metropolitan area, from the same sample rules and specifications. The limited-English differential there is 20 percent, and 10 percent within an occupation, the same split as in Philadelphia. The occupation check is descriptive. Occupation is itself an outcome of English, so the change in the coefficients measures how much of the differential is associated with occupational sorting, not a causal share.</p>
     </div>
   </div>
 </section>
@@ -172,42 +169,46 @@
 <section class="chapter" id="ch-ownlang" data-chapter="ownlang">
   <div class="graphic"><svg id="g-ownlang"></svg></div>
   <div class="steps">
-    <div class="step" data-step="ownlang-0"><h2>What about your own language?</h2>
-      <p>Immigrant density as a whole may be the wrong measure. An exploratory check uses the density of the worker's own home language instead, for the 5,732 workers who speak a language other than English at home. Its five highest values are all Spanish, led by North Philadelphia at 41 percent of residents.</p>
+    <div class="step" data-step="ownlang-0"><h2>Own-language density</h2>
+      <p>Immigrant density as a whole may be the wrong measure. An exploratory check uses the density of the worker's own home language instead, for the 5,732 workers who speak a language other than English at home. Its five highest values are all Spanish. In North Philadelphia 41 percent of residents aged 5 and over speak Spanish at home, in the city of Camden across the river 38 percent, in the Central and Lower Northeast 22 percent, in the Salem and Cumberland PUMA around Bridgeton 18 percent, and in the North Delaware section of Philadelphia 17 percent.</p>
     </div>
     <div class="step" data-step="ownlang-1">
-      <p>On this measure the differential does narrow, by about 5 percent per standard deviation. But look at which line moves. Limited-English wages do not vary with own-language density. Proficient wages fall with it, by about 6 percent per standard deviation. The differential narrows because the proficient earn less, not because the limited-English earn more.</p>
+      <p>On this measure the differential does narrow. The interaction is 0.046 with a standard error of 0.022 (p = 0.04), and 0.021 with occupation fixed effects. But look at which line moves. Limited-English wages do not vary with own-language density, minus 0.011 per standard deviation with a standard error of 0.016. Proficient wages fall with it, by 0.057 with a standard error of 0.017. The differential narrows because proficient workers earn less where their language is common, not because limited-English workers earn more. Generic density is held constant in the same model and keeps a slope of minus 0.061 for both groups.</p>
     </div>
     <div class="step" data-step="ownlang-2">
-      <p>The same model in the New York metropolitan area, with 54,089 workers in 141 PUMAs, gives the same picture. The interaction is 0.045 against Philadelphia's 0.046, and again the narrowing comes from the proficient side. A former gateway and a traditional one agree.</p>
+      <p>The same model in the New York metropolitan area, for 54,089 workers with a non-English home language in 141 PUMAs, gives an interaction of 0.045 with a standard error of 0.009, and 0.028 within occupations, against 0.046 and 0.021 in Philadelphia. The interactions agree. The proficient slopes do not, at minus 0.032 in New York against minus 0.057 in Philadelphia per standard deviation, and further apart per percentage point, since a New York standard deviation is 17.8 points against 7.7. In both areas the narrowing comes from the proficient side.</p>
+    </div>
+    <div class="step" data-step="ownlang-3">
+      <p>One account is selection. Higher earners leave the city, and if proficient immigrants with higher earning capacity are the ones who leave areas where their language is concentrated, the proficient immigrants who remain are negatively selected and the pattern follows without any effect of the area on pay. A direct check uses the 4,370 proficient workers who lived in the metropolitan area a year earlier, of whom 98 had left their prior migration area. The leavers earn 6 percent less than stayers, with a standard error of 18 percent, and 13 percent less within occupation, with a standard error of 12. Nothing here indicates that leavers earn more, and the intervals leave a difference of about 35 percent in either direction inside them, so the check is too imprecise to test the account. A further caveat: in North Philadelphia and Camden, 77 and 64 percent of Spanish speakers are native-born, so the measure there describes a largely native-born linguistic community.</p>
     </div>
   </div>
 </section>
 
 <section class="chapter" id="ch-compare" data-chapter="compare">
   <div class="graphic"><div class="controls">
-      <label>Sort by <select id="inter-sort"><option value="t">|t|</option><option value="est">estimate</option><option value="name">city and measure</option></select></label>
-      <label><input type="checkbox" id="inter-bonf"> mark the Bonferroni line for 17 tests</label>
-      
+      <label><input type="checkbox" id="inter-bonf"> mark the estimates that survive a correction for seventeen tests</label>
     </div><svg id="s-coef"></svg></div>
   <div class="steps">
-    <div class="step" data-step="compare-0"><h2>Seventeen tests, one grid</h2>
-      <p>Every limited-English × density interaction the paper reports, in one plot. Twelve for Philadelphia, five for New York. Circles are generic density, diamonds co-ethnic, squares own-language, hollow marks hold occupation constant, and size is the sample. Most intervals cross zero. The two areas differ by about one standard error on generic density and by two, with opposite signs, on co-ethnic density.</p>
+    <div class="step" data-step="compare-0"><h2>Philadelphia against New York</h2>
+      <p>Would a traditional gateway show the same pattern? The same sample rules, variables and specifications are applied to the New York-Newark-Jersey City metropolitan area, with the five boroughs as the city. It is a comparison, not part of the design, and the Philadelphia conclusions do not depend on it. New York holds 68,058 foreign-born workers in 141 PUMAs, and immigrant density there averages 30 percent of PUMA residents with a maximum of 64, against 12 and 28 in Philadelphia. The limited-English differential is 20 percent in New York and 10 percent within an occupation, the same split as Philadelphia's 21 and 9. Wages fall with density for proficient workers in both areas.</p>
     </div>
     <div class="step" data-step="compare-1">
-      <p>With this many tests a single result at the 5 percent level is weak evidence. The Bonferroni line for seventeen tests is |t| above 2.92. Only the two New York own-language terms clear it. Philadelphia's own-language interaction, at p = 0.04, does not. The paper reports all seventeen for that reason.</p>
+      <p>Does the differential change with density? On generic density the two areas give interaction terms that are marginal or null in both and differ by about one standard error. On region-based co-ethnic density they differ by about two standard errors, with opposite signs, minus 0.033 with a standard error of 0.024 in Philadelphia against 0.018 with a standard error of 0.009 in New York. Neither area supports the protective view on the generic or the co-ethnic measure.</p>
+    </div>
+    <div class="step" data-step="compare-2">
+      <p>On own-language density the interactions agree, 0.046 in Philadelphia against 0.045 in New York, and 0.021 against 0.028 within occupations. The New York estimates are five and four standard errors from zero and are the only ones among the seventeen interaction terms the paper reports that would survive a correction for that number of tests. Philadelphia's own-language interaction, at p = 0.04, does not. In both areas the narrowing comes from the proficient side. A test that fixes own-language density as the main measure in advance and runs it across several metropolitan areas is the design these results call for.</p>
     </div>
   </div>
 </section>
 
 <section class="chapter" id="ch-moves" data-chapter="moves">
   <div class="graphic"><div class="controls">
-      <label>Window <select id="flow-window"><option value="2022-2024">2022–2024</option><option value="2017-2021">2017–2021</option><option value="2012-2016">2012–2016</option></select></label>
+      <label>Window <select id="flow-window"><option value="all">all three windows</option><option value="2022-2024">2022–2024</option><option value="2017-2021">2017–2021</option><option value="2012-2016">2012–2016</option></select></label>
       <label>Group <select id="flow-group"><option value="fb">foreign-born</option><option value="nb">native-born</option></select></label>
       <label><input type="checkbox" id="flow-movers" checked> movers only</label>
-    </div><svg id="s-flow" class="half"></svg><div class="controls">
+    </div><svg id="s-flow" class="half"></svg><div class="controls" id="mv-controls">
       <label>Covariate <select id="mv-var">
-        <option value="1">log hourly wage</option>
+        <option value="1">hourly wage</option>
         <option value="2">English score</option>
         <option value="3">graduate degree</option>
         <option value="4">married</option>
@@ -215,12 +216,15 @@
     </div><svg id="s-moves" class="half"></svg></div>
   <div class="steps">
     <div class="step" data-step="moves-0"><h2>Who leaves the city</h2>
-      <p>In a year, 85.7 percent of the metro's foreign-born adults stay in the same house. Of the rest, 5.9 percent move within the suburbs, 2.7 percent arrive from abroad, 2.3 percent move within the city, 2.1 percent arrive from another state, 0.7 percent move from the city to a suburb and 0.6 percent the other way.</p>
+      <p>The one-year migration question in the ACS records where each adult lived a year earlier. Across the three windows the pattern of moves among foreign-born adults aged 25 to 64 barely changes. Moves within the suburbs stay near 6 percent of foreign-born adults and moves within the city between 2 and 3 percent. Arrivals from abroad were 3.3 percent in 2012–2016, 2.0 percent in 2017–2021 and 2.7 percent in 2022–2024. Moves from the city to a suburb ran at 0.5, 1.0 and 0.7 percent, and moves from a suburb into the city at 0.6, 0.5 and 0.6 percent.</p>
     </div>
     <div class="step" data-step="moves-1">
-      <p>Take the stayers out and the flows are small but not random. The 2,400 a year who moved from the city to a suburb earned a median of 33 dollars an hour. The 1,900 who moved the other way earned 20. New arrivals from abroad landed in the city and the suburbs at 3,400 to 5,500 a year, earning 16 and 22 dollars. Among prior city residents, doubling hourly pay raises the odds of a city-to-suburb move by about 40 percent. In the multinomial model the estimate is 1.30 with an interval from 0.97 to 1.74.</p>
+      <p>In 2022–2024 the flows are small but not random. The 2,400 a year who moved from the city to a suburb earned a median of 33 dollars an hour. The 1,900 who moved the other way earned 20. New arrivals from abroad landed in the city and the suburbs at 3,400 to 5,500 a year, earning 16 and 22 dollars. Below, the multinomial model: a worker whose hourly wage is one log unit higher is 1.30 times as likely to move from the city to a suburb, with an interval from 0.97 to 1.74, and 0.71 times as likely to move within the city. Among prior city residents, doubling hourly pay raises the odds of leaving the city by about 40 percent.</p>
     </div>
     <div class="step" data-step="moves-2">
+      <p>Put the stayers back and the flows shrink to their true size. In 2022–2024, 85.7 percent of foreign-born adults lived in the same house as a year earlier. Of the remainder, 5.9 percent moved within the suburbs, 2.7 percent arrived from abroad, 2.3 percent moved within the city, 2.1 percent arrived from another state, 0.7 percent moved from the city to a suburb and 0.6 percent from a suburb into the city. Immigrants who moved from the city to a suburb earn 5 percent more than observationally similar stayers, with a standard error of 6 percent, an interval too wide to detect selection on unobserved earning capacity.</p>
+    </div>
+    <div class="step" data-step="moves-3">
       <p>Native-born adults move between the city and the suburbs at nearly the same rates, 0.6 and 0.7 percent. What differs is arrival from abroad, 2.7 percent of foreign-born adults against 0.2 percent of the native-born, and it lands in the suburbs more often than in the city, 5,500 to 3,400 a year.</p>
     </div>
   </div>
@@ -240,27 +244,22 @@
 
 <section class="chapter" id="ch-grid" data-chapter="grid">
   <div class="graphic"><div class="controls">
-      <label>Rows <select id="cell-rows">
-        <option value="region">arrival cohort by region of birth</option>
-        <option value="country">country of birth</option>
-      </select></label>
-      <label>Metric <select id="cell-metric">
+      <label>Color <select id="cell-metric">
         <option value="median_hourly">median hourly wage, 2024 dollars</option>
-        <option value="suburb_prop">percent living outside the city</option>
         <option value="limited_eng_prop">percent with limited English</option>
-        <option value="rent_burden">mean rent burden, percent of income</option>
+        <option value="suburb_prop">percent living outside the city</option>
       </select></label>
       <span id="cell-regions"></span>
     </div><svg id="s-cells"></svg><div class="detail mini-detail" id="d-cells"></div></div>
   <div class="steps">
-    <div class="step" data-step="grid-0"><h2>Every cell, every window</h2>
-      <p>The same forty-four cells as a grid. Rows are arrival cohort by region of birth, columns are the three survey windows, and color is the real median hourly wage in 2024 dollars. Hover a cell for the number. Asian-born arrivals of the 1990s and 2000s gained about 10 dollars over twelve years, the largest real gains in the table.</p>
+    <div class="step" data-step="grid-0"><h2>The same windows by country of birth</h2>
+      <p>The paper's cells group arrivals by region of birth and arrival cohort. Pooling the cohorts instead gives 53 countries of birth with at least 50 respondents in a window, from the same sample of foreign-born workers aged 25 to 64. Each column is a country, each row a survey window, and color is the real median hourly wage in 2024 dollars. Among Asian-born workers the median ranges from 19 to 26 dollars for Bangladesh to 44 to 53 dollars for India and Taiwan. Among Latin American-born workers it runs from 15 to 20 dollars for Mexico, Guatemala and El Salvador to 23 to 30 dollars for Jamaica and Trinidad and Tobago. Countries are ordered by weighted population within each region. Hover a cell, or click a country for its three windows.</p>
     </div>
     <div class="step" data-step="grid-1">
-      <p>Switch the color to the percentage living outside the city and the grid goes flat. Most cells sit between 59 and 86 percent in every window and drift up by a few points. The exceptions are in the last row block, the 2010s arrivals, and only for Latin America does the difference from the cohort before survive a duration-matched comparison.</p>
+      <p>Color the same grid by the percentage with limited English and the low-wage columns light up. Between 59 and 62 percent of Guatemalan-born workers report limited English in every window, 42 to 67 percent of Honduran-born, 40 to 53 percent of Salvadoran-born, 38 to 51 percent of Mexican-born and 44 to 47 percent of Dominican-born. Among workers born in Canada, England, Ireland, Jamaica, Trinidad and Tobago, Guyana, Ghana and Nigeria, fewer than 2 percent do in any window.</p>
     </div>
-    <div class="step" data-step="grid-2"><h2>The same windows by country of birth</h2>
-      <p>The paper's cells group arrivals by region of birth and arrival cohort. Pooling the cohorts instead gives 53 countries of birth with at least 50 respondents in a window, from the same sample of foreign-born workers aged 25 to 64. Among Asian-born workers the median hourly wage ranges from 19 to 26 dollars for Bangladesh to 44 to 53 dollars for India and Taiwan. Among Latin American-born workers it runs from 15 to 20 dollars for Mexico, Guatemala and El Salvador, where 38 to 62 percent report limited English, to 23 to 30 dollars for Jamaica and Trinidad and Tobago, where almost none do. Rows are ordered by weighted population within each region.</p>
+    <div class="step" data-step="grid-2">
+      <p>Color it by the percentage living outside Philadelphia County and the ordering changes again. Workers born in Mexico and India are the most suburban, 86 to 91 and 85 to 87 percent outside the city in every window. Those born in Albania, Cambodia, Brazil, Haiti and the Dominican Republic are the most concentrated in the city, with between 24 and 64 percent outside it. Wage and residence do not line up: the Mexican-born and the Indian-born sit at opposite ends of the wage grid and at the same end of this one.</p>
     </div>
   </div>
 </section>
@@ -297,6 +296,7 @@
 <script src="lib/topojson.min.js"></script>
 <script src="lib/scrollama.min.js"></script>
 <script src="charts.js"></script>
+<script src="charts2.js"></script>
 <script src="main.js"></script>
 <script src="explore.js"></script>
 <script src="framework.js"></script>
