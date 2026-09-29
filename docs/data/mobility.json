@@ -1,0 +1,1580 @@
+{
+  "landing": [
+    {
+      "region": "Africa",
+      "in_city": false,
+      "n": 1143,
+      "pct": 64.4670050761421
+    },
+    {
+      "region": "Africa",
+      "in_city": true,
+      "n": 630,
+      "pct": 35.5329949238579
+    },
+    {
+      "region": "Asia",
+      "in_city": false,
+      "n": 3875,
+      "pct": 67.1344421344421
+    },
+    {
+      "region": "Asia",
+      "in_city": true,
+      "n": 1897,
+      "pct": 32.8655578655579
+    },
+    {
+      "region": "Europe",
+      "in_city": false,
+      "n": 2130,
+      "pct": 60.6319385140905
+    },
+    {
+      "region": "Europe",
+      "in_city": true,
+      "n": 1383,
+      "pct": 39.3680614859095
+    },
+    {
+      "region": "Latin America",
+      "in_city": false,
+      "n": 2271,
+      "pct": 67.0901033973412
+    },
+    {
+      "region": "Latin America",
+      "in_city": true,
+      "n": 1114,
+      "pct": 32.9098966026588
+    },
+    {
+      "region": "Other",
+      "in_city": false,
+      "n": 282,
+      "pct": 92.7631578947368
+    },
+    {
+      "region": "Other",
+      "in_city": true,
+      "n": 22,
+      "pct": 7.23684210526316
+    }
+  ],
+  "flows": [
+    {
+      "window": "2012-2016",
+      "move_type": "city_to_suburb",
+      "STATE": "DE",
+      "PUMA": "00101",
+      "n": 2
+    },
+    {
+      "window": "2012-2016",
+      "move_type": "city_to_suburb",
+      "STATE": "DE",
+      "PUMA": "00102",
+      "n": 30
+    },
+    {
+      "window": "2012-2016",
+      "move_type": "city_to_suburb",
+      "STATE": "DE",
+      "PUMA": "00103",
+      "n": 29
+    },
+    {
+      "window": "2012-2016",
+      "move_type": "city_to_suburb",
+      "STATE": "DE",
+      "PUMA": "00104",
+      "n": 8
+    },
+    {
+      "window": "2012-2016",
+      "move_type": "city_to_suburb",
+      "STATE": "NJ",
+      "PUMA": "02001",
+      "n": 20
+    },
+    {
+      "window": "2012-2016",
+      "move_type": "city_to_suburb",
+      "STATE": "NJ",
+      "PUMA": "02003",
+      "n": 152
+    },
+    {
+      "window": "2012-2016",
+      "move_type": "city_to_suburb",
+      "STATE": "NJ",
+      "PUMA": "02101",
+      "n": 28
+    },
+    {
+      "window": "2012-2016",
+      "move_type": "city_to_suburb",
+      "STATE": "NJ",
+      "PUMA": "02102",
+      "n": 96
+    },
+    {
+      "window": "2012-2016",
+      "move_type": "city_to_suburb",
+      "STATE": "NJ",
+      "PUMA": "02103",
+      "n": 81
+    },
+    {
+      "window": "2012-2016",
+      "move_type": "city_to_suburb",
+      "STATE": "NJ",
+      "PUMA": "02104",
+      "n": 64
+    },
+    {
+      "window": "2012-2016",
+      "move_type": "city_to_suburb",
+      "STATE": "NJ",
+      "PUMA": "02202",
+      "n": 42
+    },
+    {
+      "window": "2012-2016",
+      "move_type": "city_to_suburb",
+      "STATE": "PA",
+      "PUMA": "03001",
+      "n": 36
+    },
+    {
+      "window": "2012-2016",
+      "move_type": "city_to_suburb",
+      "STATE": "PA",
+      "PUMA": "03002",
+      "n": 158
+    },
+    {
+      "window": "2012-2016",
+      "move_type": "city_to_suburb",
+      "STATE": "PA",
+      "PUMA": "03003",
+      "n": 36
+    },
+    {
+      "window": "2012-2016",
+      "move_type": "city_to_suburb",
+      "STATE": "PA",
+      "PUMA": "03004",
+      "n": 251
+    },
+    {
+      "window": "2012-2016",
+      "move_type": "city_to_suburb",
+      "STATE": "PA",
+      "PUMA": "03102",
+      "n": 45
+    },
+    {
+      "window": "2012-2016",
+      "move_type": "city_to_suburb",
+      "STATE": "PA",
+      "PUMA": "03103",
+      "n": 149
+    },
+    {
+      "window": "2012-2016",
+      "move_type": "city_to_suburb",
+      "STATE": "PA",
+      "PUMA": "03104",
+      "n": 256
+    },
+    {
+      "window": "2012-2016",
+      "move_type": "city_to_suburb",
+      "STATE": "PA",
+      "PUMA": "03105",
+      "n": 400
+    },
+    {
+      "window": "2012-2016",
+      "move_type": "city_to_suburb",
+      "STATE": "PA",
+      "PUMA": "03106",
+      "n": 454
+    },
+    {
+      "window": "2012-2016",
+      "move_type": "city_to_suburb",
+      "STATE": "PA",
+      "PUMA": "03301",
+      "n": 68
+    },
+    {
+      "window": "2012-2016",
+      "move_type": "city_to_suburb",
+      "STATE": "PA",
+      "PUMA": "03302",
+      "n": 250
+    },
+    {
+      "window": "2012-2016",
+      "move_type": "city_to_suburb",
+      "STATE": "PA",
+      "PUMA": "03303",
+      "n": 179
+    },
+    {
+      "window": "2012-2016",
+      "move_type": "city_to_suburb",
+      "STATE": "PA",
+      "PUMA": "03304",
+      "n": 36
+    },
+    {
+      "window": "2012-2016",
+      "move_type": "city_to_suburb",
+      "STATE": "PA",
+      "PUMA": "03401",
+      "n": 29
+    },
+    {
+      "window": "2012-2016",
+      "move_type": "city_to_suburb",
+      "STATE": "PA",
+      "PUMA": "03402",
+      "n": 129
+    },
+    {
+      "window": "2012-2016",
+      "move_type": "city_to_suburb",
+      "STATE": "PA",
+      "PUMA": "03403",
+      "n": 22
+    },
+    {
+      "window": "2012-2016",
+      "move_type": "suburb_to_city",
+      "STATE": "PA",
+      "PUMA": "03201",
+      "n": 160
+    },
+    {
+      "window": "2012-2016",
+      "move_type": "suburb_to_city",
+      "STATE": "PA",
+      "PUMA": "03202",
+      "n": 608
+    },
+    {
+      "window": "2012-2016",
+      "move_type": "suburb_to_city",
+      "STATE": "PA",
+      "PUMA": "03203",
+      "n": 280
+    },
+    {
+      "window": "2012-2016",
+      "move_type": "suburb_to_city",
+      "STATE": "PA",
+      "PUMA": "03204",
+      "n": 317
+    },
+    {
+      "window": "2012-2016",
+      "move_type": "suburb_to_city",
+      "STATE": "PA",
+      "PUMA": "03205",
+      "n": 260
+    },
+    {
+      "window": "2012-2016",
+      "move_type": "suburb_to_city",
+      "STATE": "PA",
+      "PUMA": "03206",
+      "n": 312
+    },
+    {
+      "window": "2012-2016",
+      "move_type": "suburb_to_city",
+      "STATE": "PA",
+      "PUMA": "03207",
+      "n": 147
+    },
+    {
+      "window": "2012-2016",
+      "move_type": "suburb_to_city",
+      "STATE": "PA",
+      "PUMA": "03208",
+      "n": 233
+    },
+    {
+      "window": "2012-2016",
+      "move_type": "suburb_to_city",
+      "STATE": "PA",
+      "PUMA": "03209",
+      "n": 1080
+    },
+    {
+      "window": "2012-2016",
+      "move_type": "suburb_to_city",
+      "STATE": "PA",
+      "PUMA": "03210",
+      "n": 227
+    },
+    {
+      "window": "2012-2016",
+      "move_type": "suburb_to_city",
+      "STATE": "PA",
+      "PUMA": "03211",
+      "n": 184
+    },
+    {
+      "window": "2017-2021",
+      "move_type": "city_to_suburb",
+      "STATE": "DE",
+      "PUMA": "00101",
+      "n": 73
+    },
+    {
+      "window": "2017-2021",
+      "move_type": "city_to_suburb",
+      "STATE": "DE",
+      "PUMA": "00102",
+      "n": 208
+    },
+    {
+      "window": "2017-2021",
+      "move_type": "city_to_suburb",
+      "STATE": "DE",
+      "PUMA": "00104",
+      "n": 98
+    },
+    {
+      "window": "2017-2021",
+      "move_type": "city_to_suburb",
+      "STATE": "NJ",
+      "PUMA": "02001",
+      "n": 65
+    },
+    {
+      "window": "2017-2021",
+      "move_type": "city_to_suburb",
+      "STATE": "NJ",
+      "PUMA": "02002",
+      "n": 20
+    },
+    {
+      "window": "2017-2021",
+      "move_type": "city_to_suburb",
+      "STATE": "NJ",
+      "PUMA": "02101",
+      "n": 97
+    },
+    {
+      "window": "2017-2021",
+      "move_type": "city_to_suburb",
+      "STATE": "NJ",
+      "PUMA": "02102",
+      "n": 27
+    },
+    {
+      "window": "2017-2021",
+      "move_type": "city_to_suburb",
+      "STATE": "NJ",
+      "PUMA": "02104",
+      "n": 329
+    },
+    {
+      "window": "2017-2021",
+      "move_type": "city_to_suburb",
+      "STATE": "NJ",
+      "PUMA": "02201",
+      "n": 141
+    },
+    {
+      "window": "2017-2021",
+      "move_type": "city_to_suburb",
+      "STATE": "NJ",
+      "PUMA": "02202",
+      "n": 159
+    },
+    {
+      "window": "2017-2021",
+      "move_type": "city_to_suburb",
+      "STATE": "PA",
+      "PUMA": "03002",
+      "n": 246
+    },
+    {
+      "window": "2017-2021",
+      "move_type": "city_to_suburb",
+      "STATE": "PA",
+      "PUMA": "03003",
+      "n": 83
+    },
+    {
+      "window": "2017-2021",
+      "move_type": "city_to_suburb",
+      "STATE": "PA",
+      "PUMA": "03004",
+      "n": 790
+    },
+    {
+      "window": "2017-2021",
+      "move_type": "city_to_suburb",
+      "STATE": "PA",
+      "PUMA": "03101",
+      "n": 146
+    },
+    {
+      "window": "2017-2021",
+      "move_type": "city_to_suburb",
+      "STATE": "PA",
+      "PUMA": "03102",
+      "n": 190
+    },
+    {
+      "window": "2017-2021",
+      "move_type": "city_to_suburb",
+      "STATE": "PA",
+      "PUMA": "03103",
+      "n": 516
+    },
+    {
+      "window": "2017-2021",
+      "move_type": "city_to_suburb",
+      "STATE": "PA",
+      "PUMA": "03104",
+      "n": 470
+    },
+    {
+      "window": "2017-2021",
+      "move_type": "city_to_suburb",
+      "STATE": "PA",
+      "PUMA": "03105",
+      "n": 35
+    },
+    {
+      "window": "2017-2021",
+      "move_type": "city_to_suburb",
+      "STATE": "PA",
+      "PUMA": "03106",
+      "n": 437
+    },
+    {
+      "window": "2017-2021",
+      "move_type": "city_to_suburb",
+      "STATE": "PA",
+      "PUMA": "03301",
+      "n": 168
+    },
+    {
+      "window": "2017-2021",
+      "move_type": "city_to_suburb",
+      "STATE": "PA",
+      "PUMA": "03302",
+      "n": 671
+    },
+    {
+      "window": "2017-2021",
+      "move_type": "city_to_suburb",
+      "STATE": "PA",
+      "PUMA": "03303",
+      "n": 157
+    },
+    {
+      "window": "2017-2021",
+      "move_type": "city_to_suburb",
+      "STATE": "PA",
+      "PUMA": "03304",
+      "n": 319
+    },
+    {
+      "window": "2017-2021",
+      "move_type": "city_to_suburb",
+      "STATE": "PA",
+      "PUMA": "03401",
+      "n": 61
+    },
+    {
+      "window": "2017-2021",
+      "move_type": "city_to_suburb",
+      "STATE": "PA",
+      "PUMA": "03402",
+      "n": 13
+    },
+    {
+      "window": "2017-2021",
+      "move_type": "city_to_suburb",
+      "STATE": "PA",
+      "PUMA": "03404",
+      "n": 31
+    },
+    {
+      "window": "2017-2021",
+      "move_type": "suburb_to_city",
+      "STATE": "PA",
+      "PUMA": "03201",
+      "n": 276
+    },
+    {
+      "window": "2017-2021",
+      "move_type": "suburb_to_city",
+      "STATE": "PA",
+      "PUMA": "03202",
+      "n": 736
+    },
+    {
+      "window": "2017-2021",
+      "move_type": "suburb_to_city",
+      "STATE": "PA",
+      "PUMA": "03203",
+      "n": 180
+    },
+    {
+      "window": "2017-2021",
+      "move_type": "suburb_to_city",
+      "STATE": "PA",
+      "PUMA": "03204",
+      "n": 1209
+    },
+    {
+      "window": "2017-2021",
+      "move_type": "suburb_to_city",
+      "STATE": "PA",
+      "PUMA": "03205",
+      "n": 56
+    },
+    {
+      "window": "2017-2021",
+      "move_type": "suburb_to_city",
+      "STATE": "PA",
+      "PUMA": "03206",
+      "n": 516
+    },
+    {
+      "window": "2017-2021",
+      "move_type": "suburb_to_city",
+      "STATE": "PA",
+      "PUMA": "03207",
+      "n": 458
+    },
+    {
+      "window": "2017-2021",
+      "move_type": "suburb_to_city",
+      "STATE": "PA",
+      "PUMA": "03208",
+      "n": 384
+    },
+    {
+      "window": "2017-2021",
+      "move_type": "suburb_to_city",
+      "STATE": "PA",
+      "PUMA": "03209",
+      "n": 628
+    },
+    {
+      "window": "2017-2021",
+      "move_type": "suburb_to_city",
+      "STATE": "PA",
+      "PUMA": "03210",
+      "n": 526
+    },
+    {
+      "window": "2017-2021",
+      "move_type": "suburb_to_city",
+      "STATE": "PA",
+      "PUMA": "03211",
+      "n": 298
+    },
+    {
+      "window": "2022-2024",
+      "move_type": "city_to_suburb",
+      "STATE": "DE",
+      "PUMA": "00102",
+      "n": 77
+    },
+    {
+      "window": "2022-2024",
+      "move_type": "city_to_suburb",
+      "STATE": "DE",
+      "PUMA": "00103",
+      "n": 104
+    },
+    {
+      "window": "2022-2024",
+      "move_type": "city_to_suburb",
+      "STATE": "DE",
+      "PUMA": "00104",
+      "n": 37
+    },
+    {
+      "window": "2022-2024",
+      "move_type": "city_to_suburb",
+      "STATE": "MD",
+      "PUMA": "00700",
+      "n": 12
+    },
+    {
+      "window": "2022-2024",
+      "move_type": "city_to_suburb",
+      "STATE": "NJ",
+      "PUMA": "02001",
+      "n": 23
+    },
+    {
+      "window": "2022-2024",
+      "move_type": "city_to_suburb",
+      "STATE": "NJ",
+      "PUMA": "02002",
+      "n": 145
+    },
+    {
+      "window": "2022-2024",
+      "move_type": "city_to_suburb",
+      "STATE": "NJ",
+      "PUMA": "02003",
+      "n": 14
+    },
+    {
+      "window": "2022-2024",
+      "move_type": "city_to_suburb",
+      "STATE": "NJ",
+      "PUMA": "02101",
+      "n": 145
+    },
+    {
+      "window": "2022-2024",
+      "move_type": "city_to_suburb",
+      "STATE": "NJ",
+      "PUMA": "02102",
+      "n": 55
+    },
+    {
+      "window": "2022-2024",
+      "move_type": "city_to_suburb",
+      "STATE": "NJ",
+      "PUMA": "02103",
+      "n": 170
+    },
+    {
+      "window": "2022-2024",
+      "move_type": "city_to_suburb",
+      "STATE": "NJ",
+      "PUMA": "02104",
+      "n": 120
+    },
+    {
+      "window": "2022-2024",
+      "move_type": "city_to_suburb",
+      "STATE": "NJ",
+      "PUMA": "02201",
+      "n": 114
+    },
+    {
+      "window": "2022-2024",
+      "move_type": "city_to_suburb",
+      "STATE": "PA",
+      "PUMA": "03013",
+      "n": 155
+    },
+    {
+      "window": "2022-2024",
+      "move_type": "city_to_suburb",
+      "STATE": "PA",
+      "PUMA": "03014",
+      "n": 154
+    },
+    {
+      "window": "2022-2024",
+      "move_type": "city_to_suburb",
+      "STATE": "PA",
+      "PUMA": "03015",
+      "n": 282
+    },
+    {
+      "window": "2022-2024",
+      "move_type": "city_to_suburb",
+      "STATE": "PA",
+      "PUMA": "03112",
+      "n": 22
+    },
+    {
+      "window": "2022-2024",
+      "move_type": "city_to_suburb",
+      "STATE": "PA",
+      "PUMA": "03113",
+      "n": 73
+    },
+    {
+      "window": "2022-2024",
+      "move_type": "city_to_suburb",
+      "STATE": "PA",
+      "PUMA": "03114",
+      "n": 176
+    },
+    {
+      "window": "2022-2024",
+      "move_type": "city_to_suburb",
+      "STATE": "PA",
+      "PUMA": "03115",
+      "n": 305
+    },
+    {
+      "window": "2022-2024",
+      "move_type": "city_to_suburb",
+      "STATE": "PA",
+      "PUMA": "03116",
+      "n": 117
+    },
+    {
+      "window": "2022-2024",
+      "move_type": "city_to_suburb",
+      "STATE": "PA",
+      "PUMA": "03117",
+      "n": 94
+    },
+    {
+      "window": "2022-2024",
+      "move_type": "city_to_suburb",
+      "STATE": "PA",
+      "PUMA": "03311",
+      "n": 40
+    },
+    {
+      "window": "2022-2024",
+      "move_type": "city_to_suburb",
+      "STATE": "PA",
+      "PUMA": "03312",
+      "n": 149
+    },
+    {
+      "window": "2022-2024",
+      "move_type": "city_to_suburb",
+      "STATE": "PA",
+      "PUMA": "03313",
+      "n": 264
+    },
+    {
+      "window": "2022-2024",
+      "move_type": "city_to_suburb",
+      "STATE": "PA",
+      "PUMA": "03314",
+      "n": 47
+    },
+    {
+      "window": "2022-2024",
+      "move_type": "city_to_suburb",
+      "STATE": "PA",
+      "PUMA": "03411",
+      "n": 28
+    },
+    {
+      "window": "2022-2024",
+      "move_type": "city_to_suburb",
+      "STATE": "PA",
+      "PUMA": "03413",
+      "n": 31
+    },
+    {
+      "window": "2022-2024",
+      "move_type": "suburb_to_city",
+      "STATE": "PA",
+      "PUMA": "03216",
+      "n": 295
+    },
+    {
+      "window": "2022-2024",
+      "move_type": "suburb_to_city",
+      "STATE": "PA",
+      "PUMA": "03221",
+      "n": 226
+    },
+    {
+      "window": "2022-2024",
+      "move_type": "suburb_to_city",
+      "STATE": "PA",
+      "PUMA": "03222",
+      "n": 475
+    },
+    {
+      "window": "2022-2024",
+      "move_type": "suburb_to_city",
+      "STATE": "PA",
+      "PUMA": "03223",
+      "n": 150
+    },
+    {
+      "window": "2022-2024",
+      "move_type": "suburb_to_city",
+      "STATE": "PA",
+      "PUMA": "03224",
+      "n": 66
+    },
+    {
+      "window": "2022-2024",
+      "move_type": "suburb_to_city",
+      "STATE": "PA",
+      "PUMA": "03225",
+      "n": 140
+    },
+    {
+      "window": "2022-2024",
+      "move_type": "suburb_to_city",
+      "STATE": "PA",
+      "PUMA": "03227",
+      "n": 169
+    },
+    {
+      "window": "2022-2024",
+      "move_type": "suburb_to_city",
+      "STATE": "PA",
+      "PUMA": "03228",
+      "n": 349
+    },
+    {
+      "window": "2022-2024",
+      "move_type": "suburb_to_city",
+      "STATE": "PA",
+      "PUMA": "03229",
+      "n": 270
+    },
+    {
+      "window": "2022-2024",
+      "move_type": "suburb_to_city",
+      "STATE": "PA",
+      "PUMA": "03230",
+      "n": 420
+    },
+    {
+      "window": "2022-2024",
+      "move_type": "suburb_to_city",
+      "STATE": "PA",
+      "PUMA": "03231",
+      "n": 103
+    }
+  ],
+  "move_rates": [
+    {
+      "window": "2012-2016",
+      "fb": true,
+      "move_type": "stayed",
+      "n": 381179,
+      "pct": 84.7972717444018
+    },
+    {
+      "window": "2012-2016",
+      "fb": true,
+      "move_type": "within_city",
+      "n": 12455,
+      "pct": 2.77074555412686
+    },
+    {
+      "window": "2012-2016",
+      "fb": true,
+      "move_type": "within_suburbs",
+      "n": 27345,
+      "pct": 6.08318243095938
+    },
+    {
+      "window": "2012-2016",
+      "fb": true,
+      "move_type": "city_to_suburb",
+      "n": 2281,
+      "pct": 0.507432405376425
+    },
+    {
+      "window": "2012-2016",
+      "fb": true,
+      "move_type": "suburb_to_city",
+      "n": 2503,
+      "pct": 0.556818636851027
+    },
+    {
+      "window": "2012-2016",
+      "fb": true,
+      "move_type": "from_other_state",
+      "n": 8835,
+      "pct": 1.96543853638786
+    },
+    {
+      "window": "2012-2016",
+      "fb": true,
+      "move_type": "from_abroad",
+      "n": 14920,
+      "pct": 3.31911069189665
+    },
+    {
+      "window": "2017-2021",
+      "fb": true,
+      "move_type": "stayed",
+      "n": 432288,
+      "pct": 85.4520008539507
+    },
+    {
+      "window": "2017-2021",
+      "fb": true,
+      "move_type": "within_city",
+      "n": 14042,
+      "pct": 2.77573514876928
+    },
+    {
+      "window": "2017-2021",
+      "fb": true,
+      "move_type": "within_suburbs",
+      "n": 30501,
+      "pct": 6.02924781175131
+    },
+    {
+      "window": "2017-2021",
+      "fb": true,
+      "move_type": "city_to_suburb",
+      "n": 4981,
+      "pct": 0.984613073352784
+    },
+    {
+      "window": "2017-2021",
+      "fb": true,
+      "move_type": "suburb_to_city",
+      "n": 2692,
+      "pct": 0.532137802342039
+    },
+    {
+      "window": "2017-2021",
+      "fb": true,
+      "move_type": "from_other_state",
+      "n": 11268,
+      "pct": 2.22738809687596
+    },
+    {
+      "window": "2017-2021",
+      "fb": true,
+      "move_type": "from_abroad",
+      "n": 10112,
+      "pct": 1.99887721295791
+    },
+    {
+      "window": "2022-2024",
+      "fb": true,
+      "move_type": "stayed",
+      "n": 284020,
+      "pct": 85.6823941112586
+    },
+    {
+      "window": "2022-2024",
+      "fb": true,
+      "move_type": "within_city",
+      "n": 7753,
+      "pct": 2.33890430795221
+    },
+    {
+      "window": "2022-2024",
+      "fb": true,
+      "move_type": "within_suburbs",
+      "n": 19718,
+      "pct": 5.94847351273078
+    },
+    {
+      "window": "2022-2024",
+      "fb": true,
+      "move_type": "city_to_suburb",
+      "n": 2372,
+      "pct": 0.715578617111138
+    },
+    {
+      "window": "2022-2024",
+      "fb": true,
+      "move_type": "suburb_to_city",
+      "n": 1852,
+      "pct": 0.558706407626403
+    },
+    {
+      "window": "2022-2024",
+      "fb": true,
+      "move_type": "from_other_state",
+      "n": 6901,
+      "pct": 2.08187522625799
+    },
+    {
+      "window": "2022-2024",
+      "fb": true,
+      "move_type": "from_abroad",
+      "n": 8864,
+      "pct": 2.67406781706287
+    }
+  ],
+  "cells": [
+    {
+      "cohort": "1990s",
+      "region": "Africa",
+      "window": "2012-2016",
+      "n_unweighted": 418,
+      "pop": 12822,
+      "suburb_prop": 66.4170956169084,
+      "limited_eng_prop": 3.96194041491187,
+      "median_hourly": 21.3740882352941,
+      "mean_log_hw": 3.02404750448479,
+      "rent_burden": 34.9143109540636,
+      "cell": "1990s_Africa"
+    },
+    {
+      "cohort": "1990s",
+      "region": "Africa",
+      "window": "2017-2021",
+      "n_unweighted": 320,
+      "pop": 11618,
+      "suburb_prop": 70.9158202788776,
+      "limited_eng_prop": 2.57359270098124,
+      "median_hourly": 27.7676666666667,
+      "mean_log_hw": 3.27071818087362,
+      "rent_burden": 29.3704006541292,
+      "cell": "1990s_Africa"
+    },
+    {
+      "cohort": "1990s",
+      "region": "Africa",
+      "window": "2022-2024",
+      "n_unweighted": 197,
+      "pop": 6866,
+      "suburb_prop": 68.8464899504806,
+      "limited_eng_prop": 2.65074279056219,
+      "median_hourly": 27.7504086538462,
+      "mean_log_hw": 3.36902214743209,
+      "rent_burden": 43.8583800305655,
+      "cell": "1990s_Africa"
+    },
+    {
+      "cohort": "1990s",
+      "region": "Asia",
+      "window": "2012-2016",
+      "n_unweighted": 1865,
+      "pop": 49830,
+      "suburb_prop": 67.9891631547261,
+      "limited_eng_prop": 24.1200080272928,
+      "median_hourly": 21.4257218390805,
+      "mean_log_hw": 3.07887002168569,
+      "rent_burden": 34.1185185185185,
+      "cell": "1990s_Asia"
+    },
+    {
+      "cohort": "1990s",
+      "region": "Asia",
+      "window": "2017-2021",
+      "n_unweighted": 1840,
+      "pop": 45773,
+      "suburb_prop": 72.5930133484806,
+      "limited_eng_prop": 17.7681165752736,
+      "median_hourly": 28.3989848039216,
+      "mean_log_hw": 3.34719388021251,
+      "rent_burden": 34.8474306201036,
+      "cell": "1990s_Asia"
+    },
+    {
+      "cohort": "1990s",
+      "region": "Asia",
+      "window": "2022-2024",
+      "n_unweighted": 1102,
+      "pop": 28039,
+      "suburb_prop": 70.6836905738436,
+      "limited_eng_prop": 16.1061378793823,
+      "median_hourly": 37.8414663461538,
+      "mean_log_hw": 3.58288191672516,
+      "rent_burden": 35.0339550454328,
+      "cell": "1990s_Asia"
+    },
+    {
+      "cohort": "1990s",
+      "region": "Europe",
+      "window": "2012-2016",
+      "n_unweighted": 872,
+      "pop": 21174,
+      "suburb_prop": 66.813072636252,
+      "limited_eng_prop": 10.9804477189005,
+      "median_hourly": 24.7936398348813,
+      "mean_log_hw": 3.23749903503099,
+      "rent_burden": 28.0552089831566,
+      "cell": "1990s_Europe"
+    },
+    {
+      "cohort": "1990s",
+      "region": "Europe",
+      "window": "2017-2021",
+      "n_unweighted": 760,
+      "pop": 19324,
+      "suburb_prop": 72.2210722417719,
+      "limited_eng_prop": 5.07658869799213,
+      "median_hourly": 36.7831428571429,
+      "mean_log_hw": 3.56012452959027,
+      "rent_burden": 31.1943925233645,
+      "cell": "1990s_Europe"
+    },
+    {
+      "cohort": "1990s",
+      "region": "Europe",
+      "window": "2022-2024",
+      "n_unweighted": 462,
+      "pop": 11737,
+      "suburb_prop": 80.540172105308,
+      "limited_eng_prop": 8.98866831387918,
+      "median_hourly": 38.3460192307692,
+      "mean_log_hw": 3.61985501197802,
+      "rent_burden": 38.6957431960921,
+      "cell": "1990s_Europe"
+    },
+    {
+      "cohort": "1990s",
+      "region": "Latin America",
+      "window": "2012-2016",
+      "n_unweighted": 1183,
+      "pop": 38190,
+      "suburb_prop": 68.8819062581828,
+      "limited_eng_prop": 28.8190625818277,
+      "median_hourly": 14.9279346405229,
+      "mean_log_hw": 2.74279455702262,
+      "rent_burden": 39.1996942063015,
+      "cell": "1990s_Latin America"
+    },
+    {
+      "cohort": "1990s",
+      "region": "Latin America",
+      "window": "2017-2021",
+      "n_unweighted": 1225,
+      "pop": 42840,
+      "suburb_prop": 67.6960784313726,
+      "limited_eng_prop": 24.7315592903828,
+      "median_hourly": 17.1251236666667,
+      "mean_log_hw": 2.90124127169904,
+      "rent_burden": 38.9017207734611,
+      "cell": "1990s_Latin America"
+    },
+    {
+      "cohort": "1990s",
+      "region": "Latin America",
+      "window": "2022-2024",
+      "n_unweighted": 634,
+      "pop": 22535,
+      "suburb_prop": 71.7372975371644,
+      "limited_eng_prop": 22.4095850898602,
+      "median_hourly": 23.6329288461538,
+      "mean_log_hw": 3.14262576180369,
+      "rent_burden": 35.2287220365132,
+      "cell": "1990s_Latin America"
+    },
+    {
+      "cohort": "2000s",
+      "region": "Africa",
+      "window": "2012-2016",
+      "n_unweighted": 544,
+      "pop": 17747,
+      "suburb_prop": 61.3455795345692,
+      "limited_eng_prop": 8.48030653068124,
+      "median_hourly": 15.9045647058824,
+      "mean_log_hw": 2.76674780831462,
+      "rent_burden": 36.0944672358355,
+      "cell": "2000s_Africa"
+    },
+    {
+      "cohort": "2000s",
+      "region": "Africa",
+      "window": "2017-2021",
+      "n_unweighted": 539,
+      "pop": 21226,
+      "suburb_prop": 58.6544803542825,
+      "limited_eng_prop": 8.46132102138886,
+      "median_hourly": 21.9143137254902,
+      "mean_log_hw": 3.06059517459822,
+      "rent_burden": 35.0093139709564,
+      "cell": "2000s_Africa"
+    },
+    {
+      "cohort": "2000s",
+      "region": "Africa",
+      "window": "2022-2024",
+      "n_unweighted": 322,
+      "pop": 12301,
+      "suburb_prop": 73.2298187139257,
+      "limited_eng_prop": 1.95106088935859,
+      "median_hourly": 24.1700408653846,
+      "mean_log_hw": 3.31406259489082,
+      "rent_burden": 34.4942706037902,
+      "cell": "2000s_Africa"
+    },
+    {
+      "cohort": "2000s",
+      "region": "Asia",
+      "window": "2012-2016",
+      "n_unweighted": 2030,
+      "pop": 56200,
+      "suburb_prop": 68.2953736654804,
+      "limited_eng_prop": 23.7775800711744,
+      "median_hourly": 21.0482176470588,
+      "mean_log_hw": 3.05342210781657,
+      "rent_burden": 31.2593144560358,
+      "cell": "2000s_Asia"
+    },
+    {
+      "cohort": "2000s",
+      "region": "Asia",
+      "window": "2017-2021",
+      "n_unweighted": 2145,
+      "pop": 59358,
+      "suburb_prop": 68.9949122275009,
+      "limited_eng_prop": 20.1977829441693,
+      "median_hourly": 30.6800392156863,
+      "mean_log_hw": 3.36609873328106,
+      "rent_burden": 34.8145468638977,
+      "cell": "2000s_Asia"
+    },
+    {
+      "cohort": "2000s",
+      "region": "Asia",
+      "window": "2022-2024",
+      "n_unweighted": 1304,
+      "pop": 36095,
+      "suburb_prop": 68.5274968832248,
+      "limited_eng_prop": 20.7868125779194,
+      "median_hourly": 37.3369134615385,
+      "mean_log_hw": 3.52909609225567,
+      "rent_burden": 31.3473546457282,
+      "cell": "2000s_Asia"
+    },
+    {
+      "cohort": "2000s",
+      "region": "Europe",
+      "window": "2012-2016",
+      "n_unweighted": 615,
+      "pop": 15682,
+      "suburb_prop": 63.3082514985334,
+      "limited_eng_prop": 16.5795179186328,
+      "median_hourly": 20.0795129411765,
+      "mean_log_hw": 3.14782211709807,
+      "rent_burden": 33.1359044995409,
+      "cell": "2000s_Europe"
+    },
+    {
+      "cohort": "2000s",
+      "region": "Europe",
+      "window": "2017-2021",
+      "n_unweighted": 625,
+      "pop": 16588,
+      "suburb_prop": 68.2240173619484,
+      "limited_eng_prop": 10.8029901133349,
+      "median_hourly": 28.4886078431373,
+      "mean_log_hw": 3.40307308975894,
+      "rent_burden": 35.5434625571876,
+      "cell": "2000s_Europe"
+    },
+    {
+      "cohort": "2000s",
+      "region": "Europe",
+      "window": "2022-2024",
+      "n_unweighted": 409,
+      "pop": 10299,
+      "suburb_prop": 69.2300223322653,
+      "limited_eng_prop": 11.4088746480241,
+      "median_hourly": 34.1670673076923,
+      "mean_log_hw": 3.50730292957256,
+      "rent_burden": 36.0330693991616,
+      "cell": "2000s_Europe"
+    },
+    {
+      "cohort": "2000s",
+      "region": "Latin America",
+      "window": "2012-2016",
+      "n_unweighted": 1543,
+      "pop": 54673,
+      "suburb_prop": 66.2301318749657,
+      "limited_eng_prop": 48.1480804053189,
+      "median_hourly": 12.7226715686275,
+      "mean_log_hw": 2.56001438912744,
+      "rent_burden": 40.8578145570811,
+      "cell": "2000s_Latin America"
+    },
+    {
+      "cohort": "2000s",
+      "region": "Latin America",
+      "window": "2017-2021",
+      "n_unweighted": 1397,
+      "pop": 55802,
+      "suburb_prop": 63.1626106591162,
+      "limited_eng_prop": 36.5954625282248,
+      "median_hourly": 16.6606,
+      "mean_log_hw": 2.84178919701146,
+      "rent_burden": 38.9935047361299,
+      "cell": "2000s_Latin America"
+    },
+    {
+      "cohort": "2000s",
+      "region": "Latin America",
+      "window": "2022-2024",
+      "n_unweighted": 924,
+      "pop": 36705,
+      "suburb_prop": 72.0828225037461,
+      "limited_eng_prop": 34.6138128320392,
+      "median_hourly": 19.5240384615385,
+      "mean_log_hw": 3.04948794533351,
+      "rent_burden": 39.3684038555792,
+      "cell": "2000s_Latin America"
+    },
+    {
+      "cohort": "2010s",
+      "region": "Africa",
+      "window": "2017-2021",
+      "n_unweighted": 433,
+      "pop": 17221,
+      "suburb_prop": 53.5799314790082,
+      "limited_eng_prop": 13.6983914987515,
+      "median_hourly": 16.7446844362745,
+      "mean_log_hw": 2.83943550481127,
+      "rent_burden": 35.4815720937574,
+      "cell": "2010s_Africa"
+    },
+    {
+      "cohort": "2010s",
+      "region": "Africa",
+      "window": "2022-2024",
+      "n_unweighted": 328,
+      "pop": 13072,
+      "suburb_prop": 59.3788249694002,
+      "limited_eng_prop": 9.14932680538556,
+      "median_hourly": 21.4844807692308,
+      "mean_log_hw": 3.12413403981958,
+      "rent_burden": 35.847417218543,
+      "cell": "2010s_Africa"
+    },
+    {
+      "cohort": "2010s",
+      "region": "Asia",
+      "window": "2017-2021",
+      "n_unweighted": 2043,
+      "pop": 58800,
+      "suburb_prop": 67.4778911564626,
+      "limited_eng_prop": 21.6224489795918,
+      "median_hourly": 26.7914950980392,
+      "mean_log_hw": 3.24093744771947,
+      "rent_burden": 31.3684946675214,
+      "cell": "2010s_Asia"
+    },
+    {
+      "cohort": "2010s",
+      "region": "Asia",
+      "window": "2022-2024",
+      "n_unweighted": 1274,
+      "pop": 36637,
+      "suburb_prop": 73.1801184594809,
+      "limited_eng_prop": 20.8313999508693,
+      "median_hourly": 34.7094017094017,
+      "mean_log_hw": 3.4220185141511,
+      "rent_burden": 29.4905389712412,
+      "cell": "2010s_Asia"
+    },
+    {
+      "cohort": "2010s",
+      "region": "Europe",
+      "window": "2017-2021",
+      "n_unweighted": 503,
+      "pop": 14375,
+      "suburb_prop": 52.5565217391304,
+      "limited_eng_prop": 18.1565217391304,
+      "median_hourly": 25.2433333333333,
+      "mean_log_hw": 3.24352377497617,
+      "rent_burden": 32.273304512294,
+      "cell": "2010s_Europe"
+    },
+    {
+      "cohort": "2010s",
+      "region": "Europe",
+      "window": "2022-2024",
+      "n_unweighted": 307,
+      "pop": 8686,
+      "suburb_prop": 54.4899838821091,
+      "limited_eng_prop": 17.5454754777803,
+      "median_hourly": 31.9363903326403,
+      "mean_log_hw": 3.46285406995291,
+      "rent_burden": 26.7370222475756,
+      "cell": "2010s_Europe"
+    },
+    {
+      "cohort": "2010s",
+      "region": "Latin America",
+      "window": "2017-2021",
+      "n_unweighted": 839,
+      "pop": 33743,
+      "suburb_prop": 55.6885872625433,
+      "limited_eng_prop": 46.2644103962303,
+      "median_hourly": 15.4506886597938,
+      "mean_log_hw": 2.80077958365598,
+      "rent_burden": 44.1701170960187,
+      "cell": "2010s_Latin America"
+    },
+    {
+      "cohort": "2010s",
+      "region": "Latin America",
+      "window": "2022-2024",
+      "n_unweighted": 680,
+      "pop": 27896,
+      "suburb_prop": 59.0622311442501,
+      "limited_eng_prop": 44.1210209349011,
+      "median_hourly": 19.3360326923077,
+      "mean_log_hw": 2.99810324307945,
+      "rent_burden": 39.0105173207126,
+      "cell": "2010s_Latin America"
+    },
+    {
+      "cohort": "pre1990",
+      "region": "Africa",
+      "window": "2012-2016",
+      "n_unweighted": 256,
+      "pop": 6597,
+      "suburb_prop": 62.8467485220555,
+      "limited_eng_prop": 1.54615734424739,
+      "median_hourly": 25.95425,
+      "mean_log_hw": 3.26635153967954,
+      "rent_burden": 41.5836341756919,
+      "cell": "pre1990_Africa"
+    },
+    {
+      "cohort": "pre1990",
+      "region": "Africa",
+      "window": "2017-2021",
+      "n_unweighted": 226,
+      "pop": 6797,
+      "suburb_prop": 73.0175077239959,
+      "limited_eng_prop": 0.250110342798293,
+      "median_hourly": 34.5855829228243,
+      "mean_log_hw": 3.47781148221142,
+      "rent_burden": 25.9628378378378,
+      "cell": "pre1990_Africa"
+    },
+    {
+      "cohort": "pre1990",
+      "region": "Africa",
+      "window": "2022-2024",
+      "n_unweighted": 100,
+      "pop": 3247,
+      "suburb_prop": 75.3618724976902,
+      "limited_eng_prop": 2.92577764089929,
+      "median_hourly": 35.1168807692308,
+      "mean_log_hw": 3.53175433710078,
+      "rent_burden": 38.0444444444444,
+      "cell": "pre1990_Africa"
+    },
+    {
+      "cohort": "pre1990",
+      "region": "Asia",
+      "window": "2012-2016",
+      "n_unweighted": 2103,
+      "pop": 50856,
+      "suburb_prop": 71.2560956425987,
+      "limited_eng_prop": 18.4796287557024,
+      "median_hourly": 25.0574019607843,
+      "mean_log_hw": 3.2087715038013,
+      "rent_burden": 33.995760715968,
+      "cell": "pre1990_Asia"
+    },
+    {
+      "cohort": "pre1990",
+      "region": "Asia",
+      "window": "2017-2021",
+      "n_unweighted": 1744,
+      "pop": 43532,
+      "suburb_prop": 71.8919415602316,
+      "limited_eng_prop": 13.6910778278048,
+      "median_hourly": 32.8163333333333,
+      "mean_log_hw": 3.45939855894173,
+      "rent_burden": 34.7316093800193,
+      "cell": "pre1990_Asia"
+    },
+    {
+      "cohort": "pre1990",
+      "region": "Asia",
+      "window": "2022-2024",
+      "n_unweighted": 799,
+      "pop": 19348,
+      "suburb_prop": 71.4595823857763,
+      "limited_eng_prop": 15.8724415960306,
+      "median_hourly": 36.3278076923077,
+      "mean_log_hw": 3.56351370796936,
+      "rent_burden": 34.6754617414248,
+      "cell": "pre1990_Asia"
+    },
+    {
+      "cohort": "pre1990",
+      "region": "Europe",
+      "window": "2012-2016",
+      "n_unweighted": 1136,
+      "pop": 24031,
+      "suburb_prop": 82.3228330073655,
+      "limited_eng_prop": 4.19458199825226,
+      "median_hourly": 26.0596980392157,
+      "mean_log_hw": 3.26141225084177,
+      "rent_burden": 33.1118314424635,
+      "cell": "pre1990_Europe"
+    },
+    {
+      "cohort": "pre1990",
+      "region": "Europe",
+      "window": "2017-2021",
+      "n_unweighted": 766,
+      "pop": 18379,
+      "suburb_prop": 82.3548615267425,
+      "limited_eng_prop": 2.26345285380053,
+      "median_hourly": 32.8714705882353,
+      "mean_log_hw": 3.50908694619376,
+      "rent_burden": 37.6266304347826,
+      "cell": "pre1990_Europe"
+    },
+    {
+      "cohort": "pre1990",
+      "region": "Europe",
+      "window": "2022-2024",
+      "n_unweighted": 326,
+      "pop": 7537,
+      "suburb_prop": 85.8033700411304,
+      "limited_eng_prop": 5.05506169563487,
+      "median_hourly": 37.056625,
+      "mean_log_hw": 3.58722615847472,
+      "rent_burden": 34.317107093185,
+      "cell": "pre1990_Europe"
+    },
+    {
+      "cohort": "pre1990",
+      "region": "Latin America",
+      "window": "2012-2016",
+      "n_unweighted": 1213,
+      "pop": 34484,
+      "suburb_prop": 66.7265978424777,
+      "limited_eng_prop": 15.5927386614082,
+      "median_hourly": 18.1181617647059,
+      "mean_log_hw": 2.92025436177914,
+      "rent_burden": 38.7390799746782,
+      "cell": "pre1990_Latin America"
+    },
+    {
+      "cohort": "pre1990",
+      "region": "Latin America",
+      "window": "2017-2021",
+      "n_unweighted": 975,
+      "pop": 28557,
+      "suburb_prop": 71.4850999754876,
+      "limited_eng_prop": 11.5943551493504,
+      "median_hourly": 24.0515359477124,
+      "mean_log_hw": 3.21271273529424,
+      "rent_burden": 35.1590877485746,
+      "cell": "pre1990_Latin America"
+    },
+    {
+      "cohort": "pre1990",
+      "region": "Latin America",
+      "window": "2022-2024",
+      "n_unweighted": 492,
+      "pop": 15084,
+      "suburb_prop": 75.3182179793158,
+      "limited_eng_prop": 16.7926279501458,
+      "median_hourly": 26.7413028846154,
+      "mean_log_hw": 3.32681368755542,
+      "rent_burden": 31.0693825588797,
+      "cell": "pre1990_Latin America"
+    }
+  ]
+}

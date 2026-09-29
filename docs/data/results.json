@@ -1,0 +1,918 @@
+{
+ "t1": [
+  {
+   "eng": "Not at all",
+   "median": 14.99,
+   "lo": 13.62,
+   "hi": 16.76
+  },
+  {
+   "eng": "Not well",
+   "median": 18.37,
+   "lo": 17.08,
+   "hi": 19.34
+  },
+  {
+   "eng": "Well",
+   "median": 22.56,
+   "lo": 21.48,
+   "hi": 23.63
+  },
+  {
+   "eng": "Very well",
+   "median": 36.28,
+   "lo": 34.91,
+   "hi": 37.6
+  }
+ ],
+ "cohort": {
+  "pre1990": -0.2425,
+  "1990s": -0.2396,
+  "2000s": -0.1957,
+  "2010s": -0.1835,
+  "2020s": -0.1899,
+  "ysm": 0.013,
+  "ysm2": -0.0002
+ },
+ "enclave": {
+  "A": {
+   "limited": -0.2344,
+   "density": -0.0836,
+   "inter": 0.0494
+  },
+  "B": {
+   "limited": -0.0919,
+   "density": -0.0482,
+   "inter": 0.0073
+  }
+ },
+ "oaxaca": {
+  "gap": 0.1074,
+  "base": {
+   "explained": 0.0266,
+   "unexplained": 0.0808
+  },
+  "with_english": {
+   "explained": 0.0771,
+   "unexplained": 0.0303
+  }
+ },
+ "rrr": [
+  {
+   "move": "within_city",
+   "rrr": 0.714,
+   "lo": 0.61,
+   "hi": 0.83
+  },
+  {
+   "move": "within_suburbs",
+   "rrr": 1.066,
+   "lo": 0.98,
+   "hi": 1.15
+  },
+  {
+   "move": "city_to_suburb",
+   "rrr": 1.299,
+   "lo": 0.97,
+   "hi": 1.74
+  },
+  {
+   "move": "suburb_to_city",
+   "rrr": 0.872,
+   "lo": 0.64,
+   "hi": 1.18
+  }
+ ],
+ "cells": [
+  {
+   "cohort": "1990s",
+   "region": "Africa",
+   "window": "2012-2016",
+   "n_unweighted": "418",
+   "pop": 12822.0,
+   "suburb_prop": 66.41709561690844,
+   "limited_eng_prop": "3.96194041491187",
+   "median_hourly": 21.374088235294117,
+   "mean_log_hw": "3.024047504484788",
+   "rent_burden": "34.9143109540636",
+   "cell": "1990s_Africa"
+  },
+  {
+   "cohort": "1990s",
+   "region": "Africa",
+   "window": "2017-2021",
+   "n_unweighted": "320",
+   "pop": 11618.0,
+   "suburb_prop": 70.9158202788776,
+   "limited_eng_prop": "2.5735927009812363",
+   "median_hourly": 27.767666666666667,
+   "mean_log_hw": "3.270718180873618",
+   "rent_burden": "29.37040065412919",
+   "cell": "1990s_Africa"
+  },
+  {
+   "cohort": "1990s",
+   "region": "Africa",
+   "window": "2022-2024",
+   "n_unweighted": "197",
+   "pop": 6866.0,
+   "suburb_prop": 68.84648995048063,
+   "limited_eng_prop": "2.6507427905621905",
+   "median_hourly": 27.75040865384615,
+   "mean_log_hw": "3.3690221474320943",
+   "rent_burden": "43.85838003056546",
+   "cell": "1990s_Africa"
+  },
+  {
+   "cohort": "1990s",
+   "region": "Asia",
+   "window": "2012-2016",
+   "n_unweighted": "1865",
+   "pop": 49830.0,
+   "suburb_prop": 67.98916315472607,
+   "limited_eng_prop": "24.120008027292794",
+   "median_hourly": 21.425721839080456,
+   "mean_log_hw": "3.0788700216856904",
+   "rent_burden": "34.11851851851852",
+   "cell": "1990s_Asia"
+  },
+  {
+   "cohort": "1990s",
+   "region": "Asia",
+   "window": "2017-2021",
+   "n_unweighted": "1840",
+   "pop": 45773.0,
+   "suburb_prop": 72.59301334848055,
+   "limited_eng_prop": "17.76811657527363",
+   "median_hourly": 28.39898480392157,
+   "mean_log_hw": "3.347193880212511",
+   "rent_burden": "34.84743062010357",
+   "cell": "1990s_Asia"
+  },
+  {
+   "cohort": "1990s",
+   "region": "Asia",
+   "window": "2022-2024",
+   "n_unweighted": "1102",
+   "pop": 28039.0,
+   "suburb_prop": 70.68369057384358,
+   "limited_eng_prop": "16.106137879382292",
+   "median_hourly": 37.84146634615384,
+   "mean_log_hw": "3.582881916725158",
+   "rent_burden": "35.033955045432805",
+   "cell": "1990s_Asia"
+  },
+  {
+   "cohort": "1990s",
+   "region": "Europe",
+   "window": "2012-2016",
+   "n_unweighted": "872",
+   "pop": 21174.0,
+   "suburb_prop": 66.813072636252,
+   "limited_eng_prop": "10.980447718900537",
+   "median_hourly": 24.793639834881322,
+   "mean_log_hw": "3.2374990350309885",
+   "rent_burden": "28.055208983156582",
+   "cell": "1990s_Europe"
+  },
+  {
+   "cohort": "1990s",
+   "region": "Europe",
+   "window": "2017-2021",
+   "n_unweighted": "760",
+   "pop": 19324.0,
+   "suburb_prop": 72.22107224177189,
+   "limited_eng_prop": "5.076588697992134",
+   "median_hourly": 36.783142857142856,
+   "mean_log_hw": "3.5601245295902717",
+   "rent_burden": "31.194392523364485",
+   "cell": "1990s_Europe"
+  },
+  {
+   "cohort": "1990s",
+   "region": "Europe",
+   "window": "2022-2024",
+   "n_unweighted": "462",
+   "pop": 11737.0,
+   "suburb_prop": 80.540172105308,
+   "limited_eng_prop": "8.988668313879185",
+   "median_hourly": 38.34601923076922,
+   "mean_log_hw": "3.6198550119780157",
+   "rent_burden": "38.69574319609212",
+   "cell": "1990s_Europe"
+  },
+  {
+   "cohort": "1990s",
+   "region": "Latin America",
+   "window": "2012-2016",
+   "n_unweighted": "1183",
+   "pop": 38190.0,
+   "suburb_prop": 68.88190625818277,
+   "limited_eng_prop": "28.819062581827705",
+   "median_hourly": 14.927934640522876,
+   "mean_log_hw": "2.742794557022624",
+   "rent_burden": "39.19969420630154",
+   "cell": "1990s_Latin America"
+  },
+  {
+   "cohort": "1990s",
+   "region": "Latin America",
+   "window": "2017-2021",
+   "n_unweighted": "1225",
+   "pop": 42840.0,
+   "suburb_prop": 67.69607843137256,
+   "limited_eng_prop": "24.73155929038282",
+   "median_hourly": 17.125123666666667,
+   "mean_log_hw": "2.9012412716990448",
+   "rent_burden": "38.90172077346106",
+   "cell": "1990s_Latin America"
+  },
+  {
+   "cohort": "1990s",
+   "region": "Latin America",
+   "window": "2022-2024",
+   "n_unweighted": "634",
+   "pop": 22535.0,
+   "suburb_prop": 71.73729753716441,
+   "limited_eng_prop": "22.40958508986022",
+   "median_hourly": 23.63292884615385,
+   "mean_log_hw": "3.142625761803687",
+   "rent_burden": "35.22872203651324",
+   "cell": "1990s_Latin America"
+  },
+  {
+   "cohort": "2000s",
+   "region": "Africa",
+   "window": "2012-2016",
+   "n_unweighted": "544",
+   "pop": 17747.0,
+   "suburb_prop": 61.345579534569225,
+   "limited_eng_prop": "8.480306530681242",
+   "median_hourly": 15.904564705882352,
+   "mean_log_hw": "2.7667478083146193",
+   "rent_burden": "36.09446723583546",
+   "cell": "2000s_Africa"
+  },
+  {
+   "cohort": "2000s",
+   "region": "Africa",
+   "window": "2017-2021",
+   "n_unweighted": "539",
+   "pop": 21226.0,
+   "suburb_prop": 58.65448035428248,
+   "limited_eng_prop": "8.461321021388862",
+   "median_hourly": 21.914313725490196,
+   "mean_log_hw": "3.0605951745982183",
+   "rent_burden": "35.009313970956434",
+   "cell": "2000s_Africa"
+  },
+  {
+   "cohort": "2000s",
+   "region": "Africa",
+   "window": "2022-2024",
+   "n_unweighted": "322",
+   "pop": 12301.0,
+   "suburb_prop": 73.2298187139257,
+   "limited_eng_prop": "1.9510608893585888",
+   "median_hourly": 24.170040865384617,
+   "mean_log_hw": "3.3140625948908222",
+   "rent_burden": "34.49427060379021",
+   "cell": "2000s_Africa"
+  },
+  {
+   "cohort": "2000s",
+   "region": "Asia",
+   "window": "2012-2016",
+   "n_unweighted": "2030",
+   "pop": 56200.0,
+   "suburb_prop": 68.29537366548043,
+   "limited_eng_prop": "23.777580071174377",
+   "median_hourly": 21.048217647058824,
+   "mean_log_hw": "3.053422107816568",
+   "rent_burden": "31.259314456035767",
+   "cell": "2000s_Asia"
+  },
+  {
+   "cohort": "2000s",
+   "region": "Asia",
+   "window": "2017-2021",
+   "n_unweighted": "2145",
+   "pop": 59358.0,
+   "suburb_prop": 68.99491222750093,
+   "limited_eng_prop": "20.19778294416928",
+   "median_hourly": 30.68003921568627,
+   "mean_log_hw": "3.366098733281057",
+   "rent_burden": "34.81454686389768",
+   "cell": "2000s_Asia"
+  },
+  {
+   "cohort": "2000s",
+   "region": "Asia",
+   "window": "2022-2024",
+   "n_unweighted": "1304",
+   "pop": 36095.0,
+   "suburb_prop": 68.52749688322483,
+   "limited_eng_prop": "20.78681257791938",
+   "median_hourly": 37.33691346153846,
+   "mean_log_hw": "3.529096092255668",
+   "rent_burden": "31.347354645728174",
+   "cell": "2000s_Asia"
+  },
+  {
+   "cohort": "2000s",
+   "region": "Europe",
+   "window": "2012-2016",
+   "n_unweighted": "615",
+   "pop": 15682.0,
+   "suburb_prop": 63.30825149853335,
+   "limited_eng_prop": "16.579517918632828",
+   "median_hourly": 20.07951294117647,
+   "mean_log_hw": "3.14782211709807",
+   "rent_burden": "33.135904499540864",
+   "cell": "2000s_Europe"
+  },
+  {
+   "cohort": "2000s",
+   "region": "Europe",
+   "window": "2017-2021",
+   "n_unweighted": "625",
+   "pop": 16588.0,
+   "suburb_prop": 68.2240173619484,
+   "limited_eng_prop": "10.80299011333494",
+   "median_hourly": 28.488607843137252,
+   "mean_log_hw": "3.4030730897589376",
+   "rent_burden": "35.543462557187574",
+   "cell": "2000s_Europe"
+  },
+  {
+   "cohort": "2000s",
+   "region": "Europe",
+   "window": "2022-2024",
+   "n_unweighted": "409",
+   "pop": 10299.0,
+   "suburb_prop": 69.23002233226528,
+   "limited_eng_prop": "11.40887464802408",
+   "median_hourly": 34.16706730769231,
+   "mean_log_hw": "3.5073029295725564",
+   "rent_burden": "36.03306939916162",
+   "cell": "2000s_Europe"
+  },
+  {
+   "cohort": "2000s",
+   "region": "Latin America",
+   "window": "2012-2016",
+   "n_unweighted": "1543",
+   "pop": 54673.0,
+   "suburb_prop": 66.2301318749657,
+   "limited_eng_prop": "48.14808040531889",
+   "median_hourly": 12.722671568627451,
+   "mean_log_hw": "2.560014389127441",
+   "rent_burden": "40.85781455708106",
+   "cell": "2000s_Latin America"
+  },
+  {
+   "cohort": "2000s",
+   "region": "Latin America",
+   "window": "2017-2021",
+   "n_unweighted": "1397",
+   "pop": 55802.0,
+   "suburb_prop": 63.16261065911616,
+   "limited_eng_prop": "36.59546252822479",
+   "median_hourly": 16.6606,
+   "mean_log_hw": "2.8417891970114555",
+   "rent_burden": "38.99350473612991",
+   "cell": "2000s_Latin America"
+  },
+  {
+   "cohort": "2000s",
+   "region": "Latin America",
+   "window": "2022-2024",
+   "n_unweighted": "924",
+   "pop": 36705.0,
+   "suburb_prop": 72.08282250374609,
+   "limited_eng_prop": "34.61381283203923",
+   "median_hourly": 19.52403846153846,
+   "mean_log_hw": "3.0494879453335146",
+   "rent_burden": "39.36840385557915",
+   "cell": "2000s_Latin America"
+  },
+  {
+   "cohort": "2010s",
+   "region": "Africa",
+   "window": "2017-2021",
+   "n_unweighted": "433",
+   "pop": 17221.0,
+   "suburb_prop": 53.579931479008195,
+   "limited_eng_prop": "13.698391498751525",
+   "median_hourly": 16.74468443627451,
+   "mean_log_hw": "2.839435504811268",
+   "rent_burden": "35.4815720937574",
+   "cell": "2010s_Africa"
+  },
+  {
+   "cohort": "2010s",
+   "region": "Africa",
+   "window": "2022-2024",
+   "n_unweighted": "328",
+   "pop": 13072.0,
+   "suburb_prop": 59.37882496940025,
+   "limited_eng_prop": "9.149326805385558",
+   "median_hourly": 21.48448076923077,
+   "mean_log_hw": "3.124134039819578",
+   "rent_burden": "35.84741721854304",
+   "cell": "2010s_Africa"
+  },
+  {
+   "cohort": "2010s",
+   "region": "Asia",
+   "window": "2017-2021",
+   "n_unweighted": "2043",
+   "pop": 58800.0,
+   "suburb_prop": 67.47789115646259,
+   "limited_eng_prop": "21.622448979591837",
+   "median_hourly": 26.791495098039217,
+   "mean_log_hw": "3.2409374477194746",
+   "rent_burden": "31.368494667521418",
+   "cell": "2010s_Asia"
+  },
+  {
+   "cohort": "2010s",
+   "region": "Asia",
+   "window": "2022-2024",
+   "n_unweighted": "1274",
+   "pop": 36637.0,
+   "suburb_prop": 73.18011845948085,
+   "limited_eng_prop": "20.83139995086934",
+   "median_hourly": 34.70940170940171,
+   "mean_log_hw": "3.422018514151096",
+   "rent_burden": "29.490538971241204",
+   "cell": "2010s_Asia"
+  },
+  {
+   "cohort": "2010s",
+   "region": "Europe",
+   "window": "2017-2021",
+   "n_unweighted": "503",
+   "pop": 14375.0,
+   "suburb_prop": 52.55652173913043,
+   "limited_eng_prop": "18.156521739130437",
+   "median_hourly": 25.24333333333333,
+   "mean_log_hw": "3.243523774976175",
+   "rent_burden": "32.273304512293976",
+   "cell": "2010s_Europe"
+  },
+  {
+   "cohort": "2010s",
+   "region": "Europe",
+   "window": "2022-2024",
+   "n_unweighted": "307",
+   "pop": 8686.0,
+   "suburb_prop": 54.48998388210914,
+   "limited_eng_prop": "17.545475477780336",
+   "median_hourly": 31.936390332640336,
+   "mean_log_hw": "3.4628540699529125",
+   "rent_burden": "26.737022247575585",
+   "cell": "2010s_Europe"
+  },
+  {
+   "cohort": "2010s",
+   "region": "Latin America",
+   "window": "2017-2021",
+   "n_unweighted": "839",
+   "pop": 33743.0,
+   "suburb_prop": 55.688587262543344,
+   "limited_eng_prop": "46.264410396230325",
+   "median_hourly": 15.450688659793812,
+   "mean_log_hw": "2.8007795836559835",
+   "rent_burden": "44.170117096018735",
+   "cell": "2010s_Latin America"
+  },
+  {
+   "cohort": "2010s",
+   "region": "Latin America",
+   "window": "2022-2024",
+   "n_unweighted": "680",
+   "pop": 27896.0,
+   "suburb_prop": 59.06223114425008,
+   "limited_eng_prop": "44.12102093490106",
+   "median_hourly": 19.336032692307693,
+   "mean_log_hw": "2.9981032430794454",
+   "rent_burden": "39.01051732071255",
+   "cell": "2010s_Latin America"
+  },
+  {
+   "cohort": "pre1990",
+   "region": "Africa",
+   "window": "2012-2016",
+   "n_unweighted": "256",
+   "pop": 6597.0,
+   "suburb_prop": 62.846748522055485,
+   "limited_eng_prop": "1.5461573442473853",
+   "median_hourly": 25.954250000000002,
+   "mean_log_hw": "3.2663515396795435",
+   "rent_burden": "41.583634175691934",
+   "cell": "pre1990_Africa"
+  },
+  {
+   "cohort": "pre1990",
+   "region": "Africa",
+   "window": "2017-2021",
+   "n_unweighted": "226",
+   "pop": 6797.0,
+   "suburb_prop": 73.01750772399588,
+   "limited_eng_prop": "0.25011034279829336",
+   "median_hourly": 34.5855829228243,
+   "mean_log_hw": "3.477811482211419",
+   "rent_burden": "25.96283783783784",
+   "cell": "pre1990_Africa"
+  },
+  {
+   "cohort": "pre1990",
+   "region": "Africa",
+   "window": "2022-2024",
+   "n_unweighted": "100",
+   "pop": 3247.0,
+   "suburb_prop": 75.36187249769017,
+   "limited_eng_prop": "2.9257776408992915",
+   "median_hourly": 35.11688076923076,
+   "mean_log_hw": "3.531754337100776",
+   "rent_burden": "38.044444444444444",
+   "cell": "pre1990_Africa"
+  },
+  {
+   "cohort": "pre1990",
+   "region": "Asia",
+   "window": "2012-2016",
+   "n_unweighted": "2103",
+   "pop": 50856.0,
+   "suburb_prop": 71.25609564259871,
+   "limited_eng_prop": "18.479628755702375",
+   "median_hourly": 25.057401960784315,
+   "mean_log_hw": "3.208771503801302",
+   "rent_burden": "33.99576071596797",
+   "cell": "pre1990_Asia"
+  },
+  {
+   "cohort": "pre1990",
+   "region": "Asia",
+   "window": "2017-2021",
+   "n_unweighted": "1744",
+   "pop": 43532.0,
+   "suburb_prop": 71.89194156023156,
+   "limited_eng_prop": "13.691077827804834",
+   "median_hourly": 32.81633333333333,
+   "mean_log_hw": "3.459398558941731",
+   "rent_burden": "34.73160938001927",
+   "cell": "pre1990_Asia"
+  },
+  {
+   "cohort": "pre1990",
+   "region": "Asia",
+   "window": "2022-2024",
+   "n_unweighted": "799",
+   "pop": 19348.0,
+   "suburb_prop": 71.45958238577632,
+   "limited_eng_prop": "15.872441596030598",
+   "median_hourly": 36.327807692307694,
+   "mean_log_hw": "3.563513707969361",
+   "rent_burden": "34.675461741424805",
+   "cell": "pre1990_Asia"
+  },
+  {
+   "cohort": "pre1990",
+   "region": "Europe",
+   "window": "2012-2016",
+   "n_unweighted": "1136",
+   "pop": 24031.0,
+   "suburb_prop": 82.32283300736547,
+   "limited_eng_prop": "4.194581998252257",
+   "median_hourly": 26.05969803921569,
+   "mean_log_hw": "3.2614122508417696",
+   "rent_burden": "33.11183144246353",
+   "cell": "pre1990_Europe"
+  },
+  {
+   "cohort": "pre1990",
+   "region": "Europe",
+   "window": "2017-2021",
+   "n_unweighted": "766",
+   "pop": 18379.0,
+   "suburb_prop": 82.35486152674247,
+   "limited_eng_prop": "2.2634528538005334",
+   "median_hourly": 32.87147058823529,
+   "mean_log_hw": "3.5090869461937575",
+   "rent_burden": "37.62663043478261",
+   "cell": "pre1990_Europe"
+  },
+  {
+   "cohort": "pre1990",
+   "region": "Europe",
+   "window": "2022-2024",
+   "n_unweighted": "326",
+   "pop": 7537.0,
+   "suburb_prop": 85.80337004113042,
+   "limited_eng_prop": "5.055061695634868",
+   "median_hourly": 37.056625,
+   "mean_log_hw": "3.587226158474723",
+   "rent_burden": "34.31710709318498",
+   "cell": "pre1990_Europe"
+  },
+  {
+   "cohort": "pre1990",
+   "region": "Latin America",
+   "window": "2012-2016",
+   "n_unweighted": "1213",
+   "pop": 34484.0,
+   "suburb_prop": 66.72659784247767,
+   "limited_eng_prop": "15.59273866140819",
+   "median_hourly": 18.118161764705885,
+   "mean_log_hw": "2.9202543617791354",
+   "rent_burden": "38.739079974678205",
+   "cell": "pre1990_Latin America"
+  },
+  {
+   "cohort": "pre1990",
+   "region": "Latin America",
+   "window": "2017-2021",
+   "n_unweighted": "975",
+   "pop": 28557.0,
+   "suburb_prop": 71.48509997548761,
+   "limited_eng_prop": "11.594355149350422",
+   "median_hourly": 24.051535947712416,
+   "mean_log_hw": "3.2127127352942426",
+   "rent_burden": "35.159087748574606",
+   "cell": "pre1990_Latin America"
+  },
+  {
+   "cohort": "pre1990",
+   "region": "Latin America",
+   "window": "2022-2024",
+   "n_unweighted": "492",
+   "pop": 15084.0,
+   "suburb_prop": 75.31821797931583,
+   "limited_eng_prop": "16.79262795014585",
+   "median_hourly": 26.741302884615383,
+   "mean_log_hw": "3.3268136875554246",
+   "rent_burden": "31.069382558879695",
+   "cell": "pre1990_Latin America"
+  }
+ ],
+ "icc": 0.115,
+ "fb_total": 239646,
+ "city_pct": 15.2,
+ "slopes": {
+  "generic": [
+   {
+    "g": "Proficient immigrants",
+    "v": -0.084,
+    "se": 0.018
+   },
+   {
+    "g": "Limited-English immigrants",
+    "v": -0.034,
+    "se": 0.02
+   },
+   {
+    "g": "Native-born",
+    "v": -0.02,
+    "se": 0.011
+   }
+  ],
+  "with_native_wage": [
+   {
+    "g": "Proficient immigrants",
+    "v": -0.064,
+    "se": 0.013
+   }
+  ],
+  "interaction": {
+   "v2022": 0.049,
+   "se2022": 0.029,
+   "p2022": 0.09,
+   "v2017": 0.05,
+   "se2017": 0.028
+  }
+ },
+ "ownlang": {
+  "Philadelphia": {
+   "prof": -0.057,
+   "prof_se": 0.017,
+   "lim": -0.011,
+   "lim_se": 0.016,
+   "inter": 0.046,
+   "inter_se": 0.022,
+   "sd_pp": 7.7,
+   "n": 5732
+  },
+  "New York": {
+   "prof": -0.032,
+   "prof_se": 0.007,
+   "lim": 0.012,
+   "lim_se": 0.008,
+   "inter": 0.045,
+   "inter_se": 0.009,
+   "sd_pp": 17.8,
+   "n": 54089
+  }
+ },
+ "duration": [
+  {
+   "region": "Asia",
+   "diff": 4.9,
+   "se": 2.4,
+   "c2000": 68.3,
+   "c2010": 73.2
+  },
+  {
+   "region": "Latin America",
+   "diff": -7.2,
+   "se": 3.2,
+   "c2000": 66.2,
+   "c2010": 59.1
+  },
+  {
+   "region": "Europe",
+   "diff": -8.8,
+   "se": 5.5,
+   "c2000": 63.3,
+   "c2010": 54.5
+  },
+  {
+   "region": "Africa",
+   "diff": -2.0,
+   "se": 5.1,
+   "c2000": 61.3,
+   "c2010": 59.4
+  }
+ ],
+ "cohort_max_ysm": {
+  "pre1990": 30,
+  "1990s": 30,
+  "2000s": 24,
+  "2010s": 14,
+  "2020s": 4
+ },
+ "natives_n": 47893,
+ "cor_density_wage": -0.37,
+ "pumas_top": {
+  "density": [
+   [
+    "Central and Lower Northeast",
+    28.2
+   ],
+   [
+    "Far Northeast",
+    26.1
+   ],
+   [
+    "North Delaware",
+    23.1
+   ],
+   [
+    "Chester County West (Phoenixville)",
+    19.1
+   ],
+   [
+    "Montgomery County Northern Central (Lansdale)",
+    19.1
+   ]
+  ],
+  "limited": [
+   [
+    "North Philadelphia",
+    50.1
+   ],
+   [
+    "Camden and Gloucester City, NJ",
+    47.4
+   ],
+   [
+    "North Delaware",
+    45.1
+   ],
+   [
+    "Salem and Cumberland (Bridgeton), NJ",
+    41.0
+   ],
+   [
+    "Central and Lower Northeast",
+    38.8
+   ]
+  ],
+  "wage": [
+   [
+    "Delaware County West",
+    58.6
+   ],
+   [
+    "Chester County North",
+    53.7
+   ],
+   [
+    "Burlington County West Central, NJ",
+    43.4
+   ],
+   [
+    "Brandywine/Piedmont, DE",
+    43.0
+   ],
+   [
+    "South Glasgow/Middletown, DE",
+    43.0
+   ],
+   [
+    "Bucks County Northern Central",
+    43.0
+   ]
+  ]
+ },
+ "coef_grid": {
+  "rows": [
+   "Limited English",
+   "Immigrant density (SD)",
+   "Limited \u00d7 density",
+   "Limited \u00d7 co-ethnic density",
+   "Limited English, within occupation",
+   "Immigrant density, within occupation",
+   "Limited \u00d7 density, within occupation",
+   "Limited \u00d7 own-language density",
+   "Limited \u00d7 own-language, within occupation"
+  ],
+  "Philadelphia": [
+   [
+    -0.234,
+    0.033
+   ],
+   [
+    -0.084,
+    0.018
+   ],
+   [
+    0.049,
+    0.029
+   ],
+   [
+    -0.033,
+    0.024
+   ],
+   [
+    -0.092,
+    0.029
+   ],
+   [
+    -0.048,
+    0.013
+   ],
+   [
+    0.007,
+    0.016
+   ],
+   [
+    0.046,
+    0.022
+   ],
+   [
+    0.021,
+    0.013
+   ]
+  ],
+  "New York": [
+   [
+    -0.202,
+    0.016
+   ],
+   [
+    -0.054,
+    0.011
+   ],
+   [
+    0.018,
+    0.015
+   ],
+   [
+    0.018,
+    0.009
+   ],
+   [
+    -0.104,
+    0.011
+   ],
+   [
+    -0.04,
+    0.006
+   ],
+   [
+    0.029,
+    0.015
+   ],
+   [
+    0.045,
+    0.009
+   ],
+   [
+    0.028,
+    0.007
+   ]
+  ]
+ }
+}

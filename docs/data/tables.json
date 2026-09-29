@@ -1,0 +1,597 @@
+[
+ {
+  "label": "tab1",
+  "caption": "Log hourly wage, pooled 2012–2024",
+  "header": [
+   "",
+   "(1) Baseline",
+   "(2) Cohorts",
+   "(3) Cohorts with English"
+  ],
+  "rows": [
+   [
+    "English score (0 to 3)",
+    "0.070 (0.007)",
+    "",
+    "0.059 (0.006)"
+   ],
+   [
+    "Foreign-born",
+    "−0.044 (0.008)",
+    "",
+    ""
+   ],
+   [
+    "Arrived before 1990",
+    "",
+    "−0.288 (0.041)",
+    "−0.243 (0.040)"
+   ],
+   [
+    "Arrived 1990s",
+    "",
+    "−0.285 (0.032)",
+    "−0.240 (0.033)"
+   ],
+   [
+    "Arrived 2000s",
+    "",
+    "−0.241 (0.024)",
+    "−0.196 (0.025)"
+   ],
+   [
+    "Arrived 2010s",
+    "",
+    "−0.226 (0.018)",
+    "−0.184 (0.018)"
+   ],
+   [
+    "Arrived 2020 onward",
+    "",
+    "−0.240 (0.060)",
+    "−0.190 (0.060)"
+   ],
+   [
+    "Years since migration",
+    "",
+    "0.014 (0.002)",
+    "0.013 (0.002)"
+   ],
+   [
+    "Years since migration squared",
+    "",
+    "−0.0002 (0.00003)",
+    "−0.0002 (0.00003)"
+   ],
+   [
+    "Female",
+    "−0.138 (0.005)",
+    "−0.139 (0.005)",
+    "−0.139 (0.005)"
+   ],
+   [
+    "Graduate degree",
+    "0.149 (0.005)",
+    "0.152 (0.005)",
+    "0.150 (0.005)"
+   ],
+   [
+    "Less than high school",
+    "−0.279 (0.011)",
+    "−0.303 (0.011)",
+    "−0.283 (0.011)"
+   ],
+   [
+    "Occupation, PUMA-window, year fixed effects",
+    "Yes",
+    "Yes",
+    "Yes"
+   ],
+   [
+    "Observations",
+    "240,089",
+    "240,089",
+    "240,089"
+   ],
+   [
+    "R-squared",
+    "0.429",
+    "0.429",
+    "0.430"
+   ]
+  ],
+  "note": "Dependent variable is log hourly wage of wage and salary workers aged 25 to 64. Natives are the reference group for cohort indicators, with years since migration set to zero. All columns also include a quadratic in age, race and Hispanic origin, the remaining education categories, marital status, and disability. Standard errors clustered on PUMA-by-window in parentheses. Column 3 is the main specification, fixed before estimation.",
+  "number": "Table 1"
+ },
+ {
+  "label": "tab3",
+  "caption": "Two-level estimates of area immigrant density and the limited-English differential, foreign-born workers",
+  "header": [
+   "",
+   "(1) 2022–2024",
+   "(2) 2017–2021",
+   "(3) Co-ethnic",
+   "(4) Own-language"
+  ],
+  "rows": [
+   [
+    "Limited English",
+    "−0.234 (0.033)",
+    "−0.217 (0.032)",
+    "−0.227 (0.036)",
+    "−0.238 (0.037)"
+   ],
+   [
+    "Immigrant density (SD)",
+    "−0.084 (0.018)",
+    "−0.066 (0.018)",
+    "−0.063 (0.013)",
+    "−0.061 (0.011)"
+   ],
+   [
+    "Co-ethnic density (SD)",
+    "",
+    "",
+    "0.010 (0.011)",
+    ""
+   ],
+   [
+    "Own-language density (SD)",
+    "",
+    "",
+    "",
+    "−0.057 (0.017)"
+   ],
+   [
+    "Limited English × immigrant density",
+    "0.049 (0.029)",
+    "0.050 (0.028)",
+    "",
+    ""
+   ],
+   [
+    "Limited English × co-ethnic",
+    "",
+    "",
+    "−0.033 (0.024)",
+    ""
+   ],
+   [
+    "Limited English × own-language",
+    "",
+    "",
+    "",
+    "0.046 (0.022)"
+   ],
+   [
+    "Density slope, proficient workers",
+    "−0.084 (0.018)",
+    "−0.066 (0.018)",
+    "",
+    "−0.057 (0.017)"
+   ],
+   [
+    "Density slope, limited-English workers",
+    "−0.034 (0.020)",
+    "−0.016 (0.027)",
+    "",
+    "−0.011 (0.016)"
+   ],
+   [
+    "Interaction p-value, Satterthwaite",
+    "0.09",
+    "0.10",
+    "",
+    "0.04"
+   ],
+   [
+    "Random slope variance, limited English",
+    "0.020",
+    "0.020",
+    "",
+    "0.026"
+   ],
+   [
+    "Years since migration",
+    "0.015 (0.002)",
+    "0.013 (0.002)",
+    "0.015 (0.002)",
+    "0.013 (0.002)"
+   ],
+   [
+    "Female",
+    "−0.185 (0.016)",
+    "−0.207 (0.013)",
+    "−0.185 (0.016)",
+    "−0.195 (0.018)"
+   ],
+   [
+    "Graduate degree",
+    "0.211 (0.022)",
+    "0.305 (0.019)",
+    "0.211 (0.022)",
+    "0.216 (0.025)"
+   ],
+   [
+    "Less than high school",
+    "−0.548 (0.029)",
+    "−0.520 (0.025)",
+    "−0.550 (0.029)",
+    "−0.574 (0.032)"
+   ],
+   [
+    "Random intercept and slope",
+    "Yes",
+    "Yes",
+    "Yes",
+    "Yes"
+   ],
+   [
+    "Intraclass correlation, empty model",
+    "0.115",
+    "",
+    "",
+    ""
+   ],
+   [
+    "Observations",
+    "7,355",
+    "11,374",
+    "7,355",
+    "5,732"
+   ],
+   [
+    "PUMAs",
+    "48",
+    "44",
+    "48",
+    "48"
+   ]
+  ],
+  "note": "Dependent variable is log hourly wage. Fixed part also includes a quadratic in age, race and Hispanic origin, the remaining education categories, marital status, disability, and a quadratic in years since migration. Person weights rescaled to mean one. Standard errors in parentheses. Density slopes are for generic density in columns 1 and 2 and own-language density in column 4. No model has a singular fit. Columns 3 and 4 use the 2022–2024 window. Column 1 is the main specification, fixed before estimation. Column 4 is restricted to workers who speak a language other than English at home and was added after the main specifications were estimated (exploratory). On that subsample the column 1 specification gives limited English −0.224 (0.035), immigrant density −0.091 (0.019) and the interaction 0.055 (0.031). With occupation fixed effects, the column 4 estimates are limited English −0.078 (0.032), immigrant density −0.046 (0.008), own-language density −0.035 (0.010) and the interaction 0.021 (0.013), standard errors clustered on PUMA.",
+  "number": "Table 2"
+ },
+ {
+  "label": "tab4",
+  "caption": "Two-level estimates for Philadelphia and New York, 2022–2024",
+  "header": [
+   "",
+   "Philadelphia",
+   "New York"
+  ],
+  "rows": [
+   [
+    "Limited English",
+    "−0.234 (0.033)",
+    "−0.202 (0.016)"
+   ],
+   [
+    "Immigrant density (SD), proficient",
+    "−0.084 (0.018)",
+    "−0.054 (0.011)"
+   ],
+   [
+    "Immigrant density (SD), limited-English",
+    "−0.034 (0.020)",
+    "−0.037 (0.012)"
+   ],
+   [
+    "Limited English × immigrant density",
+    "0.049 (0.029)",
+    "0.018 (0.015)"
+   ],
+   [
+    "Limited English × co-ethnic density",
+    "−0.033 (0.024)",
+    "0.018 (0.009)"
+   ],
+   [
+    "With occupation fixed effects",
+    "",
+    ""
+   ],
+   [
+    "   Limited English",
+    "−0.092 (0.029)",
+    "−0.104 (0.011)"
+   ],
+   [
+    "   Immigrant density (SD)",
+    "−0.048 (0.013)",
+    "−0.040 (0.006)"
+   ],
+   [
+    "   Limited English × immigrant density",
+    "0.007 (0.016)",
+    "0.029 (0.015)"
+   ],
+   [
+    "Own-language density, exploratory",
+    "",
+    ""
+   ],
+   [
+    "   Own-language density (SD), proficient",
+    "−0.057 (0.017)",
+    "−0.032 (0.007)"
+   ],
+   [
+    "   Own-language density (SD), limited-English",
+    "−0.011 (0.016)",
+    "0.012 (0.008)"
+   ],
+   [
+    "   Limited English × own-language density",
+    "0.046 (0.022)",
+    "0.045 (0.009)"
+   ],
+   [
+    "   Same, with occupation fixed effects",
+    "0.021 (0.013)",
+    "0.028 (0.007)"
+   ],
+   [
+    "   One SD of own-language density, points",
+    "7.7",
+    "17.8"
+   ],
+   [
+    "   Workers with a non-English home language",
+    "5,732",
+    "54,089"
+   ],
+   [
+    "Intraclass correlation, empty model",
+    "0.115",
+    "0.109"
+   ],
+   [
+    "One SD of density, percentage points",
+    "5.4",
+    "12.7"
+   ],
+   [
+    "PUMA density, mean and range",
+    "12, 4 to 28",
+    "30, 4 to 64"
+   ],
+   [
+    "Foreign-born workers",
+    "7,355",
+    "68,058"
+   ],
+   [
+    "PUMAs",
+    "48",
+    "141"
+   ]
+  ],
+  "note": "Same sample rules, variables and specification as Table 2, 2022–2024 window. The co-ethnic row is from the model that adds co-ethnic density and its interaction. Occupation fixed-effects rows are from the fixed-effects regression with standard errors clustered on PUMA. Own-language rows are from the model that adds own-language density and its interaction alongside generic density, on workers who speak a language other than English at home, and were added after the main specifications were estimated. Seventeen limited-English interaction terms are reported in this paper. Philadelphia (12): generic density in 2022–2024 and 2017–2021, co-ethnic density, own-language density, generic density on the own-language subsample, generic density with the area's native median wage as a control, generic and own-language density with occupation fixed effects, and generic density for the four regions of birth. New York (5): generic density, co-ethnic density, own-language density, and generic and own-language density with occupation fixed effects. New York is the New York-Newark-Jersey City metropolitan area with the five boroughs as the city.",
+  "number": "Table 3"
+ },
+ {
+  "label": "tab5",
+  "caption": "Relative risk ratios for the type of residential move in the past year, foreign-born workers",
+  "header": [
+   "Move type (reference: stayed)",
+   "Log hourly wage",
+   "English score",
+   "Graduate degree",
+   "Married"
+  ],
+  "rows": [
+   [
+    "Within city",
+    "0.714 (0.61 to 0.83)",
+    "0.871 (0.75 to 1.01)",
+    "1.365 (1.02 to 1.83)",
+    "0.668 (0.53 to 0.85)"
+   ],
+   [
+    "Within suburbs",
+    "1.066 (0.98 to 1.15)",
+    "1.052 (0.95 to 1.16)",
+    "1.061 (0.90 to 1.25)",
+    "0.861 (0.75 to 0.98)"
+   ],
+   [
+    "City to suburb",
+    "1.299 (0.97 to 1.74)",
+    "0.908 (0.70 to 1.17)",
+    "1.203 (0.77 to 1.87)",
+    "0.747 (0.51 to 1.09)"
+   ],
+   [
+    "Suburb to city",
+    "0.872 (0.64 to 1.18)",
+    "1.188 (0.82 to 1.71)",
+    "1.246 (0.64 to 2.44)",
+    "0.630 (0.33 to 1.19)"
+   ],
+   [
+    "Binary logit, city to suburb (log-odds)",
+    "0.476 (0.140)",
+    "",
+    "",
+    ""
+   ]
+  ],
+  "note": "Multinomial logit on foreign-born workers who lived in the metropolitan area a year earlier. Cells are relative risk ratios with 95 percent confidence intervals from the 80 ACS replicate weights. Covariates also include the remaining education categories, cohort, region, a quadratic in age, sex, and window. The last row is a binary logit restricted to prior city residents with standard errors clustered on PUMA-by-window.",
+  "number": "Table 4"
+ },
+ {
+  "label": "tab7",
+  "caption": "Duration-matched comparison of suburban residence by cohort and region (percentage living outside Philadelphia County)",
+  "header": [
+   "Region",
+   "2000s, 2012–16",
+   "2010s, 2022–24",
+   "Diff. (SE)",
+   "1990s, 2012–16",
+   "2000s, 2022–24",
+   "Diff. (SE)"
+  ],
+  "rows": [
+   [
+    "Asia",
+    "68.3 (65.3 to 71.3)",
+    "73.2 (69.5 to 76.8)",
+    "4.9 (2.4)",
+    "68.0 (64.9 to 71.0)",
+    "68.5 (64.8 to 72.3)",
+    "0.5 (2.5)"
+   ],
+   [
+    "Latin America",
+    "66.2 (62.6 to 69.9)",
+    "59.1 (53.9 to 64.3)",
+    "−7.2 (3.2)",
+    "68.9 (65.2 to 72.6)",
+    "72.1 (67.4 to 76.8)",
+    "3.2 (3.0)"
+   ],
+   [
+    "Europe",
+    "63.3 (57.9 to 68.7)",
+    "54.5 (45.2 to 63.7)",
+    "−8.8 (5.5)",
+    "66.8 (62.3 to 71.3)",
+    "69.2 (62.1 to 76.4)",
+    "2.4 (4.3)"
+   ],
+   [
+    "Africa",
+    "61.3 (55.5 to 67.1)",
+    "59.4 (51.2 to 67.6)",
+    "−2.0 (5.1)",
+    "66.4 (60.3 to 72.6)",
+    "73.2 (67.0 to 79.4)",
+    "6.8 (4.4)"
+   ]
+  ],
+  "note": "Each pair compares a cohort observed roughly the same number of years after arrival. Cells are weighted percentages of foreign-born adults aged 25 to 64 with 95 percent confidence intervals from the 80 ACS replicate weights. The difference is the later cohort minus the earlier one, with a standard error that treats the two windows as independent samples. Unweighted counts per cell run from 307 (Europe, 2010s) to 2,030 (Asia, 2000s).",
+  "number": "Table 5"
+ },
+ {
+  "label": "tab2",
+  "caption": "Instrumental variables estimates of the return to English, childhood immigrants",
+  "header": [
+   "",
+   "First stage",
+   "2SLS",
+   "OLS",
+   "Placebo",
+   "2SLS, kink at 12"
+  ],
+  "rows": [
+   [
+    "Years beyond 9 × non-English",
+    "−0.035 (0.007)",
+    "",
+    "",
+    "",
+    ""
+   ],
+   [
+    "Years beyond age 9",
+    "",
+    "",
+    "",
+    "0.002 (0.009)",
+    ""
+   ],
+   [
+    "English score",
+    "",
+    "0.366 (0.243)",
+    "0.067",
+    "",
+    "0.285 (0.269)"
+   ],
+   [
+    "First-stage F",
+    "27.1",
+    "",
+    "",
+    "",
+    ""
+   ],
+   [
+    "Kleibergen-Paap F (clustered)",
+    "35.4",
+    "",
+    "",
+    "",
+    ""
+   ],
+   [
+    "Anderson-Rubin 95% CI",
+    "",
+    "−0.08 to 0.94",
+    "",
+    "",
+    ""
+   ],
+   [
+    "Observations",
+    "7,493",
+    "7,493",
+    "7,493",
+    "967",
+    "7,493"
+   ]
+  ],
+  "note": "Sample is foreign-born workers who arrived before age 18. The placebo column uses English-origin arrivals only. Dependent variable is the English score in the first stage and log hourly wage elsewhere. All columns include the age-at-arrival main effect, the origin indicator, individual controls, and occupation, PUMA-window and year fixed effects. Standard errors clustered on PUMA-by-window in parentheses.",
+  "number": "Table A1"
+ },
+ {
+  "label": "tab6",
+  "caption": "Pseudo-panel cell fixed-effects regressions of the suburban proportion",
+  "header": [
+   "",
+   "(1)",
+   "(2) With limited English",
+   "(3) With rent burden"
+  ],
+  "rows": [
+   [
+    "Mean log hourly wage",
+    "9.74 (10.69)",
+    "12.20 (13.44)",
+    "9.70 (10.95)"
+   ],
+   [
+    "Limited-English proportion",
+    "",
+    "0.08 (0.27)",
+    ""
+   ],
+   [
+    "Mean rent burden",
+    "",
+    "",
+    "−0.004 (0.246)"
+   ],
+   [
+    "Cell and window fixed effects",
+    "Yes",
+    "Yes",
+    "Yes"
+   ],
+   [
+    "Cell-window observations",
+    "44",
+    "44",
+    "44"
+   ],
+   [
+    "Within R-squared",
+    "0.022",
+    "0.025",
+    "0.022"
+   ]
+  ],
+  "note": "Cells are arrival cohort by region of birth. Dependent variable is the percentage of the cell living outside Philadelphia County. Weighted by cell population. Standard errors clustered on cell in parentheses.",
+  "number": "Table A2"
+ }
+]
