@@ -20,7 +20,7 @@ function svgBox(id) {
   svg.attr("viewBox", `0 0 ${width} ${height}`);
   return { svg, w: width, h: height };
 }
-function caption(id, text) { d3.select(id).text(text); }
+function caption() {}
 const tip = d3.select("body").append("div").attr("class", "tip").style("opacity", 0);
 function hover(sel, html) {
   sel.style("cursor", "default")
@@ -117,6 +117,9 @@ function intervalChart(g, rows, cw, ch, opts) {
 
 // ---------- chapter 5: density slopes by group ----------
 function initSlopes() {
+  if (state.pumas) { const sb = svgBox("#s-scatter"); const sc = CH.linkedMap(sb.svg, state.pumas, { width: sb.w, height: sb.h, mode: "scatter" }); sc.trend(true); }
+  const showScatter = on => { d3.select("#s-scatter").classed("off", !on); d3.select("#g-slopes").classed("off", on); };
+  showScatter(true);
   const { svg, w, h } = svgBox("#g-slopes");
   const m = { t: 44, r: 110, b: 40, l: 210 }, cw = w - m.l - m.r, ch = h - m.t - m.b;
   const g = svg.append("g").attr("transform", `translate(${m.l},${m.t})`);
@@ -133,9 +136,10 @@ function initSlopes() {
   const full = base.concat([{ g: "Native-born workers", ...S.generic[2], c: C.grey }, { g: "Proficient immigrants, with native wage control", ...S.with_native_wage[0], c: C.tealDark }]);
   state.charts.slopes = {
     step(i) {
-      if (i === 0) { draw(base, ["Proficient immigrants"]); caption("#c-slopes", "Two-level model, 7,355 foreign-born workers in 48 PUMAs, 2022–2024. Bars are 95 percent intervals."); }
-      else if (i === 1) { draw(base); caption("#c-slopes", `Interaction 0.049 (SE 0.029, p = 0.09 with Satterthwaite degrees of freedom). In 2017–2021, 0.050 (SE 0.028).`); }
-      else { draw(full); caption("#c-slopes", `Native-born workers: ${fmtN(state.data.results.natives_n)} in the same 48 PUMAs, density on the same scale.`); }
+      showScatter(i === 0);
+      if (i === 1) draw(base, ["Proficient immigrants"]);
+      else if (i === 2) draw(base);
+      else if (i === 3) draw(full);
     }
   };
 }

@@ -29,7 +29,7 @@ function areas() {
   function draw() {
     const { svg, w, h } = box("#s-area");
     if (!G) { svg.append("text").attr("x", 20).attr("y", 40).attr("class", "title").text("Upload data/pumas.geojson for the map"); return; }
-    chart = CH.linkedMap(svg, G, { width: w, height: h, stacked: true, mobility: R.mobility ? R.mobility.flows : null, onSelect: detail });
+    chart = CH.linkedMap(svg, G, { width: w, height: h, mode: "map", mobility: R.mobility ? R.mobility.flows : null, onSelect: detail });
     chart.color(d3.select("#area-var").node().value); chart.trend(true);
     chart.showFlows(d3.select("#area-flows").node().value !== "none", d3.select("#area-flows").node().value);
   }

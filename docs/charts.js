@@ -16,11 +16,12 @@ window.CH = (function () {
   // opts: { stacked: bool, mobility: flows array (optional), width, height }
   function linkedMap(svg, G, opts = {}) {
     svg.selectAll("*").remove();
-    const w = opts.width, h = opts.height, stacked = !!opts.stacked;
+    const w = opts.width, h = opts.height, stacked = !!opts.stacked, mode = opts.mode || "both";
     const feats = G.features; feats.forEach(f => { f.properties.city = isCity(f.properties); f.properties.pop = +f.properties.pop || 0; });
-    const mapW = stacked ? w : w * 0.52, mapH = stacked ? h * 0.55 : h, scX = stacked ? 0 : w * 0.52, scY = stacked ? h * 0.55 : 0, scW = stacked ? w : w * 0.48, scH = stacked ? h * 0.45 : h;
+    let mapW = stacked ? w : w * 0.52, mapH = stacked ? h * 0.55 : h, scX = stacked ? 0 : w * 0.52, scY = stacked ? h * 0.55 : 0, scW = stacked ? w : w * 0.48, scH = stacked ? h * 0.45 : h;
+    if (mode === "map") { mapW = w; mapH = h; } else if (mode === "scatter") { scX = 0; scY = 0; scW = w; scH = h; }
     const proj = d3.geoMercator().fitExtent([[10, 30], [mapW - 10, mapH - 10]], G), path = d3.geoPath(proj);
-    const gM = svg.append("g"), gS = svg.append("g").attr("transform", `translate(${scX},${scY})`);
+    const gM = svg.append("g").style("display", mode === "scatter" ? "none" : null), gS = svg.append("g").attr("transform", `translate(${scX},${scY})`).style("display", mode === "map" ? "none" : null);
     const V = { puma_fb_prop: ["foreign-born percentage of residents", d => d.toFixed(1) + "%", d3.interpolate("#dff4f4", "#0a4f55")],
       fb_limited_prop: ["limited English among the foreign-born", d => d.toFixed(1) + "%", d3.interpolate("#fbe4cf", "#9a4d00")],
       fb_median_wage: ["foreign-born median hourly wage", fmt$, d3.interpolate("#f6efd9", "#7a5a10")] };
@@ -28,7 +29,7 @@ window.CH = (function () {
     const mapTitle = gM.append("text").attr("class", "title").attr("x", 10).attr("y", 18);
     const shapes = gM.append("g").selectAll("path").data(feats).join("path").attr("d", path).attr("stroke", "#fff").attr("stroke-width", 0.8).attr("fill", "#eee").style("cursor", "pointer");
     gM.append("path").datum({ type: "FeatureCollection", features: feats.filter(f => f.properties.city) }).attr("d", path).attr("fill", "none").attr("stroke", K.ink).attr("stroke-width", 1.3).attr("pointer-events", "none");
-    const lg = gM.append("g").attr("transform", `translate(${mapW - 130},${mapH - 60})`);
+    const lg = gM.append("g").attr("transform", `translate(${mapW - 130},${mapH - 40})`);
     const flowsG = gM.append("g").attr("pointer-events", "none");
     // scatter
     const m = { t: 34, r: 20, b: 44, l: 54 }, cw = scW - m.l - m.r, ch = scH - m.t - m.b;
@@ -40,7 +41,7 @@ window.CH = (function () {
     sg.append("g").attr("class", "axis").attr("transform", `translate(0,${ch})`).call(d3.axisBottom(x).ticks(6).tickFormat(d => d + "%").tickSizeOuter(0));
     sg.append("g").attr("class", "axis").call(d3.axisLeft(y).ticks(5).tickFormat(d => "$" + d).tickSizeOuter(0)).select(".domain").remove();
     sg.append("text").attr("x", cw / 2).attr("y", ch + 36).attr("text-anchor", "middle").text("foreign-born percentage of residents");
-    sg.append("text").attr("class", "title").attr("x", 0).attr("y", -16).text(stacked ? "Foreign-born median hourly wage by immigrant density, r = −0.37" : "Median wage by density, r = −0.37");
+    sg.append("text").attr("class", "title").attr("x", 0).attr("y", -16).text(mode === "scatter" || stacked ? "Foreign-born median hourly wage by immigrant density, 48 PUMAs, r = −0.37" : "Median wage by density, r = −0.37");
     // regression line (least squares on the 48 points, drawn as the trend)
     const xs = feats.map(f => +f.properties.puma_fb_prop), ys = feats.map(f => +f.properties.fb_median_wage);
     const mx = d3.mean(xs), my = d3.mean(ys), b = d3.sum(xs.map((v, i) => (v - mx) * (ys[i] - my))) / d3.sum(xs.map(v => (v - mx) ** 2)), a = my - b * mx;
