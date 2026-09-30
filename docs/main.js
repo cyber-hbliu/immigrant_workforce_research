@@ -94,54 +94,20 @@ function initOwnlang() {
   const top = [{ id: "PA03225", label: "North Philadelphia", value: 41 }, { id: "NJ02101", label: "Camden and Gloucester City, NJ", value: 38 }, { id: "PA03222", label: "Central and Lower Northeast", value: 22 }, { id: "NJ02501", label: "Salem and Cumberland (Bridgeton), NJ", value: 18 }, { id: "PA03223", label: "North Delaware", value: 17 }];
   // direct check of the selection account, section 5.2
   const sel = [{ g: "leavers vs stayers", v: -6, se: 18 }, { g: "same, within occupation", v: -13.3, se: 11.6 }];
-  const chart = CH.ownLang(svg, { width: w, height: h, pumas: state.pumas, O, top, sel });
+  const chart = CH.ownLang(svg, { width: w, height: h, pumas: state.pumas, O, top, sel, lang: state.data.languagePuma });
+  const ls = d3.select("#lang-sel");
+  if (chart.langs.length) { ls.style("display", null).selectAll("option").data(["paper"].concat(chart.langs)).join("option").attr("value", d => d).text(d => d === "paper" ? "the five values in the paper" : d); ls.on("change", () => chart.setLang(ls.node().value)); }
+  else ls.style("display", "none");
   state.charts.ownlang = { step: i => chart.step(i) };
 }
 
 // ---------- chapter 9: pseudo-panel and duration-matched ----------
 function initPanel() {
   const { svg, w, h } = svgBox("#g-panel");
-  const m = { t: 40, r: 40, b: 44, l: 60 }, cw = w - m.l - m.r, ch = h - m.t - m.b;
-  const g = svg.append("g").attr("transform", `translate(${m.l},${m.t})`);
-  const cells = state.data.results.cells.map(d => ({ ...d, suburb_prop: +d.suburb_prop, median_hourly: +d.median_hourly }));
-  const D = state.data.results.duration;
-  const A = g.append("g"), B = g.append("g").style("opacity", 0);
-  // A: trajectories
-  const x = d3.scaleLinear().domain([10, 45]).range([0, cw]), y = d3.scaleLinear().domain([50, 90]).range([ch, 0]);
-  axes(A, x, y, cw, ch, { xf: d => "$" + d, yf: d => d + "%" });
-  A.append("text").attr("class", "title").attr("y", -14).text("Suburban residence and median wage by cohort and region, three windows");
-  A.append("text").attr("x", cw / 2).attr("y", ch + 36).attr("text-anchor", "middle").text("median hourly wage, 2024 dollars");
-  const byCell = d3.groups(cells, d => d.cell).map(([k, v]) => ({ k, region: v[0].region, cohort: v[0].cohort, pts: v.sort((a, b) => a.window.localeCompare(b.window)) }));
-  const line = d3.line().x(d => x(d.median_hourly)).y(d => y(d.suburb_prop));
-  const paths = A.selectAll(".tr").data(byCell).join("path").attr("class", "tr").attr("fill", "none").attr("stroke", d => C.region[d.region]).attr("stroke-width", d => d.cohort === "2010s" ? 2.6 : 1.4).attr("stroke-opacity", 0.9).attr("d", d => line(d.pts));
-  hover(paths, d => `<b>${d.region}, arrived ${d.cohort === "pre1990" ? "before 1990" : d.cohort}</b><br>` + d.pts.map(p => `${p.window}: ${fmt$(p.median_hourly)}, ${p.suburb_prop.toFixed(0)}% suburban`).join("<br>"));
-  paths.on("mouseenter", function () { paths.attr("stroke-opacity", 0.15); d3.select(this).attr("stroke-opacity", 1).attr("stroke-width", 3.2); })
-       .on("mouseleave.restore", function (ev, d) { paths.attr("stroke-opacity", 0.9).attr("stroke-width", d => d.cohort === "2010s" ? 2.6 : 1.4); });
-  A.selectAll(".end").data(byCell).join("circle").attr("cx", d => x(d.pts[d.pts.length - 1].median_hourly)).attr("cy", d => y(d.pts[d.pts.length - 1].suburb_prop)).attr("r", d => d.cohort === "2010s" ? 5 : 3).attr("fill", d => C.region[d.region]);
-  const leg = A.append("g").attr("transform", `translate(${cw - 120},${10})`);
-  Object.entries(C.region).forEach(([k, c], i) => { leg.append("line").attr("x1", 0).attr("x2", 16).attr("y1", i * 18).attr("y2", i * 18).attr("stroke", c).attr("stroke-width", 2.5); leg.append("text").attr("x", 22).attr("y", i * 18 + 4).text(k); });
-  A.append("text").attr("class", "note").attr("x", 0).attr("y", ch + 36).text("thick lines: 2010s arrivals");
-  // B: duration-matched dumbbells
-  const yb = d3.scaleBand().domain(D.map(d => d.region)).range([0, Math.min(ch, 320)]).padding(0.5);
-  const xb = d3.scaleLinear().domain([50, 80]).range([0, cw]);
-  B.append("text").attr("class", "title").attr("y", -14).text("Percent living outside the city at matched duration of residence");
-  B.append("g").attr("class", "grid").call(d3.axisLeft(yb).tickSize(-cw).tickFormat(""));
-  B.append("g").attr("class", "axis").attr("transform", `translate(0,${yb.range()[1]})`).call(d3.axisBottom(xb).ticks(6).tickFormat(d => d + "%").tickSizeOuter(0));
-  const rb = B.selectAll(".db").data(D).join("g").attr("transform", d => `translate(0,${yb(d.region) + yb.bandwidth() / 2})`);
-  rb.append("text").attr("x", -12).attr("dy", 4).attr("text-anchor", "end").attr("class", "label").text(d => d.region);
-  rb.append("line").attr("x1", d => xb(d.c2000)).attr("x2", d => xb(d.c2010)).attr("stroke", C.grey2).attr("stroke-width", 4);
-  rb.append("circle").attr("cx", d => xb(d.c2000)).attr("r", 6).attr("fill", C.grey);
-  rb.append("circle").attr("cx", d => xb(d.c2010)).attr("r", 6).attr("fill", d => Math.abs(d.diff / d.se) >= 1.96 ? C.orange : C.gold);
-  rb.append("text").attr("class", "label").attr("x", d => xb(Math.max(d.c2000, d.c2010)) + 12).attr("dy", 4).text(d => `${d.diff > 0 ? "+" : ""}${d.diff} points (SE ${d.se})`);
-  const lb = B.append("g").attr("transform", `translate(0,${yb.range()[1] + 50})`);
-  lb.append("circle").attr("r", 5).attr("fill", C.grey); lb.append("text").attr("x", 10).attr("dy", 4).text("2000s cohort in 2012–2016");
-  lb.append("circle").attr("cx", 230).attr("r", 5).attr("fill", C.orange); lb.append("text").attr("x", 240).attr("dy", 4).text("2010s cohort in 2022–2024");
-  state.charts.panel = {
-    step(i) {
-      if (i === 0) { A.transition().duration(500).style("opacity", 1); B.transition().duration(500).style("opacity", 0); drawPath(paths, 1200); caption("#c-panel", "Sixteen cohort-by-region cells, 44 cell-window observations. Each path runs from 2012–2016 to 2022–2024."); }
-      else { A.transition().duration(500).style("opacity", 0); B.transition().duration(500).style("opacity", 1); caption("#c-panel", "Replicate-weight standard errors. Orange marks differences of about two standard errors or more."); }
-    }
-  };
+  const tab7 = (state.data.tables || []).find(t => t.label === "tab7");
+  if (!tab7) return;
+  const chart = CH.cohortPanel(svg, { width: w, height: h, cells: state.data.results.cells, tab7: tab7.rows, fe: { b: 9.7, se: 10.7 }, regionColor: C.region });
+  state.charts.panel = { step: i => chart.step(i) };
 }
 
 // ---------- chapters whose graphic is the interactive panel from explore.js ----------
@@ -169,6 +135,7 @@ async function boot() {
     d3.csv("data/trend.csv"), d3.csv("data/origins.csv"), d3.json("data/land-110m.json"), d3.json("data/results.json")
   ]);
   state.data = { trend, origins, results };
+  try { state.data.tables = await d3.json("data/tables.json"); } catch (e) { state.data.tables = []; }
   state.world = topojson.feature(world, world.objects.land);
   try { state.pumas = await d3.json("data/pumas.geojson"); } catch (e) { state.pumas = null; }
   try { state.data.mobility = await d3.json("data/mobility.json"); } catch (e) { state.data.mobility = null; }
@@ -176,6 +143,7 @@ async function boot() {
   try { state.data.counties = await d3.csv("data/county_profiles.csv"); } catch (e) { state.data.counties = null; }
   try { const mr = await d3.csv("data/move_rates.csv"); state.data.moveRates = mr.map(d => ({ ...d, fb: d.fb === "TRUE" || d.fb === "true", n: +d.n, pct: +d.pct })); }
   catch (e) { state.data.moveRates = state.data.mobility ? state.data.mobility.move_rates.map(d => ({ ...d, fb: true })) : []; }
+  try { state.data.languagePuma = await d3.csv("data/language_puma.csv"); } catch (e) { state.data.languagePuma = null; }
   try { const ir = await d3.csv("data/interactions_region.csv"); state.data.interactionsRegion = ir.filter(d => d.Estimate).map(d => ({ region: d.sample, est: d.Estimate, se: d["Std. Error"] })); } catch (e) { state.data.interactionsRegion = []; }
   const inits = { county: initCounty, slopes: initSlopes, ownlang: initOwnlang, panel: initPanel, interactive: initInteractive };
   function initAll() { Object.values(inits).forEach(f => f()); }

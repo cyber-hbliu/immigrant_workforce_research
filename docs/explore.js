@@ -180,7 +180,7 @@ function coefTable() {
     return `<td>${d.r}</td><td>${f(d.phl)}</td><td>${f(d.nyc)}</td><td>${diff > 0 ? "+" : ""}${diff.toFixed(3)} (${se.toFixed(3)}), ${Math.abs(diff / se).toFixed(1)} SE</td>`;
   });
   // chapter 10: Philadelphia against New York (Table 3 and Table 2)
-  const g = CG, r = i => ({ phl: g.Philadelphia[i], nyc: g["New York"][i] });
+  const g = CG, r = i => ({ phl: g.Philadelphia[i], nyc: g["New York"][i] }), OL = R.results.ownlang;
   const blocks = [
     { title: "Limited-English differential, log points", domain: [-0.32, 0.02], fmt: d3.format("+.2f"), rows: [
       { label: "all occupations", ...r(0), note: "21% in Philadelphia, 20% in New York" },
@@ -194,7 +194,10 @@ function coefTable() {
       { label: "co-ethnic density", ...r(3), note: "opposite signs, two SE apart" }] },
     { title: "The same interaction on own-language density, exploratory", domain: [-0.1, 0.12], fmt: d3.format("+.2f"), rows: [
       { label: "own-language density", ...r(7), note: "the two areas agree" },
-      { label: "own-language, within occupation", ...r(8), note: "New York's are 5 and 4 SE from zero" }] }
+      { label: "own-language, within occupation", ...r(8), note: "New York's are 5 and 4 SE from zero" }] },
+    { title: "Wage change per SD of own-language density, by group", domain: [-0.1, 0.04], fmt: d3.format("+.2f"), rows: [
+      { label: "proficient workers", phl: [OL.Philadelphia.prof, OL.Philadelphia.prof_se], nyc: [OL["New York"].prof, OL["New York"].prof_se], note: "1 SD: 7.7 points here, 17.8 in New York" },
+      { label: "limited-English workers", phl: [OL.Philadelphia.lim, OL.Philadelphia.lim_se], nyc: [OL["New York"].lim, OL["New York"].lim_se], note: "flat in both areas" }] }
   ];
   let cchart;
   function drawI() { const { svg, w, h } = box("#s-coef"); cchart = CH.cityCompare(svg, { width: w, height: h, blocks }); window.cityCompareChart = cchart; cchart.bonferroni(d3.select("#inter-bonf").node().checked); }

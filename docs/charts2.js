@@ -203,74 +203,86 @@
   // opts: { width, height, pumas, O: results.ownlang, top: [{id, label, value}], sel: selection check rows }
   CH.ownLang = function (svg, opts) {
     svg.selectAll("*").remove();
-    const w = opts.width, h = opts.height, O = opts.O;
-    const colW = Math.min(w * 0.32, 290), gm = svg.append("g"), mapH = h * 0.42;
-    // map of the five PUMAs with the highest own-language values in the paper
-    if (opts.pumas) {
-      const G = opts.pumas, proj = d3.geoMercator().fitExtent([[0, 40], [colW, mapH]], G), path = d3.geoPath(proj);
-      gm.append("text").attr("class", "title").attr("y", 14).text("Where Spanish is spoken at home");
-      gm.append("text").attr("class", "note").attr("y", 30).attr("fill", K.muted).text("the five highest own-language values, all Spanish");
-      const top = new Map(opts.top.map(t => [t.id, t]));
-      const sh = gm.append("g").selectAll("path").data(G.features).join("path").attr("d", path).attr("fill", f => top.has(f.properties.STATE + f.properties.PUMA) ? K.orange : "#efefec").attr("fill-opacity", f => top.has(f.properties.STATE + f.properties.PUMA) ? 0.3 + 0.7 * (top.get(f.properties.STATE + f.properties.PUMA).value / 41) : 1).attr("stroke", "#fff").attr("stroke-width", 0.7);
-      hover(sh, f => `<b>${f.properties.name.replace(" PUMA", "")}</b><br>${top.has(f.properties.STATE + f.properties.PUMA) ? top.get(f.properties.STATE + f.properties.PUMA).value + "% speak Spanish at home" : "not among the five highest values reported"}`);
-      gm.append("path").datum({ type: "FeatureCollection", features: G.features.filter(f => f.properties.STATE === "PA" && String(f.properties.PUMA).startsWith("032")) }).attr("d", path).attr("fill", "none").attr("stroke", K.ink).attr("stroke-width", 1).attr("pointer-events", "none");
-      const lg = gm.append("g").attr("transform", `translate(0,${mapH + 22})`);
+    const w = opts.width, h = opts.height, O = opts.O, o = O.Philadelphia;
+    const colW = Math.round(w * 0.55), gm = svg.append("g"), mapH = h - 130;
+    const G = opts.pumas, proj = d3.geoMercator().fitExtent([[0, 44], [colW, mapH]], G), path = d3.geoPath(proj);
+    const top = new Map(opts.top.map(t => [t.id, t]));
+    const L = opts.lang; // optional: rows {STATE, PUMA, language, pct} from data/language_puma.csv
+    const langs = L ? [...new Set(L.map(d => d.language))] : [];
+    const ttl = gm.append("text").attr("class", "title").attr("y", 16), sub = gm.append("text").attr("class", "note").attr("y", 32).attr("fill", K.muted);
+    const shapes = gm.append("g").selectAll("path").data(G.features).join("path").attr("d", path).attr("stroke", "#fff").attr("stroke-width", 0.8).style("cursor", "pointer");
+    gm.append("path").datum({ type: "FeatureCollection", features: G.features.filter(f => f.properties.STATE === "PA" && String(f.properties.PUMA).startsWith("032")) }).attr("d", path).attr("fill", "none").attr("stroke", K.ink).attr("stroke-width", 1.1).attr("pointer-events", "none");
+    const labG = gm.append("g").attr("pointer-events", "none"), lg = gm.append("g").attr("transform", `translate(0,${mapH + 24})`);
+    function paperView() {
+      ttl.text("Where Spanish is spoken at home"); sub.text("the five highest own-language values in the paper, all Spanish · percent of residents aged 5 and over");
+      shapes.attr("fill", f => top.has(f.properties.STATE + f.properties.PUMA) ? K.orange : "#efefec").attr("fill-opacity", f => top.has(f.properties.STATE + f.properties.PUMA) ? 0.3 + 0.7 * (top.get(f.properties.STATE + f.properties.PUMA).value / 41) : 1);
+      hover(shapes, f => `<b>${f.properties.name.replace(" PUMA", "")}</b><br>${top.has(f.properties.STATE + f.properties.PUMA) ? top.get(f.properties.STATE + f.properties.PUMA).value + "% speak Spanish at home" : "not among the five highest values the paper reports"}`);
+      labG.selectAll("*").remove(); lg.selectAll("*").remove();
       opts.top.forEach((t, i) => {
         const f = G.features.find(f => f.properties.STATE + f.properties.PUMA === t.id), c = path.centroid(f);
-        lg.append("text").attr("class", "label").attr("x", 0).attr("y", i * 17).style("font-weight", 700).attr("fill", K.orange).text(`${t.value}%`);
-        lg.append("text").attr("class", "note").attr("x", 36).attr("y", i * 17).attr("fill", K.ink).text(t.label);
-        gm.append("text").attr("class", "note").attr("x", c[0]).attr("y", c[1] + 3).attr("text-anchor", "middle").style("font-size", "9px").style("font-weight", 700).attr("fill", "#fff").attr("pointer-events", "none").text(t.value);
+        labG.append("text").attr("class", "note").attr("x", c[0]).attr("y", c[1] + 4).attr("text-anchor", "middle").style("font-size", "11px").style("font-weight", 700).attr("fill", "#fff").text(t.value + "%");
+        const col = i < 3 ? 0 : 1, row = i % 3, cx0 = col * Math.max(250, colW / 2);
+        lg.append("text").attr("class", "label").attr("x", cx0).attr("y", row * 18).style("font-weight", 700).attr("fill", K.orange).text(`${t.value}%`);
+        lg.append("text").attr("class", "note").attr("x", cx0 + 38).attr("y", row * 18).attr("fill", K.ink).text(t.label);
       });
     }
-    // selection check, bottom, full width
-    const gs = svg.append("g").attr("transform", `translate(0,${h * 0.76})`).style("opacity", 0);
-    (function () {
-      const rows = opts.sel, m = { l: 190 }, cw = w - m.l - 200;
-      gs.append("text").attr("class", "title").attr("y", 0).text("Do the proficient workers who leave a concentrated area earn more than those who stay?");
-      gs.append("text").attr("class", "note").attr("y", 16).attr("fill", K.muted).text("4,370 proficient workers with a non-English home language who lived in the metro a year earlier · 98 had left their prior migration area · 95 percent intervals");
-      const x = d3.scaleLinear().domain([-40, 40]).range([0, cw]), yb = d3.scaleBand().domain(rows.map(r => r.g)).range([28, 28 + rows.length * 30]).padding(0.4);
-      const g = gs.append("g").attr("transform", `translate(${m.l},0)`);
-      g.append("g").attr("class", "axis").attr("transform", `translate(0,${yb.range()[1] + 2})`).call(d3.axisBottom(x).ticks(5).tickFormat(d => fp(d) + "%").tickSizeOuter(0));
-      g.append("line").attr("x1", x(0)).attr("x2", x(0)).attr("y1", 26).attr("y2", yb.range()[1] + 2).attr("stroke", K.ink);
-      const r = g.selectAll("g.r").data(rows).join("g").attr("class", "r").attr("transform", d => `translate(0,${yb(d.g) + yb.bandwidth() / 2})`);
-      r.append("text").attr("class", "label").attr("x", -10).attr("dy", 4).attr("text-anchor", "end").text(d => d.g);
-      r.append("line").attr("x1", d => x(Math.max(-40, d.v - 1.96 * d.se))).attr("x2", d => x(Math.min(40, d.v + 1.96 * d.se))).attr("stroke", K.grey).attr("stroke-width", 3).attr("stroke-linecap", "round");
-      r.append("circle").attr("cx", d => x(d.v)).attr("r", 5.5).attr("fill", K.tealDark).attr("stroke", "#fff");
-      r.append("text").attr("class", "note").attr("x", cw + 10).attr("dy", 4).attr("fill", K.ink2).text(d => `${fp(d.v)}% (SE ${d.se})`);
-    })();
-    // right: two slope panels, Philadelphia and New York
-    const rx = colW + 40, rw = w - rx, panelsG = svg.append("g").attr("transform", `translate(${rx},0)`);
-    const ph = (h * 0.72) / 2, m = { t: 72, r: 20, b: 40, l: 46 }, cw = rw - m.l - m.r, ch = ph - m.t - m.b;
-    const y = d3.scaleLinear().domain([-16, 8]).range([ch, 0]);
-    const cities = ["Philadelphia", "New York"], pts = d3.range(-1, 2.01, 0.05);
-    const PN = cities.map((c, i) => {
-      const o = O[c], g = panelsG.append("g").attr("transform", `translate(${m.l},${i * ph + m.t})`);
-      const x = d3.scaleLinear().domain([-1, 2]).range([0, cw]);
-      g.append("text").attr("class", "title").attr("y", -56).text(`${c}: wage by own-language density`);
-      g.append("text").attr("class", "note").attr("y", -42).attr("fill", K.muted).text(`${d3.format(",")(o.n)} workers with a non-English home language · 1 SD = ${o.sd_pp} points · change from each group's level at the mean`);
-      const nt = g.append("text").attr("class", "note").attr("y", -28);
-      nt.append("tspan").attr("fill", K.tealDark).style("font-weight", 700).text(`proficient ${fp1(o.prof * 100)}% per SD (SE ${(o.prof_se * 100).toFixed(1)})`);
-      nt.append("tspan").attr("fill", K.muted).text("   ");
-      nt.append("tspan").attr("fill", K.orange).style("font-weight", 700).text(`limited English ${fp1(o.lim * 100)}% per SD (SE ${(o.lim_se * 100).toFixed(1)})`);
-      g.append("text").attr("class", "note").attr("y", -14).attr("fill", K.ink2).text(`interaction ${f3(o.inter)} (SE ${o.inter_se}) · within occupation ${f3(o.inter_occ)} (SE ${o.inter_occ_se})`);
-      g.append("g").attr("class", "grid").call(d3.axisLeft(y).ticks(5).tickSize(-cw).tickFormat(""));
-      g.append("g").attr("class", "axis").call(d3.axisLeft(y).ticks(5).tickFormat(d => fp(d) + "%").tickSizeOuter(0)).select(".domain").remove();
-      const xa = g.append("g").attr("class", "axis").attr("transform", `translate(0,${ch})`).call(d3.axisBottom(x).tickValues([-1, 0, 1, 2]).tickFormat(d => d === 0 ? "mean" : fp(d) + " SD").tickSizeOuter(0));
-      xa.selectAll(".tick").append("text").attr("class", "note").attr("y", 27).attr("fill", K.muted).attr("text-anchor", "middle").text(d => (d === 0 ? "" : fp(d * o.sd_pp) + " points"));
-      g.append("line").attr("x1", 0).attr("x2", cw).attr("y1", y(0)).attr("y2", y(0)).attr("stroke", K.axis);
-      const draw = (b, se, col) => {
-        g.append("path").datum(pts).attr("d", d3.area().x(d => x(d)).y0(d => y(pct(b * d - 1.96 * se * Math.abs(d)))).y1(d => y(pct(b * d + 1.96 * se * Math.abs(d))))).attr("fill", col).attr("fill-opacity", 0.12);
-        g.append("path").datum(pts).attr("d", d3.line().x(d => x(d)).y(d => y(pct(b * d)))).attr("fill", "none").attr("stroke", col).attr("stroke-width", 2.8);
-      };
-      draw(o.lim, o.lim_se, K.orange); draw(o.prof, o.prof_se, K.teal);
-      return g;
-    });
-    function step(i) {
-      PN.forEach((g, k) => g.transition().duration(T).style("opacity", i === 0 ? 0.15 : i === 1 ? (k === 0 ? 1 : 0.15) : i === 3 ? 0.35 : 1));
-      gm.transition().duration(T).style("opacity", i === 3 ? 0.35 : 1);
-      gs.transition().duration(T).style("opacity", i === 3 ? 1 : 0);
+    function langView(lang) {
+      const rows = L.filter(d => d.language === lang), by = new Map(rows.map(d => [d.STATE + d.PUMA, +d.pct])), ext = [0, d3.max(rows, d => +d.pct)];
+      const sc = d3.scaleSequential(d3.interpolate("#fbe4cf", "#9a4d00")).domain(ext);
+      ttl.text(`Residents who speak ${lang} at home, by PUMA`); sub.text("percent of residents aged 5 and over, 2022–2024 · the own-language measure counts native-born speakers too");
+      shapes.attr("fill", f => by.has(f.properties.STATE + f.properties.PUMA) ? sc(by.get(f.properties.STATE + f.properties.PUMA)) : "#efefec").attr("fill-opacity", 1);
+      hover(shapes, f => `<b>${f.properties.name.replace(" PUMA", "")}</b><br>${by.has(f.properties.STATE + f.properties.PUMA) ? by.get(f.properties.STATE + f.properties.PUMA).toFixed(1) + "% speak " + lang + " at home" : "no value"}`);
+      labG.selectAll("*").remove(); lg.selectAll("*").remove();
+      const ls = d3.scaleLinear().domain(ext).range([0, 140]);
+      d3.range(0, 141, 3).forEach(v => lg.append("rect").attr("x", v).attr("y", 0).attr("width", 3).attr("height", 8).attr("fill", sc(ls.invert(v))));
+      lg.append("text").attr("class", "note").attr("y", 22).text("0%"); lg.append("text").attr("class", "note").attr("x", 140).attr("y", 22).attr("text-anchor", "end").text(ext[1].toFixed(0) + "%");
     }
-    return { step };
+    paperView();
+    // right column: Philadelphia slopes (top) and the selection check (bottom)
+    const rx = colW + 50, rw = w - rx, m = { t: 76, r: 20, b: 44, l: 46 }, cw = rw - m.l - m.r;
+    const ph = h * 0.6, ch = ph - m.t - m.b, g = svg.append("g").attr("transform", `translate(${rx + m.l},${m.t})`);
+    const x = d3.scaleLinear().domain([-1, 2]).range([0, cw]), y = d3.scaleLinear().domain([-16, 8]).range([ch, 0]), pts = d3.range(-1, 2.01, 0.05);
+    g.append("text").attr("class", "title").attr("y", -58).text("Wage by own-language density, Philadelphia");
+    g.append("text").attr("class", "note").attr("y", -44).attr("fill", K.muted).text(`${d3.format(",")(o.n)} workers with a non-English home language · 1 SD = ${o.sd_pp} points`);
+    g.append("text").attr("class", "note").attr("y", -30).attr("fill", K.muted).text("change from the group's level at the mean · bands: 95% slope interval");
+    const nt = g.append("text").attr("class", "note").attr("y", -14);
+    nt.append("tspan").attr("fill", K.tealDark).style("font-weight", 700).text(`proficient ${fp1(o.prof * 100)}% per SD (SE ${(o.prof_se * 100).toFixed(1)})`);
+    nt.append("tspan").attr("fill", K.muted).text("   ");
+    nt.append("tspan").attr("fill", K.orange).style("font-weight", 700).text(`limited English ${fp1(o.lim * 100)}% per SD (SE ${(o.lim_se * 100).toFixed(1)})`);
+    g.append("g").attr("class", "grid").call(d3.axisLeft(y).ticks(5).tickSize(-cw).tickFormat(""));
+    g.append("g").attr("class", "axis").call(d3.axisLeft(y).ticks(5).tickFormat(d => fp(d) + "%").tickSizeOuter(0)).select(".domain").remove();
+    const xa = g.append("g").attr("class", "axis").attr("transform", `translate(0,${ch})`).call(d3.axisBottom(x).tickValues([-1, 0, 1, 2]).tickFormat(d => d === 0 ? "mean" : fp(d) + " SD").tickSizeOuter(0));
+    xa.selectAll(".tick").append("text").attr("class", "note").attr("y", 27).attr("fill", K.muted).attr("text-anchor", "middle").text(d => (d === 0 ? "" : fp(d * o.sd_pp) + " points"));
+    g.append("line").attr("x1", 0).attr("x2", cw).attr("y1", y(0)).attr("y2", y(0)).attr("stroke", K.axis);
+    const draw = (b, se, col) => {
+      g.append("path").datum(pts).attr("d", d3.area().x(d => x(d)).y0(d => y(pct(b * d - 1.96 * se * Math.abs(d)))).y1(d => y(pct(b * d + 1.96 * se * Math.abs(d))))).attr("fill", col).attr("fill-opacity", 0.12);
+      g.append("path").datum(pts).attr("d", d3.line().x(d => x(d)).y(d => y(pct(b * d)))).attr("fill", "none").attr("stroke", col).attr("stroke-width", 2.8);
+    };
+    draw(o.lim, o.lim_se, K.orange); draw(o.prof, o.prof_se, K.teal);
+    halo(g.append("text").attr("class", "note").attr("x", 4).attr("y", 14).attr("fill", K.ink2).text(`interaction ${f3(o.inter)} (SE ${o.inter_se}) · within occupation ${f3(o.inter_occ)} (SE ${o.inter_occ_se})`));
+    // the selection check
+    const gs = svg.append("g").attr("transform", `translate(${rx},${ph + 40})`).style("opacity", 0);
+    (function () {
+      const rows = opts.sel, ml = 150, cws = rw - ml - 110;
+      gs.append("text").attr("class", "title").attr("y", 0).text("Do proficient leavers earn more than stayers?");
+      gs.append("text").attr("class", "note").attr("y", 16).attr("fill", K.muted).text("4,370 proficient workers with a non-English home language");
+      gs.append("text").attr("class", "note").attr("y", 30).attr("fill", K.muted).text("98 had left their prior migration area within the year · 95 percent intervals");
+      const xs = d3.scaleLinear().domain([-40, 40]).range([0, cws]), yb = d3.scaleBand().domain(rows.map(r => r.g)).range([44, 44 + rows.length * 32]).padding(0.4);
+      const gg = gs.append("g").attr("transform", `translate(${ml},0)`);
+      gg.append("g").attr("class", "axis").attr("transform", `translate(0,${yb.range()[1] + 2})`).call(d3.axisBottom(xs).ticks(5).tickFormat(d => fp(d) + "%").tickSizeOuter(0));
+      gg.append("line").attr("x1", xs(0)).attr("x2", xs(0)).attr("y1", 42).attr("y2", yb.range()[1] + 2).attr("stroke", K.ink);
+      const r = gg.selectAll("g.r").data(rows).join("g").attr("class", "r").attr("transform", d => `translate(0,${yb(d.g) + yb.bandwidth() / 2})`);
+      r.append("text").attr("class", "label").attr("x", -10).attr("dy", 4).attr("text-anchor", "end").text(d => d.g);
+      r.append("line").attr("x1", d => xs(Math.max(-40, d.v - 1.96 * d.se))).attr("x2", d => xs(Math.min(40, d.v + 1.96 * d.se))).attr("stroke", K.grey).attr("stroke-width", 3).attr("stroke-linecap", "round");
+      r.append("circle").attr("cx", d => xs(d.v)).attr("r", 5.5).attr("fill", K.tealDark).attr("stroke", "#fff");
+      r.append("text").attr("class", "note").attr("x", cws + 8).attr("dy", 4).attr("fill", K.ink2).text(d => `${fp(d.v)}% (SE ${d.se})`);
+    })();
+    function step(i) {
+      g.transition().duration(T).style("opacity", i === 0 ? 0.15 : i === 2 ? 0.35 : 1);
+      gm.transition().duration(T).style("opacity", i === 2 ? 0.35 : 1);
+      gs.transition().duration(T).style("opacity", i === 2 ? 1 : 0);
+    }
+    return { step, langs, setLang: l => (l === "paper" || !L ? paperView() : langView(l)) };
   };
 
   // ---------- chapter 10: Philadelphia against New York ----------
@@ -321,6 +333,102 @@
       items.forEach(o => { o.sel.select("circle").transition().duration(T).attr("stroke", on && o.t > 2.92 ? K.ink : "#fff").attr("stroke-width", on && o.t > 2.92 ? 3 : 1.5); o.sel.transition().duration(T).style("opacity", on && o.t <= 2.92 ? 0.3 : 1); });
     }
     function focus(idx) { B.forEach((b, i) => b.g.transition().duration(T).style("opacity", idx == null || idx.includes(i) ? 1 : 0.3)); }
-    return { bonferroni, focus, step(i) { focus(i === 0 ? [0, 1] : i === 1 ? [2] : [3]); bonferroni(i === 2); } };
+    return { bonferroni, focus, step(i) { focus(i === 0 ? [0, 1] : i === 1 ? [2] : i === 2 ? [3] : [4]); bonferroni(i === 2); } };
+  };
+
+  // ---------- chapter 11: cohorts over twelve years ----------
+  // opts: { width, height, cells, tab7 (Table 5 rows), fe: {b, se}, regionColor }
+  CH.cohortPanel = function (svg, opts) {
+    svg.selectAll("*").remove();
+    const w = opts.width, h = opts.height, RC = opts.regionColor;
+    const cells = opts.cells.map(d => ({ ...d, suburb_prop: +d.suburb_prop, median_hourly: +d.median_hourly, n: +d.n_unweighted }));
+    const cn = { pre1990: "before 1990", "1990s": "1990s", "2000s": "2000s", "2010s": "2010s" }, wn = s => s.replace("-", "–");
+    const sideW = Math.min(330, w * 0.38), m = { t: 54, r: sideW + 40, b: 56, l: 56 }, cw = w - m.l - m.r, ch = h - m.t - m.b;
+    const g = svg.append("g").attr("transform", `translate(${m.l},${m.t})`);
+    const x = d3.scaleLog().domain([14, 46]).range([0, cw]), y = d3.scaleLinear().domain([50, 90]).range([ch, 0]);
+    g.append("text").attr("class", "title").attr("y", -34).text("Sixteen cohort-by-region cells across three windows");
+    g.append("text").attr("class", "note").attr("y", -18).attr("fill", K.muted).text("2012–2016 → 2017–2021 → 2022–2024 · hollow start, filled end · thick: 2010s arrivals · hover a path or a row");
+    g.append("g").attr("class", "grid").call(d3.axisLeft(y).ticks(5).tickSize(-cw).tickFormat(""));
+    g.append("g").attr("class", "axis").call(d3.axisLeft(y).ticks(5).tickFormat(d => d + "%").tickSizeOuter(0)).select(".domain").remove();
+    g.append("g").attr("class", "axis").attr("transform", `translate(0,${ch})`).call(d3.axisBottom(x).tickValues([15, 20, 25, 30, 35, 40, 45]).tickFormat(d => "$" + d).tickSizeOuter(0));
+    g.append("text").attr("class", "label").attr("x", cw / 2).attr("y", ch + 40).attr("text-anchor", "middle").text("median hourly wage, 2024 dollars (log scale)");
+    g.append("text").attr("class", "label").attr("transform", `translate(-42,${ch / 2}) rotate(-90)`).attr("text-anchor", "middle").text("percent living outside Philadelphia County");
+    // cell fixed-effects slope, drawn through the population-weighted mean for scale
+    const mx = d3.sum(cells, d => d.pop * Math.log(d.median_hourly)) / d3.sum(cells, d => d.pop), my = d3.sum(cells, d => d.pop * d.suburb_prop) / d3.sum(cells, d => d.pop);
+    const fe = opts.fe, feG = g.append("g");
+    const lx = [Math.log(18), Math.log(42)];
+    feG.append("path").datum(lx).attr("d", d3.area().x(d => x(Math.exp(d))).y0(d => y(my + (fe.b - 1.96 * fe.se) * (d - mx))).y1(d => y(my + (fe.b + 1.96 * fe.se) * (d - mx)))).attr("fill", K.grey).attr("fill-opacity", 0.07);
+    feG.append("line").attr("x1", x(18)).attr("x2", x(42)).attr("y1", y(my + fe.b * (lx[0] - mx))).attr("y2", y(my + fe.b * (lx[1] - mx))).attr("stroke", K.ink2).attr("stroke-width", 1.2).attr("stroke-dasharray", "5 4");
+    halo(feG.append("text").attr("class", "note").attr("x", 4).attr("y", ch - 20).attr("text-anchor", "start").attr("fill", K.ink2).text(`dashed: cell fixed-effects slope, ${fe.b} points per log point of wage (SE ${fe.se})`));
+    halo(feG.append("text").attr("class", "note").attr("x", 4).attr("y", ch - 6).attr("text-anchor", "start").attr("fill", K.muted).text("grey: its 95 percent interval, about −11 to +31 · drawn through the weighted mean for scale"));
+    // paths
+    const byCell = d3.groups(cells, d => d.cell).map(([k, v]) => ({ k, region: v[0].region, cohort: v[0].cohort, pts: v.sort((a, b) => a.window.localeCompare(b.window)) }));
+    const line = d3.line().x(d => x(d.median_hourly)).y(d => y(d.suburb_prop)).curve(d3.curveCatmullRom.alpha(0.5));
+    const pathG = g.append("g"), ptG = g.append("g");
+    const paths = pathG.selectAll("path").data(byCell).join("path").attr("fill", "none").attr("stroke", d => RC[d.region]).attr("stroke-width", d => d.cohort === "2010s" ? 3 : 1.6).attr("stroke-opacity", 0.85).attr("d", d => line(d.pts)).style("cursor", "pointer");
+    const pts = ptG.selectAll("circle").data(cells).join("circle").attr("cx", d => x(d.median_hourly)).attr("cy", d => y(d.suburb_prop)).attr("r", d => d.window === "2012-2016" || (d.cohort === "2010s" && d.window === "2017-2021") ? 4 : d.window === "2022-2024" ? 4.5 : 2.5)
+      .attr("fill", d => d.window === "2022-2024" ? RC[d.region] : "#fff").attr("stroke", d => RC[d.region]).attr("stroke-width", 1.6).style("cursor", "pointer");
+    const tipTxt = d => `<b>${d.region}, arrived ${cn[d.cohort]}</b><br>${cells.filter(c => c.cell === d.cell).sort((a, b) => a.window.localeCompare(b.window)).map(p => `${wn(p.window)}: ${d3.format("$.0f")(p.median_hourly)}, ${p.suburb_prop.toFixed(0)}% outside the city, n = ${d3.format(",")(p.n)}`).join("<br>")}`;
+    hover(paths, d => tipTxt(d.pts[0])); hover(pts, tipTxt);
+    function focusCell(k) {
+      paths.transition().duration(200).attr("stroke-opacity", d => !k || d.k === k ? (k ? 1 : 0.85) : 0.1);
+      pts.transition().duration(200).style("opacity", d => !k || d.cell === k ? 1 : 0.1);
+    }
+    paths.on("mouseenter", (ev, d) => { focusCell(d.k); rowFocus(d.region); }).on("mouseleave", () => { focusCell(null); rowFocus(null); });
+    pts.on("mouseenter", (ev, d) => { focusCell(d.cell); rowFocus(d.region); }).on("mouseleave", () => { focusCell(null); rowFocus(null); });
+    // legend
+    const leg = g.append("g").attr("transform", `translate(8,8)`);
+    Object.entries(RC).forEach(([k, c], i) => { leg.append("line").attr("x1", 0).attr("x2", 16).attr("y1", i * 16).attr("y2", i * 16).attr("stroke", c).attr("stroke-width", 2.5); leg.append("text").attr("class", "note").attr("x", 22).attr("y", i * 16 + 4).text(k); });
+    // right side: duration-matched comparison, two blocks from Table 5
+    const side = svg.append("g").attr("transform", `translate(${m.l + cw + 40},${m.t})`);
+    const parse = c => { const a = c.match(/([−-]?[\d.]+) \(([−-]?[\d.]+) to ([−-]?[\d.]+)\)/); return a ? { v: +a[1].replace("−", "-"), lo: +a[2].replace("−", "-"), hi: +a[3].replace("−", "-") } : null; };
+    const pd = c => { const a = c.match(/([−-]?[\d.]+) \(([\d.]+)\)/); return { d: +a[1].replace("−", "-"), se: +a[2] }; };
+    const blocks = [
+      { title: "2010s arrivals against 2000s arrivals at matched duration", sub: "2000s cohort in 2012–2016 (hollow) vs 2010s cohort in 2022–2024 (filled)", a: [1, "2000s", "2012-2016"], b: [2, "2010s", "2022-2024"], di: 3 },
+      { title: "One step earlier: 2000s against 1990s", sub: "1990s cohort in 2012–2016 (hollow) vs 2000s cohort in 2022–2024 (filled)", a: [4, "1990s", "2012-2016"], b: [5, "2000s", "2022-2024"], di: 6 }
+    ];
+    const xs = d3.scaleLinear().domain([44, 82]).range([0, sideW - 100]);
+    const rowsAll = [];
+    blocks.forEach((b, bi) => {
+      const bg = side.append("g").attr("transform", `translate(0,${bi * (ch / 2 + 10)})`); b.g = bg;
+      bg.append("text").attr("class", "label").style("font-weight", 700).attr("y", 0).text(b.title);
+      bg.append("text").attr("class", "note").attr("y", 15).attr("fill", K.muted).text(b.sub);
+      const rows = opts.tab7.map(r => ({ region: r[0], a: parse(r[b.a[0]]), b: parse(r[b.b[0]]), diff: pd(r[b.di]), ca: b.a, cb: b.b }));
+      const yb = d3.scaleBand().domain(rows.map(r => r.region)).range([28, 28 + rows.length * 34]).padding(0.35);
+      bg.append("g").attr("class", "axis").attr("transform", `translate(0,${yb.range()[1] + 4})`).call(d3.axisBottom(xs).ticks(5).tickFormat(d => d + "%").tickSizeOuter(0));
+      const rg = bg.selectAll("g.r").data(rows).join("g").attr("class", "r").attr("transform", d => `translate(0,${yb(d.region) + yb.bandwidth() / 2})`).style("cursor", "pointer");
+      rg.append("text").attr("class", "note").attr("x", 0).attr("y", -9).attr("fill", d => RC[d.region]).style("font-weight", 700).text(d => d.region);
+      rg.append("line").attr("x1", d => xs(d.a.lo)).attr("x2", d => xs(d.a.hi)).attr("stroke", K.grey2).attr("stroke-width", 2);
+      rg.append("line").attr("x1", d => xs(d.b.lo)).attr("x2", d => xs(d.b.hi)).attr("y1", 4).attr("y2", 4).attr("stroke", d => RC[d.region]).attr("stroke-width", 2).attr("stroke-opacity", 0.5);
+      rg.append("line").attr("x1", d => xs(d.a.v)).attr("x2", d => xs(d.b.v)).attr("y1", 2).attr("y2", 2).attr("stroke", d => RC[d.region]).attr("stroke-width", 3);
+      rg.append("circle").attr("cx", d => xs(d.a.v)).attr("r", 5).attr("fill", "#fff").attr("stroke", d => RC[d.region]).attr("stroke-width", 2);
+      rg.append("circle").attr("cx", d => xs(d.b.v)).attr("cy", 4).attr("r", 5).attr("fill", d => RC[d.region]).attr("stroke", "#fff");
+      halo(rg.append("text").attr("class", "note").attr("x", d => xs(Math.max(d.a.hi, d.b.hi)) + 6).attr("y", 5).style("font-weight", 700).attr("fill", d => Math.abs(d.diff.d / d.diff.se) >= 1.96 ? K.orange : K.ink2).text(d => `${d.diff.d > 0 ? "+" : ""}${d.diff.d} (SE ${d.diff.se})`));
+      hover(rg, d => `<b>${d.region}</b><br>${cn[d.ca[1]]} cohort in ${wn(d.ca[2])}: ${d.a.v}% outside the city (${d.a.lo} to ${d.a.hi})<br>${cn[d.cb[1]]} cohort in ${wn(d.cb[2])}: ${d.b.v}% (${d.b.lo} to ${d.b.hi})<br>difference ${d.diff.d > 0 ? "+" : ""}${d.diff.d} points, SE ${d.diff.se}`);
+      rg.on("mouseenter", (ev, d) => pairFocus(d)).on("mouseleave", () => pairFocus(null));
+      rows.forEach(r => { r.sel = rg.filter(q => q === r); rowsAll.push(r); });
+    });
+    const link = g.append("g").attr("pointer-events", "none");
+    function pairFocus(d) {
+      link.selectAll("*").remove();
+      if (!d) { focusCell(null); rowFocus(null); return; }
+      const A = cells.find(c => c.region === d.region && c.cohort === d.ca[1] && c.window === d.ca[2]), B = cells.find(c => c.region === d.region && c.cohort === d.cb[1] && c.window === d.cb[2]);
+      paths.transition().duration(150).attr("stroke-opacity", 0.08); pts.transition().duration(150).style("opacity", c => c === A || c === B ? 1 : 0.08);
+      if (A && B) { link.append("line").attr("x1", x(A.median_hourly)).attr("y1", y(A.suburb_prop)).attr("x2", x(B.median_hourly)).attr("y2", y(B.suburb_prop)).attr("stroke", RC[d.region]).attr("stroke-width", 2.5).attr("stroke-dasharray", "4 3");
+        [[A, cn[d.ca[1]] + " in " + wn(d.ca[2])], [B, cn[d.cb[1]] + " in " + wn(d.cb[2])]].forEach(([c, t]) => halo(link.append("text").attr("class", "note").attr("x", x(c.median_hourly) + 8).attr("y", y(c.suburb_prop) - 8).style("font-weight", 700).attr("fill", RC[d.region]).text(t))); }
+    }
+    function rowFocus(region) { rowsAll.forEach(r => r.sel.transition().duration(150).style("opacity", !region || r.region === region ? 1 : 0.25)); }
+    function step(i) {
+      blocks.forEach((b, bi) => b.g.transition().duration(T).style("opacity", i === 0 ? 0.25 : (i === 1 ? bi === 0 : bi === 1) ? 1 : 0.25));
+      feG.transition().duration(T).style("opacity", i === 0 ? 1 : 0.25);
+      link.selectAll("*").remove();
+      if (i === 0) { paths.transition().duration(T).attr("stroke-opacity", 0.85); pts.transition().duration(T).style("opacity", 1); }
+      else { const ca = i === 1 ? ["2000s", "2012-2016"] : ["1990s", "2012-2016"], cb = i === 1 ? ["2010s", "2022-2024"] : ["2000s", "2022-2024"];
+        const keep = c => (c.cohort === ca[0] && c.window === ca[1]) || (c.cohort === cb[0] && c.window === cb[1]);
+        paths.transition().duration(T).attr("stroke-opacity", d => d.cohort === cb[0] || d.cohort === ca[0] ? 0.5 : 0.08); pts.transition().duration(T).style("opacity", c => keep(c) ? 1 : 0.1);
+        Object.keys(RC).forEach(rg => { const A = cells.find(c => c.region === rg && c.cohort === ca[0] && c.window === ca[1]), B = cells.find(c => c.region === rg && c.cohort === cb[0] && c.window === cb[1]);
+          if (A && B) link.append("line").attr("x1", x(A.median_hourly)).attr("y1", y(A.suburb_prop)).attr("x2", x(B.median_hourly)).attr("y2", y(B.suburb_prop)).attr("stroke", RC[rg]).attr("stroke-width", 2).attr("stroke-dasharray", "4 3"); }); }
+    }
+    return { step };
   };
 })();
